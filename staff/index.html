@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal - Couture dé Cywila</title>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1200px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center}.logout-btn{padding:0.8rem 1.5rem;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;width:auto}.login-form{max-width:500px;margin:3rem auto;background:#16213e;padding:2rem;border-radius:12px}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem;font-weight:600}.form-group input,.form-group select{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem;width:auto;margin:0.2rem 0.2rem 0 0}.btn-success{background:#10b981}.task-item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.task-item.tier-EXPRESS{border-left-color:#ef4444}.task-item.tier-PREMIUM{border-left-color:#d946ef}.task-item.tier-STANDARD{border-left-color:#06b6d4}.task-item.tier-BASIC{border-left-color:#6b7280}.task-item p{color:#999;font-size:0.9rem;margin:0.25rem 0}.tier-badge{display:inline-block;padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;font-weight:600}.tier-EXPRESS{background:#ef4444;color:white}.tier-PREMIUM{background:#d946ef;color:white}.tier-STANDARD{background:#06b6d4;color:white}.tier-BASIC{background:#6b7280;color:white}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.error-msg{color:#ef4444;font-size:0.9rem;margin-top:0.5rem}.success-msg{color:#10b981;font-size:0.9rem;margin-top:0.5rem}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="loginSection" class="login-form">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;text-align:center;">👨‍💼 Staff Portal</h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="staffUsername" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label>PIN</label>
+            <input type="password" id="staffPin" placeholder="Enter PIN">
+        </div>
+        <button class="btn" onclick="staffLogin()">Login</button>
+        <div id="loginError"></div>
+    </div>
+
+    <div id="staffPortal" style="display:none">
+        <div class="header">
+            <div><h1>👨‍💼 Staff Portal</h1><p id="staffGreeting" style="font-size:0.9rem;margin-top:0.5rem;"></p></div>
+            <button class="logout-btn" onclick="staffLogout()">Logout</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tasks')">📋 My Tasks</button>
+            <button class="tab-btn" onclick="switchTab('earnings')">💰 Earnings</button>
+            <button class="tab-btn" onclick="switchTab('performance')">📊 Performance</button>
+        </div>
+
+        <!-- TASKS TAB -->
+        <div id="tab-tasks" class="tab-content active">
+            <h2 style="color:var(--primary);margin-bottom:1.5rem;">📋 My Tasks</h2>
+            <div class="card">
+                <h3>Tasks by Priority (Tier-Based)</h3>
+                <p style="color:#999;margin-bottom:1rem;">🔴 EXPRESS orders are highest priority • 💎 PREMIUM next • 🎨 STANDARD normal • 📦 BASIC lowest</p>
+                <div id="tasksDisplay"></div>
+            </div>
+        </div>
+
+        <!-- EARNINGS TAB -->
+        <div id="tab-earnings" class="tab-content">
+            <h2 style="color:var(--primary);margin-bottom:1.5rem;">💰 My Earnings</h2>
+            <div class="stat-box">
+                <p style="color:#999;">Total Earnings (This Month)</p>
+                <strong id="totalEarnings">₦0</strong>
+            </div>
+            <div class="stat-box">
+                <p style="color:#999;">Commission Rate</p>
+                <strong id="commissionRate">0%</strong>
+            </div>
+            <div class="card">
+                <h3>Earnings Breakdown</h3>
+                <div id="earningsDisplay"></div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE TAB -->
+        <div id="tab-performance" class="tab-content">
+            <h2 style="color:var(--primary);margin-bottom:1.5rem;">📊 My Performance</h2>
+            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
+                <div class="stat-box">
+                    <p style="color:#999;">Tasks Completed</p>
+                    <strong id="completedTasks">0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color:#999;">Completion Rate</p>
+                    <strong id="completionRate">0%</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color:#999;">Avg Time per Task</p>
+                    <strong id="avgTime">—</strong>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Tier-Based Performance</h3>
+                <div id="performanceDisplay"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var staffUsers = JSON.parse(localStorage.getItem('app_users_v1')) || [];
+var currentStaff = null;
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
+
+function staffLogin(){
+    var username = document.getElementById('staffUsername').value.trim();
+    var pin = document.getElementById('staffPin').value.trim();
+    if(!username||!pin){
+        document.getElementById('loginError').innerHTML = '<span class="error-msg">Enter username and PIN</span>';
+        return;
+    }
+    var user = staffUsers.find(u => u.username === username && u.pin === pin && u.status === 'Active' && (u.role === 'Staff' || u.role === 'Manager'));
+    if(!user){
+        document.getElementById('loginError').innerHTML = '<span class="error-msg">Invalid credentials</span>';
+        return;
+    }
+    currentStaff = user;
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('staffPortal').style.display = 'block';
+    document.getElementById('staffGreeting').textContent = 'Welcome back, ' + user.username + '! ('+user.role+')';
+    loadTasks();
+    loadEarnings();
+    loadPerformance();
+}
+
+function staffLogout(){
+    currentStaff = null;
+    location.reload();
+}
+
+function loadTasks(){
+    var html = '';
+    var tiers = ['EXPRESS','PREMIUM','STANDARD','BASIC'];
+    tiers.forEach(tierKey => {
+        var tierOrders = couture_orders.filter(o => o.tierId === tierKey && o.status !== 'Delivered');
+        if(tierOrders.length === 0) return;
+        html += '<h4 style="color:var(--primary);margin:1.5rem 0 0.5rem;font-weight:600">'+serviceTiers[tierKey].displayName+' Orders ('+tierOrders.length+')</h4>';
+        tierOrders.forEach(order => {
+            html += '<div class="task-item tier-'+tierKey+'"><div><strong>'+order.orderId+'</strong> <span class="tier-badge tier-'+tierKey+'">'+order.tierName+'</span></div><p>Customer: '+order.customerId+'</p><p>Status: '+order.status+'</p><p>Delivery: '+new Date(order.expectedDeliveryDate).toLocaleDateString()+'</p><button class="btn-sm btn btn-success" onclick="completeTask(\''+order.orderId+'\')">Mark Complete</button></div>';
+        });
+    });
+    document.getElementById('tasksDisplay').innerHTML = html || '<p style="color:#999;">No tasks assigned</p>';
+}
+
+function completeTask(orderId){
+    var order = couture_orders.find(o => o.orderId === orderId);
+    if(!order) return;
+    order.status = 'Completed';
+    localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+    loadTasks();
+    loadEarnings();
+    loadPerformance();
+    alert('Task marked as complete!');
+}
+
+function loadEarnings(){
+    var commissionRate = 10;
+    document.getElementById('commissionRate').textContent = commissionRate + '%';
+    var completedOrders = couture_orders.filter(o => o.status === 'Completed');
+    var totalEarnings = completedOrders.reduce((sum,o) => sum + Math.floor(o.total * commissionRate / 100), 0);
+    document.getElementById('totalEarnings').textContent = '₦' + totalEarnings;
+    
+    var html = '';
+    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tierKey => {
+        var tierCompleted = completedOrders.filter(o => o.tierId === tierKey);
+        var tierEarnings = tierCompleted.reduce((sum,o) => sum + Math.floor(o.total * commissionRate / 100), 0);
+        if(tierCompleted.length === 0) return;
+        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px"><strong>'+serviceTiers[tierKey].displayName+'</strong><p style="color:#999;font-size:0.9rem">'+tierCompleted.length+' orders completed</p><p style="color:var(--gold);font-weight:600">Earnings: ₦'+tierEarnings+'</p></div>';
+    });
+    document.getElementById('earningsDisplay').innerHTML = html || '<p style="color:#999;">No earnings yet</p>';
+}
+
+function loadPerformance(){
+    var completedOrders = couture_orders.filter(o => o.status === 'Completed');
+    var allOrders = couture_orders.length;
+    var completionRate = allOrders > 0 ? Math.floor(completedOrders.length / allOrders * 100) : 0;
+    
+    document.getElementById('completedTasks').textContent = completedOrders.length;
+    document.getElementById('completionRate').textContent = completionRate + '%';
+    
+    var html = '';
+    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tierKey => {
+        var tierAll = couture_orders.filter(o => o.tierId === tierKey);
+        var tierCompleted = tierAll.filter(o => o.status === 'Completed');
+        var tierRate = tierAll.length > 0 ? Math.floor(tierCompleted.length / tierAll.length * 100) : 0;
+        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px"><strong>'+serviceTiers[tierKey].displayName+':</strong> '+tierRate+'% complete ('+tierCompleted.length+'/'+tierAll.length+')</div>';
+    });
+    document.getElementById('performanceDisplay').innerHTML = html || '<p style="color:#999;">No data</p>';
+}
+
+function switchTab(tabName){
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

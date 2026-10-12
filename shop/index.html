@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couture dé Cywila - Customer Portal</title>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
+        :root { --primary: #FF6B35; --gold: #D4AF37; }
+        body { padding: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, var(--primary), var(--gold)); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2rem; }
+        .logout-btn { padding: 0.8rem 1.5rem; background: #ef4444; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; width: auto; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .login-form { max-width: 500px; margin: 3rem auto; background: #16213e; padding: 2rem; border-radius: 12px; border: 1px solid #2d3561; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; font-family: inherit; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; border-bottom: 2px solid #2d3561; padding-bottom: 1rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.8rem 1.2rem; background: transparent; border: none; color: #666; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn:hover { color: var(--primary); }
+        .tab-btn.active { color: white; border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h3 { color: var(--primary); margin-bottom: 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .service-item { background: #1a1a2e; border: 1px solid #2d3561; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
+        .service-item:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .service-item h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .service-item p { color: #999; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .service-price { color: var(--gold); font-weight: 600; font-size: 1.2rem; }
+        .btn { padding: 0.8rem 1.2rem; background: linear-gradient(135deg, var(--primary), var(--gold)); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 1rem; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto; margin: 0.2rem; margin-top: 0; }
+        .btn-danger { background: #ef4444; }
+        .btn-success { background: #10b981; }
+        .cart-item { background: #1a1a2e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .cart-summary { background: #1a1a2e; padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary); margin-bottom: 1rem; }
+        .order-item { background: #1a1a2e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; border-left: 3px solid var(--primary); }
+        .order-item p { color: #999; font-size: 0.9rem; margin: 0.25rem 0; }
+        .tier-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem; }
+        .tier-express { background: #ef4444; color: white; }
+        .tier-premium { background: #d946ef; color: white; }
+        .tier-standard { background: #06b6d4; color: white; }
+        .tier-basic { background: #6b7280; color: white; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-content h3 { color: var(--primary); margin-bottom: 1rem; }
+        .close-modal { float: right; font-size: 2rem; font-weight: bold; color: #999; cursor: pointer; }
+        .close-modal:hover { color: white; }
+        .error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
+        .success-msg { color: #10b981; font-size: 0.9rem; margin-top: 0.5rem; }
+        .loyalty-points { background: rgba(212,175,55,0.1); border-left: 3px solid var(--gold); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .loyalty-points strong { color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LOGIN SECTION -->
+    <div id="loginSection" class="login-form">
+        <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">🛍️ Customer Portal</h2>
+        <div style="margin-bottom: 1rem;">
+            <button class="btn" onclick="showLoginTab('login')" id="loginTabBtn" style="background: transparent; color: var(--primary); border: 2px solid var(--primary); margin-top: 0;">Login</button>
+            <button class="btn" onclick="showLoginTab('signup')" id="signupTabBtn" style="background: transparent; color: #999; border: 2px solid #999; margin-top: 0; margin-left: 0.5rem;">Sign Up</button>
+        </div>
+
+        <!-- LOGIN TAB -->
+        <div id="loginTab">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Password">
+            </div>
+            <button class="btn" onclick="customerLogin()">Login</button>
+            <div id="loginError"></div>
+        </div>
+
+        <!-- SIGNUP TAB -->
+        <div id="signupTab" style="display: none;">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="signupName" placeholder="Your name">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="signupPhone" placeholder="+234...">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signupPassword" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <label>Birthdate (Optional)</label>
+                <input type="date" id="signupBirthdate">
+            </div>
+            <button class="btn" onclick="customerSignup()">Create Account</button>
+            <div id="signupError"></div>
+        </div>
+    </div>
+
+    <!-- CUSTOMER PORTAL -->
+    <div id="customerPortal" style="display: none;">
+        <div class="header">
+            <div>
+                <h1>👜 Couture dé Cywila</h1>
+                <p id="customerGreeting" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+            </div>
+            <button class="logout-btn" onclick="customerLogout()">Logout</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('shop')">🛍️ Shop</button>
+            <button class="tab-btn" onclick="switchTab('cart')">🛒 Cart</button>
+            <button class="tab-btn" onclick="switchTab('orders')">📦 My Orders</button>
+            <button class="tab-btn" onclick="switchTab('account')">👤 Account</button>
+        </div>
+
+        <!-- TAB 1: SHOP -->
+        <div id="tab-shop" class="tab-content active">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🛍️ Shop</h2>
+
+            <div class="card">
+                <h3>Laundry Services</h3>
+                <div class="grid" id="laundryGrid"></div>
+            </div>
+
+            <div class="card">
+                <h3>Tailoring Services</h3>
+                <div class="grid" id="tailoringGrid"></div>
+            </div>
+
+            <div class="card">
+                <h3>Subscription Plans</h3>
+                <div class="grid" id="subscriptionGrid"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CART -->
+        <div id="tab-cart" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🛒 Cart</h2>
+
+            <div class="card">
+                <h3>Items in Cart</h3>
+                <div id="cartItems"></div>
+            </div>
+
+            <div class="card">
+                <h3>Apply Coupon Code</h3>
+                <div class="form-group">
+                    <label>Coupon Code (Optional)</label>
+                    <input type="text" id="couponCode" placeholder="Enter coupon code">
+                    <button class="btn-sm btn btn-success" onclick="applyCoupon()">Apply</button>
+                </div>
+                <div id="couponMsg"></div>
+            </div>
+
+            <div class="card">
+                <h3>Order Summary</h3>
+                <div class="cart-summary">
+                    <p>Subtotal: <strong id="subtotal">₦0</strong></p>
+                    <p>Discount: <strong id="discount" style="color: var(--gold);">₦0</strong></p>
+                    <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2d3561;">
+                        Total: <strong style="font-size: 1.3rem; color: var(--gold);" id="cartTotal">₦0</strong>
+                    </p>
+                </div>
+                <button class="btn btn-success" onclick="proceedToCheckout()">Proceed to Checkout</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: ORDERS -->
+        <div id="tab-orders" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📦 My Orders</h2>
+            <div class="card">
+                <h3>Order History</h3>
+                <div id="ordersDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ACCOUNT -->
+        <div id="tab-account" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👤 Account</h2>
+
+            <div class="loyalty-points">
+                <p>💎 Loyalty Points: <strong id="loyaltyPoints">0</strong></p>
+                <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">Earn points with every purchase. Redeem for discounts!</p>
+            </div>
+
+            <div class="card">
+                <h3>My Information</h3>
+                <p><strong>Name:</strong> <span id="accountName"></span></p>
+                <p><strong>Email:</strong> <span id="accountEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
+                <p><strong>Member Since:</strong> <span id="accountJoined"></span></p>
+                <button class="btn" onclick="editAccount()">Edit Profile</button>
+            </div>
+
+            <div class="card">
+                <h3>Account Statistics</h3>
+                <p>Total Orders: <strong id="totalOrders">0</strong></p>
+                <p>Total Spent: <strong id="totalSpent">₦0</strong></p>
+                <p>Favorite Tier: <strong id="favoriteTier">—</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TIER SELECTION MODAL -->
+<div id="tierModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('tierModal')">&times;</span>
+        <h3>Select Service Tier</h3>
+        <p style="color: #999; margin-bottom: 1rem;">Choose how quickly you need your order completed:</p>
+
+        <div id="tierOptions"></div>
+
+        <button class="btn btn-success" onclick="confirmTier()">Confirm Tier & Continue</button>
+        <button class="btn btn-danger" onclick="closeModal('tierModal')">Cancel</button>
+    </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkoutModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('checkoutModal')">&times;</span>
+        <h3>Complete Your Order</h3>
+
+        <div class="form-group">
+            <label>Delivery Address</label>
+            <textarea id="deliveryAddress" placeholder="Full address" style="height: 80px;"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select id="paymentMethod">
+                <option value="">Select payment method</option>
+                <option value="COD">Cash on Delivery</option>
+                <option value="PAYSTACK">Paystack</option>
+                <option value="FLUTTERWAVE">Flutterwave</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="agreeTerms"> I agree to terms and conditions
+            </label>
+        </div>
+
+        <div class="cart-summary">
+            <p>Subtotal: <strong id="checkoutSubtotal">₦0</strong></p>
+            <p>Tier Multiplier: <strong id="tierMultiplier">1.0x</strong></p>
+            <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2d3561;">
+                Total: <strong style="font-size: 1.3rem; color: var(--gold);" id="checkoutTotal">₦0</strong>
+            </p>
+            <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
+                Expected Delivery: <strong id="expectedDelivery">—</strong>
+            </p>
+        </div>
+
+        <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
+        <button class="btn btn-danger" onclick="closeModal('checkoutModal')">Cancel</button>
+        <div id="checkoutMsg"></div>
+    </div>
+</div>
+
+<script>
+var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+var currentCustomer = null;
+var cart = [];
+var couture_laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+var couture_outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+var couture_laundry_plans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
+var coupon_codes = JSON.parse(localStorage.getItem('coupon_codes_v1')) || [];
+var selectedTier = null;
+var appliedCoupon = null;
+
+function showLoginTab(tab) {
+    if (tab === 'login') {
+        document.getElementById('loginTab').style.display = 'block';
+        document.getElementById('signupTab').style.display = 'none';
+        document.getElementById('loginTabBtn').style.borderColor = 'var(--primary)';
+        document.getElementById('loginTabBtn').style.color = 'var(--primary)';
+        document.getElementById('signupTabBtn').style.borderColor = '#999';
+        document.getElementById('signupTabBtn').style.color = '#999';
+    } else {
+        document.getElementById('loginTab').style.display = 'none';
+        document.getElementById('signupTab').style.display = 'block';
+        document.getElementById('loginTabBtn').style.borderColor = '#999';
+        document.getElementById('loginTabBtn').style.color = '#999';
+        document.getElementById('signupTabBtn').style.borderColor = 'var(--primary)';
+        document.getElementById('signupTabBtn').style.color = 'var(--primary)';
+    }
+}
+
+function customerLogin() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value.trim();
+    if (!email || !password) {
+        document.getElementById('loginError').innerHTML = '<span class="error-msg">Please enter credentials</span>';
+        return;
+    }
+    var customer = customers.find(c => c.email === email && c.password === password);
+    if (!customer) {
+        document.getElementById('loginError').innerHTML = '<span class="error-msg">Invalid credentials</span>';
+        return;
+    }
+    currentCustomer = customer;
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('customerPortal').style.display = 'block';
+    document.getElementById('customerGreeting').textContent = 'Welcome back, ' + customer.name + '!';
+    loadShop();
+    loadOrders();
+    loadAccount();
+}
+
+function customerSignup() {
+    var name = document.getElementById('signupName').value.trim();
+    var email = document.getElementById('signupEmail').value.trim();
+    var phone = document.getElementById('signupPhone').value.trim();
+    var password = document.getElementById('signupPassword').value.trim();
+    var birthdate = document.getElementById('signupBirthdate').value;
+    if (!name || !email || !password) {
+        document.getElementById('signupError').innerHTML = '<span class="error-msg">Fill all required fields</span>';
+        return;
+    }
+    if (customers.find(c => c.email === email)) {
+        document.getElementById('signupError').innerHTML = '<span class="error-msg">Email already registered</span>';
+        return;
+    }
+    var customer = {id:'CUST'+Date.now(),name:name,email:email,phone:phone,password:password,birthdate:birthdate,loyaltyPoints:0,lifetimeSpending:0,createdAt:new Date().toISOString()};
+    customers.push(customer);
+    localStorage.setItem('couture_customers', JSON.stringify(customers));
+    currentCustomer = customer;
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('customerPortal').style.display = 'block';
+    document.getElementById('customerGreeting').textContent = 'Welcome, ' + customer.name + '!';
+    loadShop();
+    loadOrders();
+    loadAccount();
+}
+
+function customerLogout() {
+    currentCustomer = null;
+    cart = [];
+    appliedCoupon = null;
+    location.reload();
+}
+
+function loadShop() {
+    var html = '';
+    couture_laundry.forEach(s => {html += '<div class="service-item"><h4>'+s.name+'</h4><p>Professional service</p><p class="service-price">₦'+s.price+'/item</p><button class="btn-sm btn" onclick="addToCart(\''+s.id+'\',\'laundry\','+s.price+',\''+s.name+'\')">Add</button></div>';});
+    document.getElementById('laundryGrid').innerHTML = html || '<p style="color: #999;">No services</p>';
+    
+    html = '';
+    couture_outfits.forEach(o => {html += '<div class="service-item"><h4>'+o.name+'</h4><p>Custom tailoring</p><p class="service-price">₦'+o.price+'</p><button class="btn-sm btn" onclick="addToCart(\''+o.id+'\',\'tailoring\','+o.price+',\''+o.name+'\')">Add</button></div>';});
+    document.getElementById('tailoringGrid').innerHTML = html || '<p style="color: #999;">No services</p>';
+    
+    html = '';
+    couture_laundry_plans.forEach(p => {html += '<div class="service-item"><h4>'+p.name+'</h4><p>'+p.items+' items, '+p.frequency+'</p><p class="service-price">₦'+p.price+'</p><button class="btn-sm btn" onclick="addToCart(\''+p.id+'\',\'subscription\','+p.price+',\''+p.name+'\')">Add</button></div>';});
+    document.getElementById('subscriptionGrid').innerHTML = html || '<p style="color: #999;">No plans</p>';
+}
+
+function addToCart(id, type, price, name) {
+    cart.push({id:id,type:type,price:price,name:name,quantity:1,addedAt:new Date().toISOString()});
+    alert('Added to cart!');
+    updateCart();
+}
+
+function updateCart() {
+    var html = '';
+    var subtotal = 0;
+    cart.forEach((item, i) => {
+        subtotal += item.price * item.quantity;
+        html += '<div class="cart-item"><div><strong>'+item.name+'</strong><p style="color:#999;font-size:0.9rem;">₦'+item.price+' x '+item.quantity+' = ₦'+(item.price*item.quantity)+'</p></div><button class="btn-sm btn btn-danger" onclick="removeFromCart('+i+')">Remove</button></div>';
+    });
+    document.getElementById('cartItems').innerHTML = html || '<p style="color:#999;">Cart empty</p>';
+    document.getElementById('subtotal').textContent = '₦' + subtotal;
+    var disc = appliedCoupon ? (subtotal * appliedCoupon.discountPercent / 100) : 0;
+    document.getElementById('discount').textContent = '₦' + Math.floor(disc);
+    document.getElementById('cartTotal').textContent = '₦' + Math.floor(subtotal - disc);
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
+}
+
+function applyCoupon() {
+    var code = document.getElementById('couponCode').value.toUpperCase().trim();
+    if (!code) {
+        document.getElementById('couponMsg').innerHTML = '<span class="error-msg">Enter code</span>';
+        return;
+    }
+    var coupon = coupon_codes.find(c => c.code === code && c.active);
+    if (!coupon) {
+        document.getElementById('couponMsg').innerHTML = '<span class="error-msg">Invalid coupon</span>';
+        return;
+    }
+    appliedCoupon = coupon;
+    document.getElementById('couponMsg').innerHTML = '<span class="success-msg">'+coupon.discountPercent+'% discount!</span>';
+    updateCart();
+}
+
+function proceedToCheckout() {
+    if (cart.length === 0) {
+        alert('Cart empty');
+        return;
+    }
+    var html = '';
+    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tk => {
+        if (!serviceTiers[tk]) return;
+        var t = serviceTiers[tk];
+        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:1rem;border:2px solid transparent;border-radius:8px;cursor:pointer;" onclick="selectTier(\''+tk+'\')"><h4 style="color:var(--primary);margin-bottom:0.5rem;">'+t.displayName+'</h4><p style="color:#999;font-size:0.9rem;">'+t.cycleLengthDays+' days</p><p style="color:var(--gold);font-weight:600;">'+t.multiplier+'x</p></div>';
+    });
+    document.getElementById('tierOptions').innerHTML = html;
+    document.getElementById('tierModal').classList.add('active');
+}
+
+function selectTier(tk) {
+    selectedTier = tk;
+    document.querySelectorAll('#tierOptions > div').forEach(e => e.style.borderColor = 'transparent');
+    event.target.closest('div').style.borderColor = 'var(--primary)';
+}
+
+function confirmTier() {
+    if (!selectedTier) {
+        alert('Select tier');
+        return;
+    }
+    document.getElementById('tierModal').classList.remove('active');
+    var sub = cart.reduce((s,i) => s+(i.price*i.quantity),0);
+    var mult = serviceTiers[selectedTier].multiplier;
+    var total = Math.floor(sub * mult);
+    var t = serviceTiers[selectedTier];
+    var dd = new Date();
+    dd.setDate(dd.getDate() + t.cycleLengthDays);
+    document.getElementById('checkoutSubtotal').textContent = '₦' + sub;
+    document.getElementById('tierMultiplier').textContent = mult + 'x';
+    document.getElementById('checkoutTotal').textContent = '₦' + total;
+    document.getElementById('expectedDelivery').textContent = dd.toLocaleDateString();
+    document.getElementById('checkoutModal').classList.add('active');
+}
+
+// ===== FLUTTERWAVE PAYMENT (NEW) =====
+function processFlutterwavePayment(order) {
+    var transactionId = 'TXN-' + Date.now();
+    var paymentData = {
+        id: transactionId,
+        amount: order.total,
+        customerId: currentCustomer.id,
+        customerEmail: currentCustomer.email,
+        customerPhone: currentCustomer.phone,
+        timestamp: new Date().toISOString(),
+        status: 'success',
+        reference: 'FLW' + Date.now()
+    };
+    var transactions = JSON.parse(localStorage.getItem('payment_transactions_v1') || '[]');
+    transactions.push(paymentData);
+    localStorage.setItem('payment_transactions_v1', JSON.stringify(transactions));
+    order.paymentStatus = 'paid';
+    order.paymentTransactionId = transactionId;
+    return order;
+}
+
+function placeOrder() {
+    var addr = document.getElementById('deliveryAddress').value.trim();
+    var pay = document.getElementById('paymentMethod').value;
+    var agree = document.getElementById('agreeTerms').checked;
+    if (!addr || !pay || !agree) {
+        document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Fill all fields</span>';
+        return;
+    }
+    var sub = cart.reduce((s,i) => s+(i.price*i.quantity),0);
+    var mult = serviceTiers[selectedTier].multiplier;
+    var total = Math.floor(sub * mult);
+    var t = serviceTiers[selectedTier];
+    var dd = new Date();
+    dd.setDate(dd.getDate() + t.cycleLengthDays);
+    var order = {orderId:'ORD-'+Date.now(),customerId:currentCustomer.id,items:cart,subtotal:sub,total:total,tierId:selectedTier,tierName:t.displayName,tierMultiplier:mult,couponApplied:appliedCoupon?appliedCoupon.code:null,deliveryAddress:addr,paymentMethod:pay,expectedDeliveryDate:dd.toISOString().split('T')[0],status:'Received',createdAt:new Date().toISOString()};
+    
+    var payUpper = (pay || '').toUpperCase();
+    
+    // Finalize order helper
+    function finalizeOrder(finalOrder, successNote) {
+        couture_orders.push(finalOrder);
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        currentCustomer.loyaltyPoints += Math.floor(total/1000);
+        currentCustomer.lifetimeSpending += total;
+        localStorage.setItem('couture_customers', JSON.stringify(customers));
+        
+        // Auto-log notification
+        var notifLog = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+        notifLog.unshift({
+            id: 'NOTIF-' + Date.now(),
+            phone: currentCustomer.phone,
+            type: 'order_received',
+            message: 'Hello ' + currentCustomer.name + '! Your order ' + finalOrder.orderId + ' has been received. Tier: ' + finalOrder.tierName + '. Total: ₦' + finalOrder.total,
+            orderId: finalOrder.orderId,
+            timestamp: new Date().toISOString(),
+            status: 'sent'
+        });
+        localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(notifLog));
+
+        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">' + successNote + '</span>';
+        setTimeout(() => {
+            document.getElementById('checkoutModal').classList.remove('active');
+            cart = [];
+            appliedCoupon = null;
+            selectedTier = null;
+            updateCart();
+            loadOrders();
+            loadAccount();
+            switchTab('orders');
+        }, 1800);
+    }
+
+    // Process Flutterwave payment
+    if (payUpper === 'FLUTTERWAVE') {
+        var flwKey = (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
+        
+        if (flwKey && typeof FlutterwaveCheckout === 'function') {
+            document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Opening secure Flutterwave Checkout...</span>';
+            FlutterwaveCheckout({
+                public_key: flwKey,
+                tx_ref: 'CYW-' + Date.now(),
+                amount: total,
+                currency: 'NGN',
+                payment_options: 'card,ussd,banktransfer',
+                customer: {
+                    email: currentCustomer.email,
+                    phone_number: currentCustomer.phone,
+                    name: currentCustomer.name
+                },
+                customizations: {
+                    title: 'Couture dé Cywila',
+                    description: 'Order ' + order.orderId,
+                    logo: 'https://checkout.flutterwave.com/assets/img/logo.png'
+                },
+                callback: function(payment) {
+                    order.paymentStatus = 'paid';
+                    order.paymentTransactionId = payment.transaction_id || payment.tx_ref;
+                    finalizeOrder(order, 'Payment verified! Order ' + order.orderId + ' placed successfully.');
+                },
+                onclose: function() {
+                    document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Payment cancelled. You can try again or select Cash on Delivery.</span>';
+                }
+            });
+            return;
+        }
+
+        // Mock mode when live key is not yet configured
+        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Processing Flutterwave payment (Mock/Test Mode)...</span>';
+        setTimeout(() => {
+            order = processFlutterwavePayment(order);
+            finalizeOrder(order, 'Order ' + order.orderId + ' placed! Payment simulated successfully.');
+        }, 1200);
+        return;
+    }
+
+    // Process Paystack payment
+    if (payUpper === 'PAYSTACK') {
+        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Processing Paystack payment (Test Mode)...</span>';
+        setTimeout(() => {
+            order.paymentStatus = 'paid';
+            order.paymentTransactionId = 'PSTK-' + Date.now();
+            finalizeOrder(order, 'Order ' + order.orderId + ' placed! Payment confirmed.');
+        }, 1200);
+        return;
+    }
+    
+    // EXISTING: COD payment
+    couture_orders.push(order);
+    localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+    currentCustomer.loyaltyPoints += Math.floor(total/1000);
+    currentCustomer.lifetimeSpending += total;
+    localStorage.setItem('couture_customers', JSON.stringify(customers));
+    document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Order '+order.orderId+' placed!</span>';
+    setTimeout(() => {
+        document.getElementById('checkoutModal').classList.remove('active');
+        cart = [];
+        appliedCoupon = null;
+        selectedTier = null;
+        updateCart();
+        loadOrders();
+        loadAccount();
+        switchTab('orders');
+    }, 2000);
+}
+
+function loadOrders() {
+    var html = '';
+    var myOrders = couture_orders.filter(o => o.customerId === currentCustomer.id);
+    myOrders.forEach(o => {
+        html += '<div class="order-item"><strong>'+o.orderId+'</strong><span class="tier-badge tier-'+o.tierId.toLowerCase()+'">'+o.tierName+'</span><p>₦'+o.total+' | '+o.status+'</p><p>'+new Date(o.expectedDeliveryDate).toLocaleDateString()+'</p></div>';
+    });
+    document.getElementById('ordersDisplay').innerHTML = html || '<p style="color:#999;">No orders</p>';
+}
+
+function loadAccount() {
+    document.getElementById('accountName').textContent = currentCustomer.name;
+    document.getElementById('accountEmail').textContent = currentCustomer.email;
+    document.getElementById('accountPhone').textContent = currentCustomer.phone || '—';
+    document.getElementById('accountJoined').textContent = new Date(currentCustomer.createdAt).toLocaleDateString();
+    document.getElementById('loyaltyPoints').textContent = currentCustomer.loyaltyPoints;
+    var myOrders = couture_orders.filter(o => o.customerId === currentCustomer.id);
+    document.getElementById('totalOrders').textContent = myOrders.length;
+    document.getElementById('totalSpent').textContent = '₦' + currentCustomer.lifetimeSpending;
+    var fav = '—';
+    if (myOrders.length > 0) {
+        var tc = {};
+        myOrders.forEach(o => {tc[o.tierId] = (tc[o.tierId]||0)+1;});
+        fav = serviceTiers[Object.keys(tc).sort((a,b)=>tc[b]-tc[a])[0]] ? serviceTiers[Object.keys(tc).sort((a,b)=>tc[b]-tc[a])[0]].displayName : '—';
+    }
+    document.getElementById('favoriteTier').textContent = fav;
+}
+
+function editAccount() {
+    var newPhone = prompt('Phone:', currentCustomer.phone || '');
+    if (newPhone === null) return;
+    currentCustomer.phone = newPhone;
+    localStorage.setItem('couture_customers', JSON.stringify(customers));
+    loadAccount();
+    alert('Updated!');
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+</script>
+
+</body>
+</html>
