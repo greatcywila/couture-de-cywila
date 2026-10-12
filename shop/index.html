@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Couture dé Cywila - Customer Portal</title>
     <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="../shared/seed-data.js"></script>
     <script src="../shared/ecosystem-bar.js"></script>
     <style>
@@ -279,6 +280,12 @@
 </div>
 
 <script>
+var couturePaymentConfig = { flutterwavePublicKey: '', paystackPublicKey: '' };
+fetch('/api/config')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { if (data) couturePaymentConfig = data; })
+    .catch(function() {});
+
 var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
 var currentCustomer = null;
 var cart = [];
@@ -533,7 +540,7 @@ function placeOrder() {
 
     // Process Flutterwave payment
     if (payUpper === 'FLUTTERWAVE') {
-        var flwKey = (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
+        var flwKey = couturePaymentConfig.flutterwavePublicKey || (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
         
         if (flwKey && typeof FlutterwaveCheckout === 'function') {
             document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Opening secure Flutterwave Checkout...</span>';
@@ -576,6 +583,36 @@ function placeOrder() {
 
     // Process Paystack payment
     if (payUpper === 'PAYSTACK') {
+        var pstkKey = couturePaymentConfig.paystackPublicKey || '';
+        
+        if (pstkKey && typeof PaystackPop === 'object') {
+            document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
+            var handler = PaystackPop.setup({
+                key: pstkKey,
+                email: currentCustomer.email,
+                amount: total * 100, // Paystack amount is in kobo
+                currency: 'NGN',
+                ref: 'PSTK-' + Date.now(),
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
+                        { display_name: "Order ID", variable_name: "order_id", value: order.orderId }
+                    ]
+                },
+                callback: function(response) {
+                    order.paymentStatus = 'paid';
+                    order.paymentTransactionId = response.reference;
+                    finalizeOrder(order, 'Paystack payment verified! Order ' + order.orderId + ' placed.');
+                },
+                onClose: function() {
+                    document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Paystack payment window closed.</span>';
+                }
+            });
+            handler.openIframe();
+            return;
+        }
+
+        // Mock mode when key not configured
         document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Processing Paystack payment (Test Mode)...</span>';
         setTimeout(() => {
             order.paymentStatus = 'paid';
