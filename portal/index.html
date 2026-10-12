@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couture dé Cywila | Enterprise Apps Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --gold: #C8A96A;
+            --dark-bg: #0D0D14;
+            --card-bg: #16213E;
+            --border-color: #2D3561;
+            --text-light: #F5F5F5;
+            --text-muted: #A0A5BA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem 4rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+        }
+        .hero-tag {
+            display: inline-block;
+            background: rgba(200, 169, 106, 0.15);
+            color: var(--gold);
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(200, 169, 106, 0.3);
+        }
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.8rem;
+        }
+        .hero h1 span {
+            color: var(--gold);
+        }
+        .hero p {
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto 1.5rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--gold));
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        .btn-outline:hover {
+            background: rgba(200, 169, 106, 0.1);
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3.5rem;
+        }
+        .app-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(255, 107, 53, 0.15);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .app-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(200, 169, 106, 0.2);
+            color: var(--gold);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .app-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1.2rem;
+            flex-grow: 1;
+        }
+        .app-meta {
+            background: #111827;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            color: #9CA3AF;
+            margin-bottom: 1.2rem;
+            border-left: 3px solid var(--gold);
+        }
+        .app-meta strong {
+            color: #E5E7EB;
+        }
+        .app-btn {
+            display: block;
+            text-align: center;
+            padding: 0.8rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--gold));
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .app-btn:hover {
+            opacity: 0.95;
+            transform: scale(1.01);
+        }
+        .info-card {
+            background: #121829;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .info-card h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background: #1A233A;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .code-pill {
+            background: #0D0D14;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--primary);
+            border: 1px solid #2D3561;
+        }
+        .config-box {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .config-box input {
+            flex-grow: 1;
+            min-width: 280px;
+            padding: 0.75rem 1rem;
+            background: #0D0D14;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .config-box input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        footer {
+            text-align: center;
+            color: #6B7280;
+            font-size: 0.85rem;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hero">
+        <span class="hero-tag">Digital Business Operating System</span>
+        <h1>Couture dé Cywila <span>Ecosystem</span></h1>
+        <p>A unified suite of 6 synchronized applications powering bespoke tailoring, garment care, staff execution, accounting analytics, and automated customer engagement.</p>
+        
+        <div class="actions-bar">
+            <a href="/" class="btn btn-outline">🏠 Brand Landing Page</a>
+            <button class="btn btn-danger" onclick="window.CoutureDB.reset()">🔄 Reset Demo Data</button>
+        </div>
+    </div>
+
+    <!-- 6 APPS GRID -->
+    <div class="apps-grid">
+        <!-- APP 1: CUSTOMER SHOP -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon">🛍️</div>
+                    <div>
+                        <div class="app-title">Customer Shop</div>
+                        <span class="app-badge">Public / Customers</span>
+                    </div>
+                </div>
+                <p class="app-desc">Browse laundry & bespoke tailoring services, subscribe to laundry plans, choose service tiers (Express, Premium, Standard, Basic), apply coupons, and checkout.</p>
+                <div class="app-meta">
+                    <strong>Access:</strong> Open / Self-register or login<br>
+                    <strong>Payment:</strong> Flutterwave / Paystack / COD
+                </div>
+            </div>
+            <a href="/shop/" class="app-btn">Launch Customer Shop →</a>
+        </div>
+
+        <!-- APP 2: ADMIN PORTAL -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon" style="background: rgba(212, 175, 55, 0.15); border-color: rgba(212, 175, 55, 0.3);">👑</div>
+                    <div>
+                        <div class="app-title">Admin Portal</div>
+                        <span class="app-badge" style="background: rgba(255, 107, 53, 0.2); color: var(--primary);">Management</span>
+                    </div>
+                </div>
+                <p class="app-desc">The central control room for owner Nkay and managers: dispatch orders to washers/tailors/drivers, control inventory, monitor production cycles, and inspect audit logs.</p>
+                <div class="app-meta">
+                    <strong>Super Admin:</strong> <span class="code-pill">nkay</span> (PIN: <span class="code-pill">1986</span>)<br>
+                    <strong>Admin 1:</strong> <span class="code-pill">admin1</span> (PIN: <span class="code-pill">2001</span>)
+                </div>
+            </div>
+            <a href="/admin/" class="app-btn">Launch Admin Portal →</a>
+        </div>
+
+        <!-- APP 3: STAFF APP -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon">✂️</div>
+                    <div>
+                        <div class="app-title">Staff App</div>
+                        <span class="app-badge">Employees</span>
+                    </div>
+                </div>
+                <p class="app-desc">Used by tailors, washers, and drivers to view their daily assigned tasks, accept/decline work, mark orders completed, and track earnings and tier bonuses.</p>
+                <div class="app-meta">
+                    <strong>Active Staff:</strong> Master Tailor, Lead Washer, Driver<br>
+                    <strong>Features:</strong> Task queue, Earnings & Bonus Tracker
+                </div>
+            </div>
+            <a href="/staff/" class="app-btn">Launch Staff App →</a>
+        </div>
+
+        <!-- APP 4: ACCOUNTING DASHBOARD -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon">📊</div>
+                    <div>
+                        <div class="app-title">Accounting Dashboard</div>
+                        <span class="app-badge">Financial</span>
+                    </div>
+                </div>
+                <p class="app-desc">Interactive financial scorecard displaying gross revenue, expense ledger, net profit margins broken down by tier (EXPRESS vs PREMIUM), and staff efficiency charts.</p>
+                <div class="app-meta">
+                    <strong>Metrics:</strong> Revenue, Profit Margin, Tier Breakdown<br>
+                    <strong>Visuals:</strong> Live Chart.js dynamic visualizations
+                </div>
+            </div>
+            <a href="/accounting/" class="app-btn">Launch Accounting →</a>
+        </div>
+
+        <!-- APP 5: NOTIFICATIONS HUB -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon">🔔</div>
+                    <div>
+                        <div class="app-title">Notifications Hub</div>
+                        <span class="app-badge">Communications</span>
+                    </div>
+                </div>
+                <p class="app-desc">Manage WhatsApp & SMS message templates, configure automatic event triggers (order placed, ready for pickup, cycle cutoff alerts), and inspect message dispatch logs.</p>
+                <div class="app-meta">
+                    <strong>Channels:</strong> WhatsApp & SMS Triggers<br>
+                    <strong>Features:</strong> Tier-aware dynamic alert templates
+                </div>
+            </div>
+            <a href="/notifications/" class="app-btn">Launch Notifications →</a>
+        </div>
+
+        <!-- APP 6: CUSTOMER ENGAGEMENT -->
+        <div class="app-card">
+            <div>
+                <div class="app-header">
+                    <div class="app-icon">💎</div>
+                    <div>
+                        <div class="app-title">Customer Engagement</div>
+                        <span class="app-badge">Marketing</span>
+                    </div>
+                </div>
+                <p class="app-desc">Create and manage promo coupon codes (e.g., WELCOME10, CYWILA20), reward loyalty points on purchases, run referral bonuses, and trigger birthday promotions.</p>
+                <div class="app-meta">
+                    <strong>Tools:</strong> Coupons, Loyalty Points, Referrals<br>
+                    <strong>Preloaded:</strong> WELCOME10 (10%), CYWILA20 (20%)
+                </div>
+            </div>
+            <a href="/loyalty/" class="app-btn">Launch Engagement →</a>
+        </div>
+    </div>
+
+    <!-- CREDENTIALS QUICK REFERENCE -->
+    <div class="info-card">
+        <h3>🔑 Credentials & Access Directory</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.2rem; font-size: 0.95rem;">Use these pre-configured demo credentials to sign in and test the system immediately:</p>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Role / Account</th>
+                        <th>Username / Email</th>
+                        <th>PIN / Password</th>
+                        <th>Target Portal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Executive Management</td>
+                        <td>Super Admin (Owner Nkay)</td>
+                        <td><span class="code-pill">nkay</span></td>
+                        <td><span class="code-pill">1986</span></td>
+                        <td><a href="/admin/" style="color: var(--gold);">/admin/</a></td>
+                    </tr>
+                    <tr>
+                        <td>Branch Operations</td>
+                        <td>Admin</td>
+                        <td><span class="code-pill">admin1</span></td>
+                        <td><span class="code-pill">2001</span></td>
+                        <td><a href="/admin/" style="color: var(--gold);">/admin/</a></td>
+                    </tr>
+                    <tr>
+                        <td>Floor Manager</td>
+                        <td>Manager</td>
+                        <td><span class="code-pill">manager1</span></td>
+                        <td><span class="code-pill">3001</span></td>
+                        <td><a href="/admin/" style="color: var(--gold);">/admin/</a></td>
+                    </tr>
+                    <tr>
+                        <td>Front Desk</td>
+                        <td>Receptionist</td>
+                        <td><span class="code-pill">receptionist1</span></td>
+                        <td><span class="code-pill">4001</span></td>
+                        <td><a href="/admin/" style="color: var(--gold);">/admin/</a></td>
+                    </tr>
+                    <tr>
+                        <td>Customer Shop</td>
+                        <td>Demo Customer 1</td>
+                        <td><span class="code-pill">chinedu@example.com</span></td>
+                        <td><span class="code-pill">password123</span></td>
+                        <td><a href="/shop/" style="color: var(--gold);">/shop/</a></td>
+                    </tr>
+                    <tr>
+                        <td>Customer Shop</td>
+                        <td>Demo Customer 2</td>
+                        <td><span class="code-pill">amina@example.com</span></td>
+                        <td><span class="code-pill">password123</span></td>
+                        <td><a href="/shop/" style="color: var(--gold);">/shop/</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FLUTTERWAVE CONFIGURATION -->
+    <div class="info-card">
+        <h3>💳 Flutterwave Payment Gateway Key</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            When you enter your Flutterwave Public Key (<span class="code-pill">FLWPUBK_TEST-...</span> or <span class="code-pill">FLWPUBK-LIVE-...</span>), the Customer Shop will activate real Flutterwave inline card, USSD, and bank transfer checkouts. If left blank, it runs in simulated test mode.
+        </p>
+        
+        <div class="config-box">
+            <input type="text" id="flwKeyInput" placeholder="Enter FLWPUBK_TEST-xxxxxx or FLWPUBK-LIVE-xxxxxx">
+            <button class="btn btn-primary" onclick="saveFlwKey()">Save API Key</button>
+        </div>
+        <div id="flwMsg" style="margin-top: 0.8rem; font-size: 0.85rem;"></div>
+    </div>
+
+    <footer>
+        &copy; 2026 Couture dé Cywila Enterprise Ecosystem. All rights reserved. Built for Netlify deployment.
+    </footer>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var existingKey = window.CoutureDB ? window.CoutureDB.getFlutterwaveKey() : '';
+        if (existingKey) {
+            document.getElementById('flwKeyInput').value = existingKey;
+            document.getElementById('flwMsg').innerHTML = '<span style="color: #10B981;">✓ Live Flutterwave Key active: ' + existingKey.substring(0, 15) + '...</span>';
+        }
+    });
+
+    function saveFlwKey() {
+        var key = document.getElementById('flwKeyInput').value.trim();
+        if (window.CoutureDB) {
+            window.CoutureDB.setFlutterwaveKey(key);
+            var msg = key ? '<span style="color: #10B981;">✓ Key saved! Flutterwave Checkout is now enabled on the shop.</span>' : '<span style="color: #F59E0B;">Key cleared. Shop returned to mock test mode.</span>';
+            document.getElementById('flwMsg').innerHTML = msg;
+        }
+    }
+</script>
+
+</body>
+</html>

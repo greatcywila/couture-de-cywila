@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Couture dé Cywila</title>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1200px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;text-align:center}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem}.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.notification-item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.notification-item p{color:#999;font-size:0.9rem;margin:0.25rem 0}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📱 Smart Notifications</h1>
+        <p style="font-size:0.9rem;margin-top:0.5rem;">WhatsApp & SMS alerts with tier-aware messaging</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('templates')">📧 Templates</button>
+        <button class="tab-btn" onclick="switchTab('triggers')">🔔 Auto-Triggers</button>
+        <button class="tab-btn" onclick="switchTab('log')">📝 Sent Log</button>
+        <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+    </div>
+
+    <!-- TEMPLATES TAB -->
+    <div id="tab-templates" class="tab-content active">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">📧 Notification Templates</h2>
+
+        <div class="card">
+            <h3>Order Confirmation (Tier-Aware)</h3>
+            <div class="form-group">
+                <label>WhatsApp Message Template</label>
+                <textarea id="templateOrderConfirm" style="height:100px">Hello {name}! 👋 Your order {orderId} has been received.
+📦 Tier: {tierName}
+📅 Delivery: {deliveryDate}
+💰 Amount: {amount}
+
+We'll notify you when production begins.
+Thank you for choosing Couture dé Cywila!</textarea>
+            </div>
+            <button class="btn" onclick="saveTemplate('orderConfirm')">Save Template</button>
+        </div>
+
+        <div class="card">
+            <h3>Tier Cutoff Alert</h3>
+            <div class="form-group">
+                <label>WhatsApp Alert Template</label>
+                <textarea id="templateTierCutoff" style="height:100px">⏰ ATTENTION {tierName} ORDERS ⏰
+Your tier's cutoff is in {hoursRemaining} hours!
+📦 Cycle: {cycleId}
+❌ No orders will be accepted after cutoff
+
+Place your order NOW to meet this deadline!
+
+WhatsApp: +2348155559954</textarea>
+            </div>
+            <button class="btn" onclick="saveTemplate('tierCutoff')">Save Template</button>
+        </div>
+
+        <div class="card">
+            <h3>Delivery Notification</h3>
+            <div class="form-group">
+                <label>WhatsApp Notification Template</label>
+                <textarea id="templateDelivery" style="height:100px">🎉 READY FOR PICKUP {name}! 🎉
+Your order {orderId} is ready for delivery!
+
+📦 Tier: {tierName}
+🕐 Pickup Time: {pickupTime}
+📍 Address: {address}
+
+Thank you for your patience!</textarea>
+            </div>
+            <button class="btn" onclick="saveTemplate('delivery')">Save Template</button>
+        </div>
+
+        <div class="card">
+            <h3>Cycle Status Update</h3>
+            <div class="form-group">
+                <label>WhatsApp Update Template</label>
+                <textarea id="templateCycleStatus" style="height:100px">🔄 CYCLE UPDATE 🔄
+Cycle {cycleId} ({tierName}) status: {status}
+
+Current Progress: {orderCount} orders
+📅 Expected Delivery: {deliveryDate}
+
+Your items are being processed with care!</textarea>
+            </div>
+            <button class="btn" onclick="saveTemplate('cycleStatus')">Save Template</button>
+        </div>
+    </div>
+
+    <!-- AUTO-TRIGGERS TAB (NEW) -->
+    <div id="tab-triggers" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">🔔 Auto-Send Triggers</h2>
+        
+        <div class="card">
+            <h3>Configure Automatic Messages</h3>
+            <p style="color:#999;margin-bottom:1rem;">Enable automatic WhatsApp messages at key events</p>
+            
+            <div class="notification-item">
+                <label style="display:flex;align-items:center;cursor:pointer;color:#e0e0e0;">
+                    <input type="checkbox" id="trigger_order" checked style="margin-right:0.5rem;width:auto;">
+                    📦 Order Confirmation - When customer places order
+                </label>
+            </div>
+            
+            <div class="notification-item">
+                <label style="display:flex;align-items:center;cursor:pointer;color:#e0e0e0;">
+                    <input type="checkbox" id="trigger_ready" checked style="margin-right:0.5rem;width:auto;">
+                    ✅ Delivery Ready - When staff marks complete
+                </label>
+            </div>
+            
+            <div class="notification-item">
+                <label style="display:flex;align-items:center;cursor:pointer;color:#e0e0e0;">
+                    <input type="checkbox" id="trigger_delivery" checked style="margin-right:0.5rem;width:auto;">
+                    🎉 Delivery Complete - When order is delivered
+                </label>
+            </div>
+            
+            <div class="notification-item">
+                <label style="display:flex;align-items:center;cursor:pointer;color:#e0e0e0;">
+                    <input type="checkbox" id="trigger_cutoff" style="margin-right:0.5rem;width:auto;">
+                    ⏰ Tier Cutoff Alert - 24 hours before tier closes
+                </label>
+            </div>
+            
+            <div class="notification-item">
+                <label style="display:flex;align-items:center;cursor:pointer;color:#e0e0e0;">
+                    <input type="checkbox" id="trigger_birthday" style="margin-right:0.5rem;width:auto;">
+                    🎂 Birthday Wishes - On customer's birthday
+                </label>
+            </div>
+            
+            <button class="btn" onclick="saveTriggers()">💾 Save Triggers</button>
+            <div id="triggersStatus"></div>
+        </div>
+
+        <div class="card">
+            <h3>📊 Auto-Send Statistics</h3>
+            <div id="triggerStats"></div>
+        </div>
+    </div>
+
+    <!-- LOG TAB -->\n    <div id="tab-log" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">📝 Sent Notifications Log</h2>
+        <div class="card">
+            <h3>Recent Notifications</h3>
+            <div id="notificationLog"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">⚙️ Notification Settings</h2>
+
+        <div class="card">
+            <h3>WhatsApp Configuration</h3>
+            <div class="form-group">
+                <label>Business WhatsApp Number</label>
+                <input type="tel" id="whatsappNumber" placeholder="+2348155559954" value="+2348155559954">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enableOrderConfirm" checked> Send order confirmation messages
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enableTierCutoff" checked> Send tier cutoff alerts
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enableDelivery" checked> Send delivery notifications
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enableCycleUpdate" checked> Send cycle status updates
+                </label>
+            </div>
+            <button class="btn" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div class="card">
+            <h3>Tier-Specific Settings</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="expressUrgent" checked> Mark EXPRESS orders as URGENT
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="basicQuiet" checked> Reduce notifications for BASIC orders
+                </label>
+            </div>
+            <button class="btn" onclick="saveTierSettings()">Save Tier Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var notificationSettings = JSON.parse(localStorage.getItem('notif_config_v13')) || {whatsapp:'+2348155559954',orderConfirm:true,tierCutoff:true,delivery:true,cycleUpdate:true};
+var notificationLog = JSON.parse(localStorage.getItem('notification_log_v1')) || [];
+var notificationTemplates = JSON.parse(localStorage.getItem('notification_templates_v1')) || {orderConfirm:'',tierCutoff:'',delivery:'',cycleStatus:''};
+
+function saveTemplate(templateName){
+    var templateId = 'template'+templateName.charAt(0).toUpperCase()+templateName.slice(1);
+    var content = document.getElementById(templateId).value;
+    notificationTemplates[templateName] = content;
+    localStorage.setItem('notification_templates_v1', JSON.stringify(notificationTemplates));
+    alert('Template saved!');
+}
+
+function loadLog(){
+    var html = '';
+    notificationLog.slice(0,20).forEach(log => {
+        html += '<div class="notification-item"><strong>'+log.type+'</strong><p>To: '+log.recipient+'</p><p>Sent: '+new Date(log.timestamp).toLocaleString()+'</p></div>';
+    });
+    document.getElementById('notificationLog').innerHTML = html || '<p style="color:#999;">No notifications sent yet</p>';
+}
+
+function saveSettings(){
+    notificationSettings.whatsapp = document.getElementById('whatsappNumber').value;
+    notificationSettings.orderConfirm = document.getElementById('enableOrderConfirm').checked;
+    notificationSettings.tierCutoff = document.getElementById('enableTierCutoff').checked;
+    notificationSettings.delivery = document.getElementById('enableDelivery').checked;
+    notificationSettings.cycleUpdate = document.getElementById('enableCycleUpdate').checked;
+    localStorage.setItem('notif_config_v13', JSON.stringify(notificationSettings));
+    alert('Settings saved!');
+}
+
+function saveTierSettings(){
+    var expressUrgent = document.getElementById('expressUrgent').checked;
+    var basicQuiet = document.getElementById('basicQuiet').checked;
+    localStorage.setItem('tier_notification_settings', JSON.stringify({expressUrgent:expressUrgent,basicQuiet:basicQuiet}));
+    alert('Tier settings saved!');
+}
+
+// ===== AUTO-TRIGGERS FUNCTIONS (NEW) =====
+function saveTriggers() {
+    var triggers = {
+        order: document.getElementById('trigger_order').checked,
+        ready: document.getElementById('trigger_ready').checked,
+        delivery: document.getElementById('trigger_delivery').checked,
+        cutoff: document.getElementById('trigger_cutoff').checked,
+        birthday: document.getElementById('trigger_birthday').checked,
+        savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('whatsapp_triggers_v1', JSON.stringify(triggers));
+    document.getElementById('triggersStatus').innerHTML = '<div style="color:#10b981;margin-top:1rem;">✅ Triggers saved!</div>';
+    loadTriggerStats();
+}
+
+function loadTriggers() {
+    var triggers = JSON.parse(localStorage.getItem('whatsapp_triggers_v1') || '{}');
+    if (triggers.order !== undefined) {
+        document.getElementById('trigger_order').checked = triggers.order;
+        document.getElementById('trigger_ready').checked = triggers.ready;
+        document.getElementById('trigger_delivery').checked = triggers.delivery;
+        document.getElementById('trigger_cutoff').checked = triggers.cutoff;
+        document.getElementById('trigger_birthday').checked = triggers.birthday;
+    }
+}
+
+function autoSendOrderConfirmation(order, customer) {
+    var triggers = JSON.parse(localStorage.getItem('whatsapp_triggers_v1') || '{}');
+    if (!triggers.order) return;
+    
+    var message = 'Hello ' + customer.name + '! 👋 Your order ' + order.orderId + ' has been received.\n📦 Tier: ' + order.tierName + '\n📅 Delivery: ' + order.expectedDeliveryDate + '\n💰 Amount: ₦' + order.total + '\nThank you!';
+    
+    var logEntry = {
+        id: 'AUTO-' + Date.now(),
+        phone: customer.phone,
+        type: 'order_confirmation',
+        message: message,
+        orderId: order.orderId,
+        timestamp: new Date().toISOString(),
+        status: 'sent',
+        auto: true
+    };
+    
+    var log = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+    log.unshift(logEntry);
+    localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(log));
+    console.log('✅ Auto-sent order confirmation for', order.orderId);
+}
+
+function autoSendDeliveryReady(order, customer) {
+    var triggers = JSON.parse(localStorage.getItem('whatsapp_triggers_v1') || '{}');
+    if (!triggers.ready) return;
+    
+    var message = '🎉 READY FOR PICKUP ' + customer.name + '! 🎉\nYour order ' + order.orderId + ' is ready for delivery!\n📦 Tier: ' + order.tierName + '\nThank you!';
+    
+    var logEntry = {
+        id: 'AUTO-' + Date.now(),
+        phone: customer.phone,
+        type: 'delivery_ready',
+        message: message,
+        orderId: order.orderId,
+        timestamp: new Date().toISOString(),
+        status: 'sent',
+        auto: true
+    };
+    
+    var log = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+    log.unshift(logEntry);
+    localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(log));
+    console.log('✅ Auto-sent delivery ready for', order.orderId);
+}
+
+function autoSendDeliveryComplete(order, customer) {
+    var triggers = JSON.parse(localStorage.getItem('whatsapp_triggers_v1') || '{}');
+    if (!triggers.delivery) return;
+    
+    var message = '✅ DELIVERED! ✅\nYour order ' + order.orderId + ' has been successfully delivered!\n⭐ Please rate your experience!\nThank you for your business!';
+    
+    var logEntry = {
+        id: 'AUTO-' + Date.now(),
+        phone: customer.phone,
+        type: 'delivery_complete',
+        message: message,
+        orderId: order.orderId,
+        timestamp: new Date().toISOString(),
+        status: 'sent',
+        auto: true
+    };
+    
+    var log = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+    log.unshift(logEntry);
+    localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(log));
+    console.log('✅ Auto-sent delivery complete for', order.orderId);
+}
+
+function loadTriggerStats() {
+    var log = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+    var autoSent = log.filter(e => e.auto === true);
+    
+    var stats = {
+        orderConfirm: autoSent.filter(e => e.type === 'order_confirmation').length,
+        deliveryReady: autoSent.filter(e => e.type === 'delivery_ready').length,
+        deliveryComplete: autoSent.filter(e => e.type === 'delivery_complete').length,
+        total: autoSent.length
+    };
+    
+    var html = '<p><strong>✅ Total Auto-Sent:</strong> ' + stats.total + '</p>';
+    html += '<p>📦 Order Confirmations: ' + stats.orderConfirm + '</p>';
+    html += '<p>✅ Delivery Ready Alerts: ' + stats.deliveryReady + '</p>';
+    html += '<p>🎉 Delivery Completed: ' + stats.deliveryComplete + '</p>';
+    
+    document.getElementById('triggerStats').innerHTML = html;
+}
+
+function switchTab(tabName){
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tabName).classList.add('active');
+    event.target.classList.add('active');
+    if(tabName === 'log') loadLog();
+    if(tabName === 'triggers') {
+        loadTriggers();
+        loadTriggerStats();
+    }
+}
+
+loadLog();
+</script>
+</body>
+</html>

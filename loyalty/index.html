@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Engagement Suite - Couture dé Cywila</title>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1400px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;text-align:center}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem}.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.item p{color:#999;font-size:0.9rem;margin:0.25rem 0}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>💌 Customer Engagement Suite</h1>
+        <p style="font-size:0.9rem;margin-top:0.5rem;">Loyalty, Referrals, Tier-Based Promotions & Birthday Rewards</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('coupons')">🎟️ Coupons</button>
+        <button class="tab-btn" onclick="switchTab('loyalty')">💎 Loyalty</button>
+        <button class="tab-btn" onclick="switchTab('referral')">👥 Referral</button>
+        <button class="tab-btn" onclick="switchTab('birthday')">🎂 Birthday</button>
+        <button class="tab-btn" onclick="switchTab('tiers')">🏆 Tier Promotions</button>
+        <button class="tab-btn" onclick="switchTab('analytics')">📊 Analytics</button>
+    </div>
+
+    <!-- COUPONS TAB -->
+    <div id="tab-coupons" class="tab-content active">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">🎟️ Coupon Management</h2>
+        <div class="card">
+            <h3>Create New Coupon</h3>
+            <div class="form-group">
+                <label>Coupon Code</label>
+                <input type="text" id="couponCode" placeholder="e.g., SUMMER20">
+            </div>
+            <div class="form-group">
+                <label>Discount (%)</label>
+                <input type="number" id="couponDiscount" placeholder="20" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label>Applicable Tier</label>
+                <select id="couponTier">
+                    <option value="">All Tiers</option>
+                    <option value="EXPRESS">EXPRESS</option>
+                    <option value="PREMIUM">PREMIUM</option>
+                    <option value="STANDARD">STANDARD</option>
+                    <option value="BASIC">BASIC</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="couponActive" checked> Active
+                </label>
+            </div>
+            <button class="btn" onclick="createCoupon()">Create Coupon</button>
+        </div>
+
+        <div class="card">
+            <h3>Active Coupons</h3>
+            <div id="couponsDisplay"></div>
+        </div>
+    </div>
+
+    <!-- LOYALTY TAB -->
+    <div id="tab-loyalty" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">💎 Loyalty Program</h2>
+        <div class="stat-box">
+            <p>Total Loyalty Points Distributed</p>
+            <strong id="totalPoints">0</strong>
+        </div>
+        <div class="card">
+            <h3>Loyalty Rules</h3>
+            <div class="form-group">
+                <label>Points per ₦1,000 spent</label>
+                <input type="number" id="pointsPerThousand" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label>Bonus points for EXPRESS tier</label>
+                <input type="number" id="expressBonus" value="2" min="0">
+            </div>
+            <div class="form-group">
+                <label>Redeem: ₦1 per point value</label>
+                <input type="checkbox" id="redeemEnabled" checked>
+            </div>
+            <button class="btn" onclick="saveLoyaltyRules()">Save Rules</button>
+        </div>
+
+        <div class="card">
+            <h3>Top Loyal Customers</h3>
+            <div id="loyaltyDisplay"></div>
+        </div>
+    </div>
+
+    <!-- REFERRAL TAB -->
+    <div id="tab-referral" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">👥 Referral System</h2>
+        <div class="card">
+            <h3>Referral Rules</h3>
+            <div class="form-group">
+                <label>Referrer Reward (₦)</label>
+                <input type="number" id="referrerReward" value="5000" min="0">
+            </div>
+            <div class="form-group">
+                <label>Referee Discount (%)</label>
+                <input type="number" id="refereeDiscount" value="10" min="0" max="100">
+            </div>
+            <button class="btn" onclick="saveReferralRules()">Save Rules</button>
+        </div>
+
+        <div class="card">
+            <h3>Referral Activity</h3>
+            <div id="referralDisplay"></div>
+        </div>
+    </div>
+
+    <!-- BIRTHDAY TAB -->
+    <div id="tab-birthday" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">🎂 Birthday Rewards</h2>
+        <div class="card">
+            <h3>Birthday Program Settings</h3>
+            <div class="form-group">
+                <label>Birthday Discount (%)</label>
+                <input type="number" id="birthdayDiscount" value="15" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label>Birthday Bonus Points</label>
+                <input type="number" id="birthdayPoints" value="50" min="0">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="birthdayEnabled" checked> Birthday program active
+                </label>
+            </div>
+            <button class="btn" onclick="saveBirthdaySettings()">Save Settings</button>
+        </div>
+
+        <div class="card">
+            <h3>Upcoming Birthdays</h3>
+            <div id="birthdayDisplay"></div>
+        </div>
+    </div>
+
+    <!-- TIER PROMOTIONS TAB -->
+    <div id="tab-tiers" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">🏆 Tier-Based Promotions</h2>
+        <div class="card">
+            <h3>EXPRESS Tier Promotion</h3>
+            <div class="form-group">
+                <label>Promotion Message</label>
+                <textarea id="expressPromo" style="height:80px">⚡ FAST-TRACK SERVICE ⚡ Get your orders in 2-3 days! 2x pricing but ultra-fast turnaround. Perfect for urgent needs!</textarea>
+            </div>
+            <button class="btn" onclick="savePromo('express')">Save</button>
+        </div>
+
+        <div class="card">
+            <h3>PREMIUM Tier Promotion</h3>
+            <div class="form-group">
+                <label>Promotion Message</label>
+                <textarea id="premiumPromo" style="height:80px">💎 PREMIUM EXPERIENCE 💎 5-10 days delivery with special care. 1.7x pricing for premium quality!</textarea>
+            </div>
+            <button class="btn" onclick="savePromo('premium')">Save</button>
+        </div>
+
+        <div class="card">
+            <h3>STANDARD Tier Promotion</h3>
+            <div class="form-group">
+                <label>Promotion Message</label>
+                <textarea id="standardPromo" style="height:80px">🎨 STANDARD SERVICE 🎨 7-12 days. Our most popular option. 1.3x pricing, great quality!</textarea>
+            </div>
+            <button class="btn" onclick="savePromo('standard')">Save</button>
+        </div>
+
+        <div class="card">
+            <h3>BASIC Tier Promotion</h3>
+            <div class="form-group">
+                <label>Promotion Message</label>
+                <textarea id="basicPromo" style="height:80px">📦 BASIC SERVICE 📦 12-15 days delivery. Most economical option! 1x pricing, standard quality.</textarea>
+            </div>
+            <button class="btn" onclick="savePromo('basic')">Save</button>
+        </div>
+    </div>
+
+    <!-- ANALYTICS TAB -->
+    <div id="tab-analytics" class="tab-content">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">📊 Engagement Analytics</h2>
+        <div class="stat-box">
+            <p>Total Customers Engaged</p>
+            <strong id="totalEngaged">0</strong>
+        </div>
+        <div class="stat-box">
+            <p>Total Loyalty Points Issued</p>
+            <strong id="totalIssued">0</strong>
+        </div>
+        <div class="stat-box">
+            <p>Active Referrals</p>
+            <strong id="activeReferrals">0</strong>
+        </div>
+        <div class="card">
+            <h3>Engagement Metrics</h3>
+            <div id="analyticsDisplay"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+var coupon_codes = JSON.parse(localStorage.getItem('coupon_codes_v1')) || [];
+var couture_customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var engagement_settings = JSON.parse(localStorage.getItem('engagement_settings_v1')) || {};
+
+function createCoupon(){
+    var code = document.getElementById('couponCode').value.toUpperCase().trim();
+    var discount = parseInt(document.getElementById('couponDiscount').value) || 0;
+    var tier = document.getElementById('couponTier').value || '';
+    var active = document.getElementById('couponActive').checked;
+    
+    if(!code || !discount){
+        alert('Fill required fields');
+        return;
+    }
+    
+    if(coupon_codes.find(c => c.code === code)){
+        alert('Code already exists');
+        return;
+    }
+    
+    var coupon = {code:code,discountPercent:discount,tier:tier,active:active,createdAt:new Date().toISOString()};
+    coupon_codes.push(coupon);
+    localStorage.setItem('coupon_codes_v1', JSON.stringify(coupon_codes));
+    
+    document.getElementById('couponCode').value = '';
+    document.getElementById('couponDiscount').value = '';
+    document.getElementById('couponTier').value = '';
+    
+    alert('Coupon created!');
+    loadCoupons();
+}
+
+function loadCoupons(){
+    var html = '';
+    coupon_codes.forEach(c => {
+        html += '<div class="item"><strong>'+c.code+'</strong> ('+c.discountPercent+'% off)<p>Tier: '+(c.tier||'All')+'</p><p>Status: '+(c.active?'Active':'Inactive')+'</p></div>';
+    });
+    document.getElementById('couponsDisplay').innerHTML = html || '<p style="color:#999;">No coupons</p>';
+}
+
+function saveLoyaltyRules(){
+    var rules = {pointsPerThousand:parseInt(document.getElementById('pointsPerThousand').value),expressBonus:parseInt(document.getElementById('expressBonus').value)};
+    localStorage.setItem('loyalty_rules_v1', JSON.stringify(rules));
+    alert('Rules saved!');
+}
+
+function loadLoyaltyAnalytics(){
+    var totalPoints = couture_customers.reduce((sum,c) => sum + (c.loyaltyPoints||0), 0);
+    document.getElementById('totalPoints').textContent = totalPoints;
+    
+    var sorted = [...couture_customers].sort((a,b) => (b.loyaltyPoints||0)-(a.loyaltyPoints||0)).slice(0,10);
+    var html = '';
+    sorted.forEach(c => {
+        html += '<div class="item"><strong>'+c.name+'</strong><p>Points: '+c.loyaltyPoints+' | Spending: ₦'+(c.lifetimeSpending||0)+'</p></div>';
+    });
+    document.getElementById('loyaltyDisplay').innerHTML = html || '<p style="color:#999;">No customers</p>';
+}
+
+function saveReferralRules(){
+    var rules = {referrerReward:parseInt(document.getElementById('referrerReward').value),refereeDiscount:parseInt(document.getElementById('refereeDiscount').value)};
+    localStorage.setItem('referral_rules_v1', JSON.stringify(rules));
+    alert('Referral rules saved!');
+}
+
+function loadReferralDisplay(){
+    document.getElementById('referralDisplay').innerHTML = '<p style="color:#999;">No recent referrals</p>';
+}
+
+function saveBirthdaySettings(){
+    var settings = {discount:parseInt(document.getElementById('birthdayDiscount').value),points:parseInt(document.getElementById('birthdayPoints').value),enabled:document.getElementById('birthdayEnabled').checked};
+    localStorage.setItem('birthday_settings_v1', JSON.stringify(settings));
+    alert('Birthday settings saved!');
+}
+
+function loadBirthdayDisplay(){
+    var today = new Date();
+    var upcoming = couture_customers.filter(c => {
+        if(!c.birthdate) return false;
+        var bd = new Date(c.birthdate);
+        var nextBd = new Date(today.getFullYear(), bd.getMonth(), bd.getDate());
+        if(nextBd < today) nextBd.setFullYear(today.getFullYear()+1);
+        return (nextBd - today) / (1000*60*60*24) <= 30;
+    }).slice(0, 10);
+    
+    var html = '';
+    upcoming.forEach(c => {
+        var bd = new Date(c.birthdate);
+        html += '<div class="item"><strong>'+c.name+'</strong><p>Birthday: '+bd.toLocaleDateString()+'</p></div>';
+    });
+    document.getElementById('birthdayDisplay').innerHTML = html || '<p style="color:#999;">No birthdays soon</p>';
+}
+
+function savePromo(tier){
+    var promoId = tier + 'Promo';
+    var message = document.getElementById(promoId).value;
+    var promos = JSON.parse(localStorage.getItem('tier_promotions_v1')) || {};
+    promos[tier] = message;
+    localStorage.setItem('tier_promotions_v1', JSON.stringify(promos));
+    alert('Promotion saved!');
+}
+
+function loadAnalytics(){
+    var engaged = couture_customers.length;
+    var totalPoints = couture_customers.reduce((sum,c) => sum + (c.loyaltyPoints||0), 0);
+    document.getElementById('totalEngaged').textContent = engaged;
+    document.getElementById('totalIssued').textContent = totalPoints;
+    document.getElementById('activeReferrals').textContent = '0';
+    
+    var html = '<div class="item"><p><strong>Customer Base:</strong> '+engaged+' customers</p></div>';
+    html += '<div class="item"><p><strong>Avg Loyalty Points:</strong> '+(engaged > 0 ? Math.floor(totalPoints/engaged) : 0)+' points/customer</p></div>';
+    html += '<div class="item"><p><strong>Avg Order Value:</strong> ₦'+Math.floor(couture_orders.reduce((sum,o)=>sum+o.total,0) / Math.max(couture_orders.length,1))+'</p></div>';
+    document.getElementById('analyticsDisplay').innerHTML = html;
+}
+
+function switchTab(tabName){
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tabName).classList.add('active');
+    event.target.classList.add('active');
+    if(tabName === 'loyalty') loadLoyaltyAnalytics();
+    if(tabName === 'birthday') loadBirthdayDisplay();
+    if(tabName === 'analytics') loadAnalytics();
+}
+
+loadCoupons();
+loadReferralDisplay();
+loadAnalytics();
+</script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Dashboard - Couture dé Cywila</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1400px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;text-align:center}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.stat-box p{color:#999;font-size:0.9rem}.tier-box{background:#1a1a2e;padding:1rem;margin-bottom:1rem;border-radius:8px;border-left:3px solid var(--primary)}.tier-box strong{color:white}.tier-box p{color:#999;font-size:0.9rem;margin:0.25rem 0}.table{width:100%;border-collapse:collapse;margin-top:1rem}.table th{background:#2d3561;padding:0.75rem;text-align:left;border-bottom:2px solid #3d4671}.table td{padding:0.75rem;border-bottom:1px solid #2d3561}.table tr:hover{background:#1a1a2e}.tier-EXPRESS{color:#ef4444}.tier-PREMIUM{color:#d946ef}.tier-STANDARD{color:#06b6d4}.tier-BASIC{color:#6b7280}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>💰 Accounting Dashboard</h1>
+        <p style="font-size:0.9rem;margin-top:0.5rem;">Real-time Financial Analysis with Tier Breakdown</p>
+    </div>
+
+    <div class="grid">
+        <div class="stat-box">
+            <p>Total Revenue</p>
+            <strong id="totalRevenue">₦0</strong>
+        </div>
+        <div class="stat-box">
+            <p>Total Expenses</p>
+            <strong id="totalExpenses">₦0</strong>
+        </div>
+        <div class="stat-box">
+            <p>Net Profit</p>
+            <strong id="netProfit" style="color:var(--gold)">₦0</strong>
+        </div>
+        <div class="stat-box">
+            <p>Profit Margin</p>
+            <strong id="profitMargin">0%</strong>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📊 Revenue by Service Tier</h3>
+        <div id="tierRevenueDisplay"></div>
+    </div>
+
+    <div class="card">
+        <h3>🎯 Profitability by Tier</h3>
+        <div id="tierProfitDisplay"></div>
+    </div>
+
+    <div class="card">
+        <h3>📈 Monthly Performance</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>This Month</th>
+                    <th>Last Month</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody id="performanceTable">
+                <tr><td colspan="4" style="text-align:center;color:#999">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>✅ Viability Metrics</h3>
+        <div id="viabilityDisplay"></div>
+    </div>
+
+    <!-- CHARTS SECTION (NEW) -->
+    <div style="margin-top: 2rem; border-top: 2px solid var(--gold); padding-top: 2rem;">
+        <h2 style="color: var(--gold); margin-bottom: 1.5rem;">📊 Advanced Analytics</h2>
+        <div class="grid">
+            <div class="card" style="min-height: 400px;">
+                <h3>📈 Revenue Trend (30 Days)</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="card" style="min-height: 400px;">
+                <h3>🎯 Revenue by Tier</h3>
+                <canvas id="tierChart"></canvas>
+            </div>
+            <div class="card" style="min-height: 400px;">
+                <h3>💰 Profit Margin Trend</h3>
+                <canvas id="marginChart"></canvas>
+            </div>
+            <div class="card" style="min-height: 400px;">
+                <h3>👥 Staff Performance</h3>
+                <canvas id="staffChart"></canvas>
+            </div>
+            <div class="card" style="min-height: 400px;">
+                <h3>📊 Customer Growth</h3>
+                <canvas id="customerChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var admin_expenses = JSON.parse(localStorage.getItem('admin_expenses_v16')) || [];
+var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
+
+function calculateFinancials(){
+    var totalRevenue = couture_orders.reduce((sum,o) => sum + (o.total || 0), 0);
+    var totalExpenses = admin_expenses.reduce((sum,e) => sum + (e.amount || 0), 0);
+    var netProfit = totalRevenue - totalExpenses;
+    var profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : '--';
+    
+    document.getElementById('totalRevenue').textContent = '₦' + totalRevenue;
+    document.getElementById('totalExpenses').textContent = '₦' + totalExpenses;
+    document.getElementById('netProfit').textContent = '₦' + netProfit;
+    document.getElementById('profitMargin').textContent = profitMargin + '%';
+    
+    calculateTierProfitability();
+    loadViability();
+}
+
+function calculateTierProfitability(){
+    var html = '';
+    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tierKey => {
+        if(!serviceTiers[tierKey]) return;
+        var tier = serviceTiers[tierKey];
+        var tierOrders = couture_orders.filter(o => o.tierId === tierKey);
+        var tierRevenue = tierOrders.length > 0 ? tierOrders.reduce((sum,o) => sum + (o.total || 0), 0) : 0;
+        var tierExpenses = admin_expenses.filter(e => e.tier === tierKey).reduce((sum,e) => sum + (e.amount || 0), 0);
+        var tierProfit = tierRevenue - tierExpenses;
+        var tierMargin = tierRevenue > 0 ? ((tierProfit / tierRevenue) * 100).toFixed(1) : '--';
+        
+        html += '<div class="tier-box"><strong class="tier-'+tierKey+'">'+tier.displayName+'</strong><p>Orders: '+tierOrders.length+' | Revenue: ₦'+tierRevenue+'</p><p>Expenses: ₦'+tierExpenses+' | Profit: ₦'+tierProfit+' ('+tierMargin+'%)</p></div>';
+    });
+    document.getElementById('tierRevenueDisplay').innerHTML = html;
+    document.getElementById('tierProfitDisplay').innerHTML = html;
+}
+
+function loadViability(){
+    var totalRevenue = couture_orders.reduce((sum,o) => sum + (o.total || 0), 0);
+    var totalExpenses = admin_expenses.reduce((sum,e) => sum + (e.amount || 0), 0);
+    var netProfit = totalRevenue - totalExpenses;
+    
+    var html = '';
+    html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid '+(netProfit > 0 ? '#10b981' : '#ef4444')+'">';
+    html += '<p><strong>Profitability:</strong> '+(netProfit > 0 ? '✅ HEALTHY' : '⚠️ LOSS')+' (Profit: ₦'+netProfit+')</p>';
+    html += '</div>';
+    
+    var margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100) : 0;
+    html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid '+(margin > 20 ? '#10b981' : margin > 0 ? '#f59e0b' : '#ef4444')+'">';
+    html += '<p><strong>Margin Target (>20%):</strong> '+(margin > 20 ? '✅ ACHIEVED' : '⚠️ BELOW TARGET')+' (Current: '+margin.toFixed(1)+'%)</p>';
+    html += '</div>';
+    
+    html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid '+(couture_orders.length > 0 ? '#10b981' : '#6b7280')+'">';
+    html += '<p><strong>Order Volume:</strong> '+couture_orders.length+' orders (Orders/Revenue: ₦'+Math.floor(totalRevenue/Math.max(couture_orders.length,1))+')</p>';
+    html += '</div>';
+    
+    document.getElementById('viabilityDisplay').innerHTML = html;
+}
+
+// ===== CHARTS FUNCTIONS (NEW) =====
+var charts = {};
+
+function initializeCharts() {
+    createRevenueChart();
+    createTierChart();
+    createMarginChart();
+    createStaffChart();
+    createCustomerChart();
+}
+
+function destroyChart(chartId) {
+    if (charts[chartId]) {
+        charts[chartId].destroy();
+    }
+}
+
+function createRevenueChart() {
+    var days = 30;
+    var dates = [];
+    var revenues = [];
+    
+    for (var i = days - 1; i >= 0; i--) {
+        var date = new Date();
+        date.setDate(date.getDate() - i);
+        dates.push(date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+        
+        var dayRevenue = couture_orders
+            .filter(o => new Date(o.createdAt).toLocaleDateString() === date.toLocaleDateString())
+            .reduce((sum, o) => sum + (o.total || 0), 0);
+        revenues.push(dayRevenue);
+    }
+    
+    destroyChart('revenue');
+    var ctx = document.getElementById('revenueChart').getContext('2d');
+    charts.revenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Daily Revenue (₦)',
+                data: revenues,
+                borderColor: '#D4AF37',
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#D4AF37'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {labels: {color: '#e0e0e0'}}},
+            scales: {
+                y: {ticks: {color: '#999'}, grid: {color: '#2d3561'}},
+                x: {ticks: {color: '#999'}, grid: {color: '#2d3561'}}
+            }
+        }
+    });
+}
+
+function createTierChart() {
+    var tierData = {};
+    var tierColors = {EXPRESS: '#ef4444', PREMIUM: '#d946ef', STANDARD: '#06b6d4', BASIC: '#6b7280'};
+    
+    couture_orders.forEach(o => {
+        var tier = o.tierId || 'UNKNOWN';
+        if (!tierData[tier]) tierData[tier] = 0;
+        tierData[tier] += o.total || 0;
+    });
+    
+    destroyChart('tier');
+    var ctx = document.getElementById('tierChart').getContext('2d');
+    charts.tier = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(tierData),
+            datasets: [{
+                data: Object.values(tierData),
+                backgroundColor: Object.keys(tierData).map(tier => tierColors[tier] || '#D4AF37')
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {labels: {color: '#e0e0e0'}}}
+        }
+    });
+}
+
+function createMarginChart() {
+    var days = 30;
+    var dates = [];
+    var margins = [];
+    
+    for (var i = days - 1; i >= 0; i--) {
+        var date = new Date();
+        date.setDate(date.getDate() - i);
+        dates.push(date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+        
+        var dayRevenue = couture_orders
+            .filter(o => new Date(o.createdAt).toLocaleDateString() === date.toLocaleDateString())
+            .reduce((sum, o) => sum + (o.total || 0), 0);
+        
+        var dayExpense = admin_expenses
+            .filter(e => new Date(e.createdAt || e.date).toLocaleDateString() === date.toLocaleDateString())
+            .reduce((sum, e) => sum + (e.amount || 0), 0);
+        
+        var margin = dayRevenue > 0 ? Math.round(((dayRevenue - dayExpense) / dayRevenue) * 100) : 0;
+        margins.push(Math.max(margin, 0));
+    }
+    
+    destroyChart('margin');
+    var ctx = document.getElementById('marginChart').getContext('2d');
+    charts.margin = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Profit Margin (%)',
+                data: margins,
+                backgroundColor: '#D4AF37'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {labels: {color: '#e0e0e0'}}},
+            scales: {
+                y: {ticks: {color: '#999'}, grid: {color: '#2d3561'}},
+                x: {ticks: {color: '#999'}, grid: {color: '#2d3561'}}
+            }
+        }
+    });
+}
+
+function createStaffChart() {
+    var staff = JSON.parse(localStorage.getItem('couture_staff_v15') || '[]');
+    var staffPerformance = {};
+    
+    staff.slice(0, 10).forEach(s => {
+        staffPerformance[s.name] = {completed: 0, total: 0};
+    });
+    
+    couture_orders.forEach(o => {
+        for (var name in staffPerformance) {
+            staffPerformance[name].total++;
+            if (o.status === 'Completed') staffPerformance[name].completed++;
+        }
+    });
+    
+    var names = Object.keys(staffPerformance);
+    var rates = names.map(name => {
+        var perf = staffPerformance[name];
+        return perf.total > 0 ? Math.round((perf.completed / perf.total) * 100) : 0;
+    });
+    
+    destroyChart('staff');
+    var ctx = document.getElementById('staffChart').getContext('2d');
+    charts.staff = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: names,
+            datasets: [{
+                label: 'Completion Rate (%)',
+                data: rates,
+                backgroundColor: '#10b981'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {legend: {labels: {color: '#e0e0e0'}}},
+            scales: {
+                x: {ticks: {color: '#999'}, grid: {color: '#2d3561'}},
+                y: {ticks: {color: '#999'}, grid: {color: '#2d3561'}}
+            }
+        }
+    });
+}
+
+function createCustomerChart() {
+    var customers = JSON.parse(localStorage.getItem('couture_customers') || '[]');
+    var days = 30;
+    var dates = [];
+    var customerCounts = [];
+    var cumulative = 0;
+    
+    for (var i = days - 1; i >= 0; i--) {
+        var date = new Date();
+        date.setDate(date.getDate() - i);
+        dates.push(date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
+        
+        var dayCustomers = customers.filter(c => 
+            new Date(c.createdAt).toLocaleDateString() === date.toLocaleDateString()
+        ).length;
+        
+        cumulative += dayCustomers;
+        customerCounts.push(cumulative);
+    }
+    
+    destroyChart('customer');
+    var ctx = document.getElementById('customerChart').getContext('2d');
+    charts.customer = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Cumulative Customers',
+                data: customerCounts,
+                borderColor: '#60a5fa',
+                backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#60a5fa'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {labels: {color: '#e0e0e0'}}},
+            scales: {
+                y: {ticks: {color: '#999'}, grid: {color: '#2d3561'}},
+                x: {ticks: {color: '#999'}, grid: {color: '#2d3561'}}
+            }
+        }
+    });
+}
+
+calculateFinancials();
+initializeCharts();
+setInterval(() => {
+    calculateFinancials();
+    initializeCharts();
+}, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Couture dé Cywila</title>
+    <script src="../shared/seed-data.js"></script>
+    <script src="../shared/ecosystem-bar.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
+        :root { --primary: #FF6B35; --gold: #D4AF37; }
+        body { padding: 1rem; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, var(--primary), var(--gold)); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2rem; }
+        .logout-btn { padding: 0.8rem 1.5rem; background: #ef4444; border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; width: auto; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .login-form { max-width: 500px; margin: 3rem auto; background: #16213e; padding: 2rem; border-radius: 12px; border: 1px solid #2d3561; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; font-family: inherit; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
+        .success-msg { color: #10b981; font-size: 0.9rem; margin-top: 0.5rem; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; border-bottom: 2px solid #2d3561; padding-bottom: 1rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.8rem 1.2rem; background: transparent; border: none; color: #666; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn:hover { color: var(--primary); }
+        .tab-btn.active { color: white; border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h3 { color: var(--primary); margin-bottom: 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .btn { padding: 0.8rem 1.2rem; background: linear-gradient(135deg, var(--primary), var(--gold)); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 0.5rem; margin-top: 1rem; width: 100%; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto; margin: 0.2rem; margin-top: 0; }
+        .btn-danger { background: #ef4444; }
+        .btn-success { background: #10b981; }
+        .btn-secondary { background: #6366f1; }
+        .list-item { background: #1a1a2e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; border-left: 3px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .list-item p { color: #999; font-size: 0.9rem; margin: 0.25rem 0; }
+        .stat-box { background: rgba(255,107,53,0.1); border-left: 4px solid var(--primary); padding: 1rem; margin-bottom: 1rem; border-radius: 6px; }
+        .stat-box strong { color: white; font-size: 1.3rem; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th { background: #2d3561; padding: 0.75rem; text-align: left; border-bottom: 2px solid #3d4671; }
+        .table td { padding: 0.75rem; border-bottom: 1px solid #2d3561; }
+        .table tr:hover { background: #1a1a2e; }
+        .role-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .role-super { background: #8b5cf6; color: white; }
+        .role-admin { background: #f59e0b; color: white; }
+        .role-manager { background: #06b6d4; color: white; }
+        .role-receptionist { background: #ec4899; color: white; }
+        .role-staff { background: #3b82f6; color: white; }
+        .role-driver { background: #10b981; color: white; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; }
+        .modal-content h3 { color: var(--primary); margin-bottom: 1rem; }
+        .close-modal { float: right; font-size: 2rem; font-weight: bold; color: #999; cursor: pointer; }
+        .close-modal:hover { color: white; }
+        .access-denied { background: #ef4444; color: white; padding: 1rem; border-radius: 8px; text-align: center; }
+        .audit-log { background: #0f172a; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 2px solid #2d3561; border-radius: 4px; font-size: 0.85rem; color: #999; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LOGIN FORM -->
+    <div id="loginSection" class="login-form">
+        <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">Admin Login</h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="loginUsername" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label>PIN</label>
+            <input type="password" id="loginPin" placeholder="Enter PIN">
+        </div>
+        <button class="btn" onclick="adminLogin()">Login</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" style="display: none;">
+        <div class="header">
+            <div>
+                <h1>⚙️ Admin Panel</h1>
+                <p id="userRole" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+            </div>
+            <button class="logout-btn" onclick="adminLogout()">Logout</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('staff')">👨‍💼 Staff</button>
+            <button class="tab-btn" onclick="switchTab('inventory')">📦 Inventory</button>
+            <button class="tab-btn" onclick="switchTab('tiers')">🏆 Tiers</button>
+            <button class="tab-btn" onclick="switchTab('cycles')">🔄 Cycles</button>
+            <button class="tab-btn" onclick="switchTab('customers')">👤 Customers</button>
+            <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
+            <button class="tab-btn" onclick="switchTab('audit')">📝 Audit Log</button>
+            <button class="tab-btn" onclick="switchTab('delivery')">🚗 Delivery</button>
+        </div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content active">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📊 Dashboard</h2>
+            <div class="grid">
+                <div class="stat-box">
+                    <p style="color: #999;">Total Users</p>
+                    <strong id="dashUsers">0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Total Orders</p>
+                    <strong id="dashOrders">0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Total Customers</p>
+                    <strong id="dashCustomers">0</strong>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Your Access Level</h3>
+                <p id="accessInfo" style="color: #999;"></p>
+            </div>
+        </div>
+
+        <!-- TAB 2: USER MANAGEMENT -->
+        <div id="tab-users" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👥 User Management</h2>
+            
+            <div class="card" id="createUserCard" style="display: none;">
+                <h3>[+ Create New User]</h3>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="newUsername" placeholder="e.g., ade.tailor">
+                </div>
+                <div class="form-group">
+                    <label>PIN (4-6 digits)</label>
+                    <input type="password" id="newPin" placeholder="e.g., 5001">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="newRole">
+                        <option value="">Select Role</option>
+                        <option value="Super Admin">Super Admin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Receptionist">Receptionist</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Driver">Driver</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Specialty (if Staff/Driver)</label>
+                    <input type="text" id="newSpecialty" placeholder="e.g., Tailor, Washer">
+                </div>
+                <div class="form-group">
+                    <label>Commission % (if applicable)</label>
+                    <input type="number" id="newCommission" placeholder="e.g., 10" min="0" max="100">
+                </div>
+                <button class="btn" onclick="createUser()">Create User</button>
+                <div id="createUserMsg"></div>
+            </div>
+
+            <div class="card">
+                <h3>All Users</h3>
+                <div id="usersDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: STAFF MANAGEMENT -->
+        <div id="tab-staff" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👨‍💼 Staff Management</h2>
+            <div class="card" id="addStaffCard" style="display: none;">
+                <h3>[+ Add Staff Member]</h3>
+                <div class="form-group">
+                    <label>Staff Username</label>
+                    <input type="text" id="staffUsername" placeholder="e.g., ade.tailor">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="staffRole">
+                        <option value="">Select Role</option>
+                        <option value="Tailor">Tailor</option>
+                        <option value="Washer">Washer</option>
+                        <option value="Driver">Driver</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Commission %</label>
+                    <input type="number" id="staffCommission" placeholder="10" min="0" max="100">
+                </div>
+                <button class="btn" onclick="addStaffMember()">Add Staff</button>
+            </div>
+
+            <div class="card">
+                <h3>Staff Members</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Commission</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTable">
+                        <tr><td colspan="4" style="text-align: center; color: #999;">No staff members</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: INVENTORY MANAGEMENT -->
+        <div id="tab-inventory" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📦 Inventory Management</h2>
+            
+            <div class="card" id="addInventoryCard" style="display: none;">
+                <h3>[+ Add Item]</h3>
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="inventoryName" placeholder="e.g., Ankara Gown">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="inventoryCategory">
+                        <option value="">Select Category</option>
+                        <option value="Laundry">Laundry</option>
+                        <option value="Tailoring">Tailoring</option>
+                        <option value="Subscription">Subscription</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Price (₦)</label>
+                    <input type="number" id="inventoryPrice" placeholder="15000">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="inventoryQuantity" placeholder="0">
+                </div>
+                <button class="btn" onclick="addInventoryItem()">Add Item</button>
+            </div>
+
+            <div class="card">
+                <h3>All Items</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">No items</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 5: SERVICE TIERS -->
+        <div id="tab-tiers" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🏆 Service Tiers</h2>
+            <div class="card">
+                <h3>Configured Tiers</h3>
+                <div id="tiersDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TAB 6: PRODUCTION CYCLES -->
+        <div id="tab-cycles" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🔄 Production Cycles</h2>
+            <div class="card">
+                <h3>Active Cycles</h3>
+                <div id="cyclesDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TAB 7: CUSTOMERS -->
+        <div id="tab-customers" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👤 Customers</h2>
+            <div class="card">
+                <h3>All Customers</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTable">
+                        <tr><td colspan="4" style="text-align: center; color: #999;">No customers</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 8: ORDERS -->
+        <div id="tab-orders" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📋 Orders</h2>
+            <div class="card">
+                <h3>All Orders</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Delivery Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">No orders</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 9: AUDIT LOG -->
+        <div id="tab-audit" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📝 Audit Log</h2>
+            <div class="card">
+                <h3>Recent Changes</h3>
+                <div id="auditDisplay"></div>
+            </div>
+        </div>
+
+        <!-- TAB 10: DELIVERY MANAGEMENT (NEW) -->
+        <div id="tab-delivery" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🚗 Delivery Management</h2>
+            <div class="card">
+                <h3>Active Deliveries</h3>
+                <div id="activeDeliveriesList"></div>
+            </div>
+            <div class="card">
+                <h3>Assign Driver</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div><label>Order ID</label><select id="assignOrderId" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"><option>Select order...</option></select></div>
+                    <div><label>Driver</label><select id="assignDriverId" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"><option>Select driver...</option></select></div>
+                </div>
+                <button class="btn" onclick="assignDriver()">Assign Driver</button>
+                <div id="assignStatus"></div>
+            </div>
+            <div class="card">
+                <h3>Completed Deliveries</h3>
+                <div id="completedDeliveriesList"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('editUserModal')">&times;</span>
+        <h3>Edit User</h3>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="editUsername" disabled>
+        </div>
+        <div class="form-group">
+            <label>PIN</label>
+            <input type="password" id="editPin" placeholder="Leave blank to keep current">
+        </div>
+        <div class="form-group">
+            <label>Role</label>
+            <select id="editRole">
+                <option value="Super Admin">Super Admin</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Receptionist">Receptionist</option>
+                <option value="Staff">Staff</option>
+                <option value="Driver">Driver</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="editStatus">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+        <button class="btn btn-success" onclick="saveUserEdit()">Save Changes</button>
+        <button class="btn btn-danger" onclick="closeModal('editUserModal')">Cancel</button>
+        <div id="editUserMsg"></div>
+    </div>
+</div>
+
+<script>
+// ============ AUTHENTICATION ============
+var currentUser = null;
+var users = JSON.parse(localStorage.getItem('app_users_v1')) || [
+    { username: 'nkay', pin: '1986', role: 'Super Admin', status: 'Active' },
+    { username: 'admin1', pin: '2001', role: 'Admin', status: 'Active' },
+    { username: 'manager1', pin: '3001', role: 'Manager', status: 'Active' },
+    { username: 'receptionist1', pin: '4001', role: 'Receptionist', status: 'Active' }
+];
+
+var auditLog = JSON.parse(localStorage.getItem('audit_log_v1')) || [];
+
+function adminLogin() {
+    var username = document.getElementById('loginUsername').value.trim();
+    var pin = document.getElementById('loginPin').value.trim();
+    var errorDiv = document.getElementById('loginError');
+    
+    if (!username || !pin) {
+        errorDiv.textContent = 'Please enter username and PIN';
+        return;
+    }
+    
+    var user = users.find(u => u.username === username && u.pin === pin && u.status === 'Active');
+    if (!user) {
+        errorDiv.textContent = 'Invalid credentials or account inactive';
+        return;
+    }
+    
+    currentUser = user;
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('userRole').textContent = 'Logged in as: ' + user.role;
+    
+    loadAllData();
+    setupAccessControl();
+}
+
+function adminLogout() {
+    currentUser = null;
+    location.reload();
+}
+
+// ============ TAB SWITCHING ============
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById('tab-' + tabName).classList.add('active');
+    event.target.classList.add('active');
+    
+    if (tabName === 'users') loadUsers();
+    if (tabName === 'staff') loadStaff();
+    if (tabName === 'inventory') loadInventory();
+    if (tabName === 'audit') loadAuditLog();
+}
+
+// ============ ROLE-BASED ACCESS CONTROL ============
+function setupAccessControl() {
+    var role = currentUser.role;
+    
+    // Show/hide create user button
+    document.getElementById('createUserCard').style.display = 
+        (role === 'Super Admin' || role === 'Admin') ? 'block' : 'none';
+    
+    // Show/hide staff add card
+    document.getElementById('addStaffCard').style.display = 
+        (role === 'Super Admin' || role === 'Admin') ? 'block' : 'none';
+    
+    // Show/hide inventory add card
+    document.getElementById('addInventoryCard').style.display = 
+        (role === 'Super Admin') ? 'block' : 'none';
+    
+    // Show/hide users tab entirely
+    document.querySelector('[onclick="switchTab(\'users\')"]').style.display =
+        (role === 'Super Admin' || role === 'Admin') ? 'inline-block' : 'none';
+    
+    // Show/hide audit log tab
+    document.querySelector('[onclick="switchTab(\'audit\')"]').style.display =
+        (role === 'Super Admin' || role === 'Admin') ? 'inline-block' : 'none';
+    
+    var accessInfo = 'Role: <strong>' + role + '</strong><br>';
+    accessInfo += 'Status: <strong>Active</strong><br>';
+    accessInfo += 'Last login: <strong>' + new Date().toLocaleString() + '</strong>';
+    document.getElementById('accessInfo').innerHTML = accessInfo;
+}
+
+// ============ DATA LOADING ============
+var couture_staff = JSON.parse(localStorage.getItem('couture_staff_v15')) || [];
+var couture_inventory = JSON.parse(localStorage.getItem('couture_inventory_v15')) || [];
+var couture_customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
+var productionCycles = JSON.parse(localStorage.getItem('production_cycles_tiered_v1')) || {};
+
+function loadAllData() {
+    document.getElementById('dashUsers').textContent = users.length;
+    document.getElementById('dashOrders').textContent = couture_orders.length;
+    document.getElementById('dashCustomers').textContent = couture_customers.length;
+    
+    loadTiers();
+    loadCycles();
+}
+
+// ============ USER MANAGEMENT ============
+function loadUsers() {
+    var html = '';
+    users.forEach(user => {
+        var roleClass = 'role-' + user.role.toLowerCase().replace(' ', '-');
+        html += '<div class="list-item" style="flex-direction: column; align-items: flex-start;">';
+        html += '<div style="display: flex; align-items: center; gap: 1rem; width: 100%;"><strong>' + user.username + '</strong>';
+        html += '<span class="role-badge ' + roleClass + '">' + user.role + '</span>';
+        html += '<span style="color: #999; font-size: 0.85rem;">Status: ' + user.status + '</span></div>';
+        html += '<div style="margin-top: 0.5rem; width: 100%;">';
+        if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
+            html += '<button class="btn-sm btn btn-secondary" onclick="openEditUserModal(\'' + user.username + '\')">Edit</button>';
+            if (currentUser.role === 'Super Admin' && user.role !== 'Super Admin') {
+                html += '<button class="btn-sm btn btn-danger" onclick="deleteUser(\'' + user.username + '\')">Delete</button>';
+            }
+        }
+        html += '</div></div>';
+    });
+    
+    document.getElementById('usersDisplay').innerHTML = html || '<p style="color: #999;">No users</p>';
+}
+
+function createUser() {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
+        alert('You do not have permission to create users');
+        return;
+    }
+    
+    var username = document.getElementById('newUsername').value.trim();
+    var pin = document.getElementById('newPin').value.trim();
+    var role = document.getElementById('newRole').value;
+    
+    if (!username || !pin || !role) {
+        document.getElementById('createUserMsg').innerHTML = '<span class="error-msg">Please fill all required fields</span>';
+        return;
+    }
+    
+    if (users.find(u => u.username === username)) {
+        document.getElementById('createUserMsg').innerHTML = '<span class="error-msg">Username already exists</span>';
+        return;
+    }
+    
+    var newUser = {
+        username: username,
+        pin: pin,
+        role: role,
+        status: 'Active',
+        createdAt: new Date().toISOString()
+    };
+    
+    users.push(newUser);
+    localStorage.setItem('app_users_v1', JSON.stringify(users));
+    
+    logAudit('CREATE_USER', 'User "' + username + '" created with role "' + role + '"');
+    
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPin').value = '';
+    document.getElementById('newRole').value = '';
+    document.getElementById('newSpecialty').value = '';
+    document.getElementById('newCommission').value = '';
+    
+    document.getElementById('createUserMsg').innerHTML = '<span class="success-msg">User created successfully!</span>';
+    setTimeout(() => loadUsers(), 500);
+}
+
+function openEditUserModal(username) {
+    var user = users.find(u => u.username === username);
+    if (!user) return;
+    
+    document.getElementById('editUsername').value = user.username;
+    document.getElementById('editPin').value = '';
+    document.getElementById('editRole').value = user.role;
+    document.getElementById('editStatus').value = user.status;
+    
+    document.getElementById('editUserModal').classList.add('active');
+}
+
+function saveUserEdit() {
+    var username = document.getElementById('editUsername').value;
+    var newPin = document.getElementById('editPin').value.trim();
+    var role = document.getElementById('editRole').value;
+    var status = document.getElementById('editStatus').value;
+    
+    var user = users.find(u => u.username === username);
+    if (!user) return;
+    
+    var changes = [];
+    if (newPin && newPin !== user.pin) {
+        user.pin = newPin;
+        changes.push('PIN changed');
+    }
+    if (role !== user.role) {
+        user.role = role;
+        changes.push('Role changed to ' + role);
+    }
+    if (status !== user.status) {
+        user.status = status;
+        changes.push('Status changed to ' + status);
+    }
+    
+    if (changes.length === 0) {
+        document.getElementById('editUserMsg').innerHTML = '<span class="error-msg">No changes made</span>';
+        return;
+    }
+    
+    localStorage.setItem('app_users_v1', JSON.stringify(users));
+    logAudit('EDIT_USER', 'User "' + username + '": ' + changes.join(', '));
+    
+    document.getElementById('editUserMsg').innerHTML = '<span class="success-msg">User updated successfully!</span>';
+    setTimeout(() => {
+        closeModal('editUserModal');
+        loadUsers();
+    }, 500);
+}
+
+function deleteUser(username) {
+    if (currentUser.role !== 'Super Admin') {
+        alert('Only Super Admin can delete users');
+        return;
+    }
+    
+    if (!confirm('Delete user "' + username + '"? This cannot be undone.')) return;
+    
+    users = users.filter(u => u.username !== username);
+    localStorage.setItem('app_users_v1', JSON.stringify(users));
+    
+    logAudit('DELETE_USER', 'User "' + username + '" deleted');
+    loadUsers();
+}
+
+// ============ STAFF MANAGEMENT ============
+function loadStaff() {
+    var html = '<tr>';
+    couture_staff.forEach(staff => {
+        html += '<tr>';
+        html += '<td>' + staff.name + '</td>';
+        html += '<td>' + staff.role + '</td>';
+        html += '<td>' + staff.commissionPercent + '%</td>';
+        html += '<td>';
+        if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
+            html += '<button class="btn-sm btn btn-secondary" onclick="editStaff(\'' + staff.id + '\')">Edit</button>';
+            html += '<button class="btn-sm btn btn-danger" onclick="deleteStaff(\'' + staff.id + '\')">Delete</button>';
+        }
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    if (couture_staff.length === 0) {
+        html = '<tr><td colspan="4" style="text-align: center; color: #999;">No staff members</td></tr>';
+    }
+    
+    document.getElementById('staffTable').innerHTML = html;
+}
+
+function addStaffMember() {
+    var username = document.getElementById('staffUsername').value.trim();
+    var role = document.getElementById('staffRole').value;
+    var commission = parseInt(document.getElementById('staffCommission').value) || 0;
+    
+    if (!username || !role) {
+        alert('Please fill all fields');
+        return;
+    }
+    
+    var staff = {
+        id: 'STAFF' + Date.now(),
+        name: username,
+        role: role,
+        commissionPercent: commission,
+        createdAt: new Date().toISOString()
+    };
+    
+    couture_staff.push(staff);
+    localStorage.setItem('couture_staff_v15', JSON.stringify(couture_staff));
+    
+    logAudit('ADD_STAFF', 'Staff "' + username + '" added with role "' + role + '"');
+    
+    document.getElementById('staffUsername').value = '';
+    document.getElementById('staffRole').value = '';
+    document.getElementById('staffCommission').value = '';
+    
+    loadStaff();
+}
+
+function editStaff(id) {
+    var staff = couture_staff.find(s => s.id === id);
+    if (!staff) return;
+    
+    var newName = prompt('Staff Name:', staff.name);
+    if (!newName) return;
+    
+    var newCommission = prompt('Commission %:', staff.commissionPercent);
+    if (!newCommission) return;
+    
+    staff.name = newName;
+    staff.commissionPercent = parseInt(newCommission);
+    
+    localStorage.setItem('couture_staff_v15', JSON.stringify(couture_staff));
+    logAudit('EDIT_STAFF', 'Staff "' + id + '" updated');
+    
+    loadStaff();
+}
+
+function deleteStaff(id) {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
+        alert('You do not have permission to delete staff');
+        return;
+    }
+    
+    if (!confirm('Delete this staff member?')) return;
+    
+    couture_staff = couture_staff.filter(s => s.id !== id);
+    localStorage.setItem('couture_staff_v15', JSON.stringify(couture_staff));
+    
+    logAudit('DELETE_STAFF', 'Staff "' + id + '" deleted');
+    loadStaff();
+}
+
+// ============ INVENTORY MANAGEMENT ============
+function loadInventory() {
+    var html = '';
+    if (!couture_inventory) couture_inventory = [];
+    
+    couture_inventory.forEach(item => {
+        html += '<tr>';
+        html += '<td>' + item.name + '</td>';
+        html += '<td>' + item.category + '</td>';
+        html += '<td>₦' + item.price + '</td>';
+        html += '<td>' + (item.quantity || 0) + '</td>';
+        html += '<td>';
+        if (currentUser.role === 'Super Admin') {
+            html += '<button class="btn-sm btn btn-secondary" onclick="editInventory(\'' + item.id + '\')">Edit</button>';
+            html += '<button class="btn-sm btn btn-danger" onclick="deleteInventory(\'' + item.id + '\')">Delete</button>';
+        }
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    if (couture_inventory.length === 0) {
+        html = '<tr><td colspan="5" style="text-align: center; color: #999;">No items</td></tr>';
+    }
+    
+    document.getElementById('inventoryTable').innerHTML = html;
+}
+
+function addInventoryItem() {
+    var name = document.getElementById('inventoryName').value.trim();
+    var category = document.getElementById('inventoryCategory').value;
+    var price = parseInt(document.getElementById('inventoryPrice').value) || 0;
+    var quantity = parseInt(document.getElementById('inventoryQuantity').value) || 0;
+    
+    if (!name || !category || !price) {
+        alert('Please fill all required fields');
+        return;
+    }
+    
+    var item = {
+        id: 'INV' + Date.now(),
+        name: name,
+        category: category,
+        price: price,
+        quantity: quantity,
+        createdAt: new Date().toISOString()
+    };
+    
+    couture_inventory.push(item);
+    localStorage.setItem('couture_inventory_v15', JSON.stringify(couture_inventory));
+    
+    logAudit('ADD_INVENTORY', 'Item "' + name + '" added to inventory');
+    
+    document.getElementById('inventoryName').value = '';
+    document.getElementById('inventoryCategory').value = '';
+    document.getElementById('inventoryPrice').value = '';
+    document.getElementById('inventoryQuantity').value = '';
+    
+    loadInventory();
+}
+
+function editInventory(id) {
+    var item = couture_inventory.find(i => i.id === id);
+    if (!item) return;
+    
+    var newName = prompt('Item Name:', item.name);
+    if (!newName) return;
+    
+    var newPrice = prompt('Price:', item.price);
+    if (!newPrice) return;
+    
+    var newQuantity = prompt('Quantity:', item.quantity);
+    if (!newQuantity) return;
+    
+    item.name = newName;
+    item.price = parseInt(newPrice);
+    item.quantity = parseInt(newQuantity);
+    
+    localStorage.setItem('couture_inventory_v15', JSON.stringify(couture_inventory));
+    logAudit('EDIT_INVENTORY', 'Item "' + id + '" updated');
+    
+    loadInventory();
+}
+
+function deleteInventory(id) {
+    if (!confirm('Delete this item?')) return;
+    
+    couture_inventory = couture_inventory.filter(i => i.id !== id);
+    localStorage.setItem('couture_inventory_v15', JSON.stringify(couture_inventory));
+    
+    logAudit('DELETE_INVENTORY', 'Item "' + id + '" deleted');
+    loadInventory();
+}
+
+// ============ TIERS ============
+function loadTiers() {
+    var html = '';
+    Object.keys(serviceTiers).forEach(tierKey => {
+        var tier = serviceTiers[tierKey];
+        html += '<div style="background: #1a1a2e; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border-left: 3px solid var(--primary);">';
+        html += '<strong>' + tier.displayName + '</strong>';
+        html += '<p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">Cycle: ' + tier.cycleLengthDays + ' days | Priority: ' + tier.priority + '</p>';
+        html += '</div>';
+    });
+    
+    document.getElementById('tiersDisplay').innerHTML = html || '<p style="color: #999;">No tiers configured</p>';
+}
+
+// ============ CYCLES ============
+function loadCycles() {
+    var html = '';
+    Object.values(productionCycles).forEach(cycle => {
+        html += '<div style="background: #1a1a2e; padding: 1rem; margin-bottom: 1rem; border-radius: 8px;">';
+        html += '<strong>' + cycle.cycleId + '</strong> - ' + cycle.status;
+        html += '<p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">Delivery: ' + cycle.deliveryDate + '</p>';
+        html += '</div>';
+    });
+    
+    document.getElementById('cyclesDisplay').innerHTML = html || '<p style="color: #999;">No cycles created</p>';
+}
+
+// ============ CUSTOMERS ============
+function loadCustomersTable() {
+    var html = '';
+    couture_customers.forEach(customer => {
+        var orderCount = couture_orders.filter(o => o.customerId === customer.id).length;
+        html += '<tr>';
+        html += '<td>' + customer.name + '</td>';
+        html += '<td>' + customer.email + '</td>';
+        html += '<td>' + customer.phone + '</td>';
+        html += '<td>' + orderCount + '</td>';
+        html += '</tr>';
+    });
+    
+    if (couture_customers.length === 0) {
+        html = '<tr><td colspan="4" style="text-align: center; color: #999;">No customers</td></tr>';
+    }
+    
+    document.getElementById('customersTable').innerHTML = html;
+}
+
+// ============ ORDERS ============
+function loadOrdersTable() {
+    var html = '';
+    couture_orders.forEach(order => {
+        html += '<tr>';
+        html += '<td>' + order.orderId + '</td>';
+        html += '<td>' + order.customerId + '</td>';
+        html += '<td>₦' + order.total + '</td>';
+        html += '<td>' + order.status + '</td>';
+        html += '<td>' + order.expectedDeliveryDate + '</td>';
+        html += '</tr>';
+    });
+    
+    if (couture_orders.length === 0) {
+        html = '<tr><td colspan="5" style="text-align: center; color: #999;">No orders</td></tr>';
+    }
+    
+    document.getElementById('ordersTable').innerHTML = html;
+}
+
+// ============ AUDIT LOG ============
+function logAudit(action, details) {
+    var entry = {
+        timestamp: new Date().toLocaleString(),
+        user: currentUser.username,
+        action: action,
+        details: details
+    };
+    
+    auditLog.unshift(entry);
+    if (auditLog.length > 500) auditLog.pop();
+    
+    localStorage.setItem('audit_log_v1', JSON.stringify(auditLog));
+}
+
+function loadAuditLog() {
+    var html = '';
+    auditLog.forEach(entry => {
+        html += '<div class="audit-log">';
+        html += '<strong>[' + entry.timestamp + ']</strong> ';
+        html += '<strong>' + entry.user + '</strong>: ';
+        html += '<em>' + entry.action + '</em> - ' + entry.details;
+        html += '</div>';
+    });
+    
+    document.getElementById('auditDisplay').innerHTML = html || '<p style="color: #999;">No audit entries</p>';
+}
+
+// ============ DELIVERY MANAGEMENT (NEW) ============
+function loadDeliveryTab() {
+    loadActiveDeliveries();
+    loadCompletedDeliveries();
+    populateDrivers();
+}
+
+function loadActiveDeliveries() {
+    var orders = JSON.parse(localStorage.getItem('couture_orders') || '[]');
+    var tracking = JSON.parse(localStorage.getItem('delivery_tracking_v1') || '[]');
+    var active = orders.filter(o => {
+        var track = tracking.find(t => t.orderId === o.orderId);
+        return !track || track.status !== 'delivered';
+    });
+    
+    if (active.length === 0) {
+        document.getElementById('activeDeliveriesList').innerHTML = '<p style="color: #999;">No active deliveries</p>';
+        return;
+    }
+    
+    var html = '<table class="table"><tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Address</th></tr>';
+    active.forEach(order => {
+        var track = tracking.find(t => t.orderId === order.orderId) || {};
+        var status = track.status ? track.status.toUpperCase() : 'NOT STARTED';
+        html += '<tr><td>'+order.orderId+'</td><td>'+order.customerId+'</td><td><span style="background: #facc15; color: #000; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;">'+status+'</span></td><td>'+order.deliveryAddress.substring(0, 40)+'</td></tr>';
+    });
+    html += '</table>';
+    document.getElementById('activeDeliveriesList').innerHTML = html;
+    
+    var orderOptions = '<option value="">Select order...</option>';
+    active.forEach(order => {
+        orderOptions += '<option value="'+order.orderId+'">'+order.orderId+'</option>';
+    });
+    document.getElementById('assignOrderId').innerHTML = orderOptions;
+}
+
+function loadCompletedDeliveries() {
+    var tracking = JSON.parse(localStorage.getItem('delivery_tracking_v1') || '[]');
+    var completed = tracking.filter(t => t.status === 'delivered');
+    
+    if (completed.length === 0) {
+        document.getElementById('completedDeliveriesList').innerHTML = '<p style="color: #999;">No completed deliveries</p>';
+        return;
+    }
+    
+    var html = '<table class="table"><tr><th>Order ID</th><th>Completed At</th><th>Notes</th></tr>';
+    completed.slice(0, 10).forEach(track => {
+        var date = new Date(track.completedAt).toLocaleString();
+        html += '<tr><td>'+track.orderId+'</td><td>'+date+'</td><td>'+(track.notes || '-')+'</td></tr>';
+    });
+    html += '</table>';
+    document.getElementById('completedDeliveriesList').innerHTML = html;
+}
+
+function populateDrivers() {
+    var staff = JSON.parse(localStorage.getItem('couture_staff_v15') || '[]');
+    var drivers = staff.filter(s => s.role === 'Driver');
+    var options = '<option value="">Select driver...</option>';
+    drivers.forEach(driver => {
+        options += '<option value="'+driver.id+'">'+driver.name+'</option>';
+    });
+    document.getElementById('assignDriverId').innerHTML = options;
+}
+
+function assignDriver() {
+    var orderId = document.getElementById('assignOrderId').value;
+    var driverId = document.getElementById('assignDriverId').value;
+    
+    if (!orderId || !driverId) {
+        document.getElementById('assignStatus').innerHTML = '<div style="color: #ef4444; margin-top: 0.5rem;">❌ Select both order and driver</div>';
+        return;
+    }
+    
+    var tracking = JSON.parse(localStorage.getItem('delivery_tracking_v1') || '[]');
+    var existingIndex = tracking.findIndex(t => t.orderId === orderId);
+    
+    var trackingRecord = {
+        orderId: orderId,
+        driverId: driverId,
+        status: 'assigned',
+        assignedAt: new Date().toISOString(),
+        locations: [],
+        notes: ''
+    };
+    
+    if (existingIndex !== -1) {
+        tracking[existingIndex] = Object.assign(tracking[existingIndex], trackingRecord);
+    } else {
+        tracking.push(trackingRecord);
+    }
+    
+    localStorage.setItem('delivery_tracking_v1', JSON.stringify(tracking));
+    document.getElementById('assignStatus').innerHTML = '<div style="color: #10b981; margin-top: 0.5rem;">✅ Driver assigned!</div>';
+    
+    setTimeout(() => {
+        document.getElementById('assignOrderId').value = '';
+        document.getElementById('assignDriverId').value = '';
+        loadDeliveryTab();
+    }, 1000);
+}
+
+// ============ MODAL CONTROL ============
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+// ============ INITIALIZATION ============
+window.onload = function() {
+    localStorage.setItem('app_users_v1', JSON.stringify(users));
+};
+</script>
+
+</body>
+</html>
