@@ -11,8 +11,11 @@ export default async (request, context) => {
     const url = new URL(request.url);
     const hostname = url.hostname.toLowerCase();
 
-    // 1. Bypass all serverless API endpoints and Netlify system paths
-    if (url.pathname.startsWith('/api') || url.pathname.startsWith('/.netlify')) {
+    // 1. Bypass all serverless API endpoints, Netlify system paths, and PWA assets
+    if (url.pathname.startsWith('/api') || 
+        url.pathname.startsWith('/.netlify') || 
+        url.pathname === '/manifest.json' || 
+        url.pathname === '/sw.js') {
         return context.next();
     }
 

@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal - Couture dé Cywila</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#c5a059">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cywila Admin">
+    <link rel="apple-touch-icon" href="/images/icon-192.svg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="/shared/seed-data.js"></script>
     <style>
@@ -97,6 +103,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
             <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
+            <button class="tab-btn" onclick="switchTab('catalog')" style="color: #EC4899; font-weight: 700;">🏷️ Services & Plans</button>
             <button class="tab-btn" onclick="switchTab('staff')">👨‍💼 Staff</button>
             <button class="tab-btn" onclick="switchTab('inventory')">📦 Inventory</button>
             <button class="tab-btn" onclick="switchTab('delivery')">🚗 Delivery</button>
@@ -290,9 +297,14 @@
 
         <!-- TAB 7: CUSTOMERS -->
         <div id="tab-customers" class="tab-content">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👤 Customers</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <h2 style="color: var(--primary); margin-bottom: 0;">👤 Customers Database (<span id="customerCountBadge">0</span>)</h2>
+                <button class="btn btn-sm" onclick="exportCustomersCSV()" style="background: #10B981; color: white; font-weight: 600; padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 6px;">
+                    📥 Export Customer Database (CSV for Email Marketing)
+                </button>
+            </div>
             <div class="card">
-                <h3>All Customers</h3>
+                <h3>Registered & Walk-In Customers</h3>
                 <table class="table">
                     <thead>
                         <tr>
@@ -300,10 +312,12 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Orders</th>
+                            <th>Points</th>
+                            <th>Total Spending</th>
                         </tr>
                     </thead>
                     <tbody id="customersTable">
-                        <tr><td colspan="4" style="text-align: center; color: #999;">No customers</td></tr>
+                        <tr><td colspan="6" style="text-align: center; color: #999;">No customers</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -311,7 +325,17 @@
 
         <!-- TAB 8: ORDERS -->
         <div id="tab-orders" class="tab-content">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📋 Orders</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <h2 style="color: var(--primary); margin-bottom: 0;">📋 Orders & Bookings</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="openWalkInOrderModal()" style="background: var(--primary); color: white; font-weight: 600; padding: 0.6rem 1.2rem;">
+                        ➕ New Walk-In Order (POS)
+                    </button>
+                    <button class="btn btn-sm" onclick="syncOrdersFromCloud(); loadOrdersTable();" style="background: #2d3561; color: white; padding: 0.6rem 1rem;">
+                        🔄 Refresh Cloud Sync
+                    </button>
+                </div>
+            </div>
             <div class="card">
                 <h3>All Orders</h3>
                 <table class="table">
@@ -326,7 +350,105 @@
                         </tr>
                     </thead>
                     <tbody id="ordersTable">
-                        <tr><td colspan="5" style="text-align: center; color: #999;">No orders</td></tr>
+                        <tr><td colspan="6" style="text-align: center; color: #999;">No orders</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: SERVICES & PLANS CATALOG -->
+        <div id="tab-catalog" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="color: #EC4899; margin-bottom: 0.25rem;">🏷️ Services & Plans Manager</h2>
+                    <p style="color: #999; font-size: 0.85rem;">Items and prices managed here reflect immediately across all customer booking pages.</p>
+                </div>
+            </div>
+
+            <!-- 1. LAUNDRY SERVICES -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="color: var(--primary); margin: 0;">🧺 Laundry Services (<span id="countLaundry">0</span>)</h3>
+                    <button class="btn btn-sm" onclick="openAddLaundryModal()" style="background: var(--primary); color: white;">➕ Add Laundry Service</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Service Name</th>
+                            <th>Base Price (₦)</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogLaundryTable">
+                        <tr><td colspan="4" style="text-align: center; color: #999;">Loading laundry services...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 2. TAILORING SERVICES -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="color: var(--gold); margin: 0;">✂️ Bespoke Tailoring Services (<span id="countTailoring">0</span>)</h3>
+                    <button class="btn btn-sm" onclick="openAddOutfitModal()" style="background: var(--gold); color: black; font-weight: 600;">➕ Add Tailoring Garment</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Garment / Outfit</th>
+                            <th>Base Price (₦)</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogTailoringTable">
+                        <tr><td colspan="4" style="text-align: center; color: #999;">Loading tailoring services...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 3. LAUNDRY SUBSCRIPTION PLANS -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="color: #60A5FA; margin: 0;">📦 Laundry Subscription Plans (<span id="countLaundryPlans">0</span>)</h3>
+                    <button class="btn btn-sm" onclick="openAddPlanModal()" style="background: #3B82F6; color: white;">➕ Add Laundry Plan</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Plan ID</th>
+                            <th>Plan Name</th>
+                            <th>Items Allowance</th>
+                            <th>Frequency</th>
+                            <th>Price (₦)</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogLaundryPlansTable">
+                        <tr><td colspan="6" style="text-align: center; color: #999;">Loading laundry plans...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 4. TAILORING & BESPOKE RETAINER PLANS -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="color: #A78BFA; margin: 0;">👑 Tailoring & Bespoke Retainer Plans (<span id="countTailoringPlans">0</span>)</h3>
+                    <button class="btn btn-sm" onclick="openAddTailoringPlanModal()" style="background: #8B5CF6; color: white;">➕ Add Retainer Plan</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Plan ID</th>
+                            <th>Retainer Name</th>
+                            <th>Garment Allowance</th>
+                            <th>Billing Frequency</th>
+                            <th>Price (₦)</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogTailoringPlansTable">
+                        <tr><td colspan="6" style="text-align: center; color: #999;">Loading retainer plans...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -518,6 +640,201 @@
     </div>
 </div>
 
+<!-- LAUNDRY ITEM MODAL -->
+<div id="laundryItemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('laundryItemModal')">&times;</span>
+        <h3 id="laundryModalTitle">Add Laundry Service</h3>
+        <input type="hidden" id="laundryItemId">
+        <div class="form-group">
+            <label>Service / Item Name</label>
+            <input type="text" id="laundryItemName" placeholder="e.g., Executive Suit Wash & Steam">
+        </div>
+        <div class="form-group">
+            <label>Price (₦)</label>
+            <input type="number" id="laundryItemPrice" placeholder="3500">
+        </div>
+        <button class="btn btn-success" onclick="saveLaundryItem()">Save Service</button>
+        <button class="btn btn-danger" onclick="closeModal('laundryItemModal')">Cancel</button>
+        <div id="laundryModalMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
+<!-- TAILORING ITEM MODAL -->
+<div id="outfitItemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('outfitItemModal')">&times;</span>
+        <h3 id="outfitModalTitle">Add Tailoring Garment</h3>
+        <input type="hidden" id="outfitItemId">
+        <div class="form-group">
+            <label>Garment / Style Name</label>
+            <input type="text" id="outfitItemName" placeholder="e.g., Bespoke Senator Wear (2-Piece)">
+        </div>
+        <div class="form-group">
+            <label>Base Price (₦)</label>
+            <input type="number" id="outfitItemPrice" placeholder="35000">
+        </div>
+        <button class="btn btn-success" onclick="saveOutfitItem()">Save Garment</button>
+        <button class="btn btn-danger" onclick="closeModal('outfitItemModal')">Cancel</button>
+        <div id="outfitModalMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
+<!-- LAUNDRY SUBSCRIPTION PLAN MODAL -->
+<div id="planItemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('planItemModal')">&times;</span>
+        <h3 id="planModalTitle">Add Laundry Subscription Plan</h3>
+        <input type="hidden" id="planItemId">
+        <div class="form-group">
+            <label>Plan Name</label>
+            <input type="text" id="planItemName" placeholder="e.g., Executive Weekly Plan">
+        </div>
+        <div class="form-group">
+            <label>Items Allowance</label>
+            <input type="number" id="planItemItems" placeholder="15">
+        </div>
+        <div class="form-group">
+            <label>Billing Frequency</label>
+            <select id="planItemFrequency">
+                <option value="Weekly">Weekly</option>
+                <option value="Bi-Weekly">Bi-Weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Price (₦)</label>
+            <input type="number" id="planItemPrice" placeholder="18000">
+        </div>
+        <button class="btn btn-success" onclick="savePlanItem()">Save Plan</button>
+        <button class="btn btn-danger" onclick="closeModal('planItemModal')">Cancel</button>
+        <div id="planModalMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
+<!-- TAILORING RETAINER PLAN MODAL -->
+<div id="tailoringPlanItemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('tailoringPlanItemModal')">&times;</span>
+        <h3 id="tailoringPlanModalTitle">Add Bespoke Retainer Plan</h3>
+        <input type="hidden" id="tailoringPlanItemId">
+        <div class="form-group">
+            <label>Retainer Plan Name</label>
+            <input type="text" id="tailoringPlanItemName" placeholder="e.g., Quarterly Bespoke Wardrobe Retainer">
+        </div>
+        <div class="form-group">
+            <label>Garments Allowance</label>
+            <input type="number" id="tailoringPlanItemItems" placeholder="3">
+        </div>
+        <div class="form-group">
+            <label>Billing Frequency</label>
+            <select id="tailoringPlanItemFrequency">
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Bi-Annual">Bi-Annual</option>
+                <option value="Annually">Annually</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Price (₦)</label>
+            <input type="number" id="tailoringPlanItemPrice" placeholder="180000">
+        </div>
+        <button class="btn btn-success" onclick="saveTailoringPlanItem()">Save Retainer Plan</button>
+        <button class="btn btn-danger" onclick="closeModal('tailoringPlanItemModal')">Cancel</button>
+        <div id="tailoringPlanModalMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
+<!-- WALK-IN ORDER MODAL (POS) -->
+<div id="walkInOrderModal" class="modal">
+    <div class="modal-content" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
+        <span class="close-modal" onclick="closeModal('walkInOrderModal')">&times;</span>
+        <h3 style="color: var(--primary);">➕ Create Walk-In Order (Front Desk POS)</h3>
+        <p style="color: #999; font-size: 0.85rem; margin-bottom: 1rem;">Take orders for reception walk-in clients, phone bookings, or offline walk-ins.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+                <label>Client Full Name *</label>
+                <input type="text" id="adminWalkInClientName" placeholder="e.g. Chief Johnson Adeleke">
+            </div>
+            <div class="form-group">
+                <label>Client Phone *</label>
+                <input type="tel" id="adminWalkInClientPhone" placeholder="e.g. +2348031234567">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Client Email (for receipt / marketing)</label>
+            <input type="email" id="adminWalkInClientEmail" placeholder="client@example.com">
+        </div>
+
+        <div style="background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #2d3561; margin-bottom: 1rem;">
+            <label style="color: var(--gold); font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;">Select Garments & Services</label>
+            <div style="display: flex; gap: 0.5rem;">
+                <select id="adminWalkInServiceSelect" style="flex: 2; padding: 0.6rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></select>
+                <input type="number" id="adminWalkInServiceQty" value="1" min="1" max="100" style="width: 70px; padding: 0.6rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; text-align: center;">
+                <button type="button" class="btn btn-sm btn-success" onclick="addAdminWalkInItem()" style="padding: 0.6rem 1rem; margin: 0; width: auto;">+ Add</button>
+            </div>
+            <div id="adminWalkInItemsList" style="margin-top: 0.75rem;">
+                <p style="color: #888; font-size: 0.85rem; margin: 0;">No items added yet</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+                <label>Service Speed Tier</label>
+                <select id="adminWalkInTier" onchange="calcAdminWalkInTotal()">
+                    <option value="STANDARD">STANDARD (7 Days - 1.0x)</option>
+                    <option value="EXPRESS">EXPRESS (2 Days - 2.0x)</option>
+                    <option value="PREMIUM">PREMIUM (4 Days - 1.5x)</option>
+                    <option value="BASIC">BASIC (10 Days - 0.8x)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fulfillment Method</label>
+                <select id="adminWalkInFulfillment">
+                    <option value="In-Store Pickup">In-Store Pickup</option>
+                    <option value="Home / Office Delivery">Home / Office Delivery</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Delivery Address / Notes</label>
+            <input type="text" id="adminWalkInAddress" placeholder="Optional delivery address or fitting notes">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="adminWalkInPayMethod">
+                    <option value="CASH">Cash at Desk</option>
+                    <option value="POS_TERMINAL">POS Terminal / Card</option>
+                    <option value="BANK_TRANSFER">Direct Bank Transfer</option>
+                    <option value="FLUTTERWAVE">Online Payment (Flutterwave)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Payment Status</label>
+                <select id="adminWalkInPayStatus">
+                    <option value="paid">Paid in Full</option>
+                    <option value="deposit">Deposit Paid</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="background: rgba(255,107,53,0.15); border: 1px solid var(--primary); padding: 0.75rem; border-radius: 8px; margin: 1rem 0; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; color: #fff;">Order Total:</span>
+            <span id="adminWalkInTotalDisplay" style="font-size: 1.4rem; font-weight: 700; color: var(--gold);">₦0</span>
+        </div>
+
+        <button class="btn btn-success" onclick="submitAdminWalkInOrder()">✅ Book Walk-In Order</button>
+        <button class="btn btn-danger" onclick="closeModal('walkInOrderModal')">Cancel</button>
+        <div id="adminWalkInMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
 <script>
 // ============ AUTHENTICATION ============
 var currentUser = null;
@@ -567,14 +884,20 @@ function switchTab(tabName) {
     
     var targetTab = document.getElementById('tab-' + tabName);
     if (targetTab) targetTab.classList.add('active');
-    if (event && event.target) event.target.classList.add('active');
+    
+    var activeBtn = document.querySelector('[onclick="switchTab(\'' + tabName + '\')"]');
+    if (activeBtn) activeBtn.classList.add('active');
     
     if (tabName === 'users') loadUsers();
     if (tabName === 'staff') loadStaff();
     if (tabName === 'inventory') loadInventory();
     if (tabName === 'audit') loadAuditLog();
     if (tabName === 'orders') { syncOrdersFromCloud(); loadOrdersTable(); }
-    if (tabName === 'delivery') loadDeliveries();
+    if (tabName === 'catalog') loadCatalogManager();
+    if (tabName === 'customers') loadCustomersTable();
+    if (tabName === 'tiers') loadTiers();
+    if (tabName === 'cycles') loadCycles();
+    if (tabName === 'delivery') { if (typeof loadDeliveryTab === 'function') loadDeliveryTab(); }
     if (tabName === 'accounting') { syncOrdersFromCloud(); loadAccounting(); }
     if (tabName === 'notifications') loadNotifications();
     if (tabName === 'loyalty') loadLoyalty();
@@ -1129,24 +1452,145 @@ function loadCycles() {
     document.getElementById('cyclesDisplay').innerHTML = html || '<p style="color: #999;">No cycles created</p>';
 }
 
-// ============ CUSTOMERS ============
+// ============ CUSTOMERS & MARKETING EXPORT ============
 function loadCustomersTable() {
+    var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+    var orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+    
+    var custMap = {};
+    customers.forEach(c => {
+        var key = (c.email || c.phone || c.id || '').toLowerCase().trim();
+        if (key) {
+            custMap[key] = {
+                id: c.id || '',
+                name: c.name || 'Anonymous',
+                email: c.email || '',
+                phone: c.phone || '',
+                loyaltyPoints: c.loyaltyPoints || 0,
+                lifetimeSpending: c.lifetimeSpending || 0,
+                createdAt: c.createdAt || ''
+            };
+        }
+    });
+
+    orders.forEach(o => {
+        var key = (o.customerEmail || o.customerPhone || o.customerId || '').toLowerCase().trim();
+        if (key && !custMap[key]) {
+            custMap[key] = {
+                id: o.customerId || 'WALK-IN',
+                name: o.customerName || 'Walk-in Guest',
+                email: o.customerEmail || '',
+                phone: o.customerPhone || '',
+                loyaltyPoints: 0,
+                lifetimeSpending: 0,
+                createdAt: o.createdAt || ''
+            };
+        }
+    });
+
+    var custList = Object.values(custMap);
+    var badge = document.getElementById('customerCountBadge');
+    if (badge) badge.textContent = custList.length;
+    var dashC = document.getElementById('dashCustomers');
+    if (dashC) dashC.textContent = custList.length;
+
     var html = '';
-    couture_customers.forEach(customer => {
-        var orderCount = couture_orders.filter(o => o.customerId === customer.id).length;
+    custList.forEach(customer => {
+        var clientOrders = orders.filter(o => 
+            (customer.id && o.customerId === customer.id) || 
+            (customer.email && o.customerEmail && o.customerEmail.toLowerCase() === customer.email.toLowerCase()) ||
+            (customer.phone && o.customerPhone && o.customerPhone === customer.phone)
+        );
+        var orderCount = Math.max(clientOrders.length, customer.lifetimeSpending ? 1 : 0);
+        var totalSpent = clientOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0) || (customer.lifetimeSpending || 0);
+
         html += '<tr>';
-        html += '<td>' + customer.name + '</td>';
-        html += '<td>' + customer.email + '</td>';
-        html += '<td>' + customer.phone + '</td>';
-        html += '<td>' + orderCount + '</td>';
+        html += '<td><strong>' + (customer.name || 'Guest') + '</strong></td>';
+        html += '<td>' + (customer.email ? '<a href="mailto:' + customer.email + '" style="color:#60A5FA;">' + customer.email + '</a>' : '<span style="color:#777;">-</span>') + '</td>';
+        html += '<td>' + (customer.phone ? '<a href="tel:' + customer.phone + '" style="color:#34D399;">' + customer.phone + '</a>' : '<span style="color:#777;">-</span>') + '</td>';
+        html += '<td><span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#2d3561;font-weight:600;">' + orderCount + ' orders</span></td>';
+        html += '<td style="color:#F59E0B;font-weight:600;">💎 ' + (customer.loyaltyPoints || 0) + '</td>';
+        html += '<td style="color:var(--gold);font-weight:600;">₦' + Number(totalSpent).toLocaleString() + '</td>';
         html += '</tr>';
     });
     
-    if (couture_customers.length === 0) {
-        html = '<tr><td colspan="4" style="text-align: center; color: #999;">No customers</td></tr>';
+    if (custList.length === 0) {
+        html = '<tr><td colspan="6" style="text-align: center; color: #999;">No customers registered yet</td></tr>';
     }
     
     document.getElementById('customersTable').innerHTML = html;
+}
+
+function exportCustomersCSV() {
+    var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+    var orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+
+    var custMap = {};
+    customers.forEach(c => {
+        var key = (c.email || c.phone || c.id || '').toLowerCase().trim();
+        if (key) {
+            custMap[key] = {
+                id: c.id || '',
+                name: c.name || 'Anonymous',
+                email: c.email || '',
+                phone: c.phone || '',
+                loyaltyPoints: c.loyaltyPoints || 0,
+                lifetimeSpending: c.lifetimeSpending || 0,
+                createdAt: c.createdAt || new Date().toISOString()
+            };
+        }
+    });
+
+    orders.forEach(o => {
+        var key = (o.customerEmail || o.customerPhone || o.customerId || '').toLowerCase().trim();
+        if (key && !custMap[key]) {
+            custMap[key] = {
+                id: o.customerId || 'WALK-IN',
+                name: o.customerName || 'Walk-in Guest',
+                email: o.customerEmail || '',
+                phone: o.customerPhone || '',
+                loyaltyPoints: 0,
+                lifetimeSpending: 0,
+                createdAt: o.createdAt || new Date().toISOString()
+            };
+        }
+    });
+
+    var rows = [
+        ['Customer ID', 'Full Name', 'Email Address', 'Phone Number', 'Total Orders', 'Lifetime Spend (NGN)', 'Loyalty Points', 'Joined / First Order Date']
+    ];
+
+    Object.values(custMap).forEach(c => {
+        var clientOrders = orders.filter(o => 
+            (c.id && o.customerId === c.id) || 
+            (c.email && o.customerEmail && o.customerEmail.toLowerCase() === c.email.toLowerCase()) ||
+            (c.phone && o.customerPhone && o.customerPhone === c.phone)
+        );
+        var orderCount = Math.max(clientOrders.length, c.lifetimeSpending ? 1 : 0);
+        var totalSpent = clientOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0) || (c.lifetimeSpending || 0);
+
+        rows.push([
+            '"' + (c.id || '').replace(/"/g, '""') + '"',
+            '"' + (c.name || '').replace(/"/g, '""') + '"',
+            '"' + (c.email || '').replace(/"/g, '""') + '"',
+            '"' + (c.phone || '').replace(/"/g, '""') + '"',
+            orderCount,
+            totalSpent,
+            c.loyaltyPoints || 0,
+            '"' + (c.createdAt ? c.createdAt.split('T')[0] : '') + '"'
+        ]);
+    });
+
+    var csvContent = rows.map(e => e.join(',')).join('\n');
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.setAttribute('href', url);
+    var dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', 'couture_customers_marketing_' + dateStr + '.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // ============ ORDERS & CLOUD SYNC ============
@@ -1360,6 +1804,536 @@ function assignDriver() {
     }, 1000);
 }
 
+// ============ CATALOG MANAGER (SERVICES & PLANS) ============
+var laundryModalMode = 'add';
+var laundryEditId = null;
+var outfitModalMode = 'add';
+var outfitEditId = null;
+var planModalMode = 'add';
+var planEditId = null;
+var tailoringPlanModalMode = 'add';
+var tailoringPlanEditId = null;
+
+function loadCatalogManager() {
+    var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var laundryPlans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+    var tailoringPlans = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
+
+    var countL = document.getElementById('countLaundry');
+    var countT = document.getElementById('countTailoring');
+    var countLP = document.getElementById('countLaundryPlans');
+    var countTP = document.getElementById('countTailoringPlans');
+    if (countL) countL.textContent = laundry.length;
+    if (countT) countT.textContent = outfits.length;
+    if (countLP) countLP.textContent = laundryPlans.length;
+    if (countTP) countTP.textContent = tailoringPlans.length;
+
+    // 1. Laundry Table
+    var lHtml = '';
+    laundry.forEach(item => {
+        lHtml += '<tr>' +
+            '<td><code>' + item.id + '</code></td>' +
+            '<td><strong>' + item.name + '</strong></td>' +
+            '<td style="color: var(--gold); font-weight: 600;">₦' + Number(item.price).toLocaleString() + '</td>' +
+            '<td style="text-align: right;">' +
+                '<button class="btn-sm btn btn-secondary" onclick="openEditLaundryModal(\'' + item.id + '\')">Edit</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="deleteLaundryItem(\'' + item.id + '\')">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    });
+    var elL = document.getElementById('catalogLaundryTable');
+    if (elL) elL.innerHTML = lHtml || '<tr><td colspan="4" style="text-align:center; color:#999;">No laundry services added</td></tr>';
+
+    // 2. Tailoring Table
+    var tHtml = '';
+    outfits.forEach(item => {
+        tHtml += '<tr>' +
+            '<td><code>' + item.id + '</code></td>' +
+            '<td><strong>' + item.name + '</strong></td>' +
+            '<td style="color: var(--gold); font-weight: 600;">₦' + Number(item.price).toLocaleString() + '</td>' +
+            '<td style="text-align: right;">' +
+                '<button class="btn-sm btn btn-secondary" onclick="openEditOutfitModal(\'' + item.id + '\')">Edit</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="deleteOutfitItem(\'' + item.id + '\')">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    });
+    var elT = document.getElementById('catalogTailoringTable');
+    if (elT) elT.innerHTML = tHtml || '<tr><td colspan="4" style="text-align:center; color:#999;">No tailoring garments added</td></tr>';
+
+    // 3. Laundry Plans Table
+    var lpHtml = '';
+    laundryPlans.forEach(plan => {
+        lpHtml += '<tr>' +
+            '<td><code>' + plan.id + '</code></td>' +
+            '<td><strong>' + plan.name + '</strong></td>' +
+            '<td>' + (plan.items || 0) + ' items</td>' +
+            '<td>' + (plan.frequency || 'Weekly') + '</td>' +
+            '<td style="color: var(--gold); font-weight: 600;">₦' + Number(plan.price).toLocaleString() + '</td>' +
+            '<td style="text-align: right;">' +
+                '<button class="btn-sm btn btn-secondary" onclick="openEditPlanModal(\'' + plan.id + '\')">Edit</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="deletePlanItem(\'' + plan.id + '\')">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    });
+    var elLP = document.getElementById('catalogLaundryPlansTable');
+    if (elLP) elLP.innerHTML = lpHtml || '<tr><td colspan="6" style="text-align:center; color:#999;">No laundry plans added</td></tr>';
+
+    // 4. Tailoring Retainer Plans Table
+    var tpHtml = '';
+    tailoringPlans.forEach(plan => {
+        tpHtml += '<tr>' +
+            '<td><code>' + plan.id + '</code></td>' +
+            '<td><strong>' + plan.name + '</strong></td>' +
+            '<td>' + (plan.items || 0) + ' garments</td>' +
+            '<td>' + (plan.frequency || 'Monthly') + '</td>' +
+            '<td style="color: var(--gold); font-weight: 600;">₦' + Number(plan.price).toLocaleString() + '</td>' +
+            '<td style="text-align: right;">' +
+                '<button class="btn-sm btn btn-secondary" onclick="openEditTailoringPlanModal(\'' + plan.id + '\')">Edit</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="deleteTailoringPlanItem(\'' + plan.id + '\')">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    });
+    var elTP = document.getElementById('catalogTailoringPlansTable');
+    if (elTP) elTP.innerHTML = tpHtml || '<tr><td colspan="6" style="text-align:center; color:#999;">No retainer plans added</td></tr>';
+}
+
+function openAddLaundryModal() {
+    laundryModalMode = 'add';
+    laundryEditId = null;
+    document.getElementById('laundryModalTitle').textContent = 'Add Laundry Service';
+    document.getElementById('laundryItemId').value = '';
+    document.getElementById('laundryItemName').value = '';
+    document.getElementById('laundryItemPrice').value = '';
+    document.getElementById('laundryModalMsg').innerHTML = '';
+    document.getElementById('laundryItemModal').classList.add('active');
+}
+
+function openEditLaundryModal(id) {
+    var list = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    var item = list.find(i => i.id === id);
+    if (!item) return;
+    laundryModalMode = 'edit';
+    laundryEditId = id;
+    document.getElementById('laundryModalTitle').textContent = 'Edit Laundry Service';
+    document.getElementById('laundryItemId').value = item.id;
+    document.getElementById('laundryItemName').value = item.name;
+    document.getElementById('laundryItemPrice').value = item.price;
+    document.getElementById('laundryModalMsg').innerHTML = '';
+    document.getElementById('laundryItemModal').classList.add('active');
+}
+
+function saveLaundryItem() {
+    var name = document.getElementById('laundryItemName').value.trim();
+    var price = Number(document.getElementById('laundryItemPrice').value);
+    var msg = document.getElementById('laundryModalMsg');
+    if (!name || isNaN(price) || price < 0) {
+        msg.innerHTML = '<span class="error-msg">Please enter valid name and price</span>';
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    if (laundryModalMode === 'add') {
+        var newId = 'LND-' + (100 + list.length + 1);
+        list.push({ id: newId, name: name, price: price });
+        logAudit('Add Laundry Service', 'Added ' + name + ' (₦' + price + ')');
+    } else {
+        var idx = list.findIndex(i => i.id === laundryEditId);
+        if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].price = price;
+            logAudit('Edit Laundry Service', 'Updated ' + name + ' (₦' + price + ')');
+        }
+    }
+    localStorage.setItem('couture_laundry_v15', JSON.stringify(list));
+    msg.innerHTML = '<span class="success-msg">Service saved! Live on booking page.</span>';
+    setTimeout(function() {
+        closeModal('laundryItemModal');
+        loadCatalogManager();
+    }, 600);
+}
+
+function deleteLaundryItem(id) {
+    if (!confirm('Are you sure you want to delete this laundry service?')) return;
+    var list = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    list = list.filter(i => i.id !== id);
+    localStorage.setItem('couture_laundry_v15', JSON.stringify(list));
+    logAudit('Delete Laundry Service', 'Deleted item ' + id);
+    loadCatalogManager();
+}
+
+function openAddOutfitModal() {
+    outfitModalMode = 'add';
+    outfitEditId = null;
+    document.getElementById('outfitModalTitle').textContent = 'Add Tailoring Garment';
+    document.getElementById('outfitItemId').value = '';
+    document.getElementById('outfitItemName').value = '';
+    document.getElementById('outfitItemPrice').value = '';
+    document.getElementById('outfitModalMsg').innerHTML = '';
+    document.getElementById('outfitItemModal').classList.add('active');
+}
+
+function openEditOutfitModal(id) {
+    var list = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var item = list.find(i => i.id === id);
+    if (!item) return;
+    outfitModalMode = 'edit';
+    outfitEditId = id;
+    document.getElementById('outfitModalTitle').textContent = 'Edit Tailoring Garment';
+    document.getElementById('outfitItemId').value = item.id;
+    document.getElementById('outfitItemName').value = item.name;
+    document.getElementById('outfitItemPrice').value = item.price;
+    document.getElementById('outfitModalMsg').innerHTML = '';
+    document.getElementById('outfitItemModal').classList.add('active');
+}
+
+function saveOutfitItem() {
+    var name = document.getElementById('outfitItemName').value.trim();
+    var price = Number(document.getElementById('outfitItemPrice').value);
+    var msg = document.getElementById('outfitModalMsg');
+    if (!name || isNaN(price) || price < 0) {
+        msg.innerHTML = '<span class="error-msg">Please enter valid garment name and price</span>';
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    if (outfitModalMode === 'add') {
+        var newId = 'TLR-' + (200 + list.length + 1);
+        list.push({ id: newId, name: name, price: price });
+        logAudit('Add Tailoring Garment', 'Added ' + name + ' (₦' + price + ')');
+    } else {
+        var idx = list.findIndex(i => i.id === outfitEditId);
+        if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].price = price;
+            logAudit('Edit Tailoring Garment', 'Updated ' + name + ' (₦' + price + ')');
+        }
+    }
+    localStorage.setItem('couture_outfits_v15', JSON.stringify(list));
+    msg.innerHTML = '<span class="success-msg">Garment saved! Live on booking page.</span>';
+    setTimeout(function() {
+        closeModal('outfitItemModal');
+        loadCatalogManager();
+    }, 600);
+}
+
+function deleteOutfitItem(id) {
+    if (!confirm('Are you sure you want to delete this tailoring garment?')) return;
+    var list = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    list = list.filter(i => i.id !== id);
+    localStorage.setItem('couture_outfits_v15', JSON.stringify(list));
+    logAudit('Delete Tailoring Garment', 'Deleted garment ' + id);
+    loadCatalogManager();
+}
+
+function openAddPlanModal() {
+    planModalMode = 'add';
+    planEditId = null;
+    document.getElementById('planModalTitle').textContent = 'Add Laundry Subscription Plan';
+    document.getElementById('planItemId').value = '';
+    document.getElementById('planItemName').value = '';
+    document.getElementById('planItemItems').value = '15';
+    document.getElementById('planItemFrequency').value = 'Weekly';
+    document.getElementById('planItemPrice').value = '';
+    document.getElementById('planModalMsg').innerHTML = '';
+    document.getElementById('planItemModal').classList.add('active');
+}
+
+function openEditPlanModal(id) {
+    var list = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+    var item = list.find(i => i.id === id);
+    if (!item) return;
+    planModalMode = 'edit';
+    planEditId = id;
+    document.getElementById('planModalTitle').textContent = 'Edit Laundry Subscription Plan';
+    document.getElementById('planItemId').value = item.id;
+    document.getElementById('planItemName').value = item.name;
+    document.getElementById('planItemItems').value = item.items || 15;
+    document.getElementById('planItemFrequency').value = item.frequency || 'Weekly';
+    document.getElementById('planItemPrice').value = item.price;
+    document.getElementById('planModalMsg').innerHTML = '';
+    document.getElementById('planItemModal').classList.add('active');
+}
+
+function savePlanItem() {
+    var name = document.getElementById('planItemName').value.trim();
+    var items = parseInt(document.getElementById('planItemItems').value) || 0;
+    var freq = document.getElementById('planItemFrequency').value;
+    var price = Number(document.getElementById('planItemPrice').value);
+    var msg = document.getElementById('planModalMsg');
+    if (!name || isNaN(price) || price < 0) {
+        msg.innerHTML = '<span class="error-msg">Please enter valid plan name and price</span>';
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+    if (planModalMode === 'add') {
+        var newId = 'PLN-' + (300 + list.length + 1);
+        list.push({ id: newId, name: name, items: items, frequency: freq, price: price });
+        logAudit('Add Laundry Plan', 'Added ' + name + ' (₦' + price + ')');
+    } else {
+        var idx = list.findIndex(i => i.id === planEditId);
+        if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].items = items;
+            list[idx].frequency = freq;
+            list[idx].price = price;
+            logAudit('Edit Laundry Plan', 'Updated ' + name + ' (₦' + price + ')');
+        }
+    }
+    localStorage.setItem('couture_laundry_plans', JSON.stringify(list));
+    msg.innerHTML = '<span class="success-msg">Subscription plan saved! Live on booking page.</span>';
+    setTimeout(function() {
+        closeModal('planItemModal');
+        loadCatalogManager();
+    }, 600);
+}
+
+function deletePlanItem(id) {
+    if (!confirm('Are you sure you want to delete this laundry plan?')) return;
+    var list = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+    list = list.filter(i => i.id !== id);
+    localStorage.setItem('couture_laundry_plans', JSON.stringify(list));
+    logAudit('Delete Laundry Plan', 'Deleted plan ' + id);
+    loadCatalogManager();
+}
+
+function openAddTailoringPlanModal() {
+    tailoringPlanModalMode = 'add';
+    tailoringPlanEditId = null;
+    document.getElementById('tailoringPlanModalTitle').textContent = 'Add Bespoke Retainer Plan';
+    document.getElementById('tailoringPlanItemId').value = '';
+    document.getElementById('tailoringPlanItemName').value = '';
+    document.getElementById('tailoringPlanItemItems').value = '3';
+    document.getElementById('tailoringPlanItemFrequency').value = 'Quarterly';
+    document.getElementById('tailoringPlanItemPrice').value = '';
+    document.getElementById('tailoringPlanModalMsg').innerHTML = '';
+    document.getElementById('tailoringPlanItemModal').classList.add('active');
+}
+
+function openEditTailoringPlanModal(id) {
+    var list = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
+    var item = list.find(i => i.id === id);
+    if (!item) return;
+    tailoringPlanModalMode = 'edit';
+    tailoringPlanEditId = id;
+    document.getElementById('tailoringPlanModalTitle').textContent = 'Edit Bespoke Retainer Plan';
+    document.getElementById('tailoringPlanItemId').value = item.id;
+    document.getElementById('tailoringPlanItemName').value = item.name;
+    document.getElementById('tailoringPlanItemItems').value = item.items || 3;
+    document.getElementById('tailoringPlanItemFrequency').value = item.frequency || 'Quarterly';
+    document.getElementById('tailoringPlanItemPrice').value = item.price;
+    document.getElementById('tailoringPlanModalMsg').innerHTML = '';
+    document.getElementById('tailoringPlanItemModal').classList.add('active');
+}
+
+function saveTailoringPlanItem() {
+    var name = document.getElementById('tailoringPlanItemName').value.trim();
+    var items = parseInt(document.getElementById('tailoringPlanItemItems').value) || 0;
+    var freq = document.getElementById('tailoringPlanItemFrequency').value;
+    var price = Number(document.getElementById('tailoringPlanItemPrice').value);
+    var msg = document.getElementById('tailoringPlanModalMsg');
+    if (!name || isNaN(price) || price < 0) {
+        msg.innerHTML = '<span class="error-msg">Please enter valid retainer name and price</span>';
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
+    if (tailoringPlanModalMode === 'add') {
+        var newId = 'TPLN-' + (400 + list.length + 1);
+        list.push({ id: newId, name: name, items: items, frequency: freq, price: price });
+        logAudit('Add Tailoring Retainer Plan', 'Added ' + name + ' (₦' + price + ')');
+    } else {
+        var idx = list.findIndex(i => i.id === tailoringPlanEditId);
+        if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].items = items;
+            list[idx].frequency = freq;
+            list[idx].price = price;
+            logAudit('Edit Tailoring Retainer Plan', 'Updated ' + name + ' (₦' + price + ')');
+        }
+    }
+    localStorage.setItem('couture_tailoring_plans', JSON.stringify(list));
+    msg.innerHTML = '<span class="success-msg">Retainer plan saved! Live on booking page.</span>';
+    setTimeout(function() {
+        closeModal('tailoringPlanItemModal');
+        loadCatalogManager();
+    }, 600);
+}
+
+function deleteTailoringPlanItem(id) {
+    if (!confirm('Are you sure you want to delete this tailoring retainer plan?')) return;
+    var list = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
+    list = list.filter(i => i.id !== id);
+    localStorage.setItem('couture_tailoring_plans', JSON.stringify(list));
+    logAudit('Delete Tailoring Retainer Plan', 'Deleted retainer plan ' + id);
+    loadCatalogManager();
+}
+
+// ============ WALK-IN POS ORDER ENGINE (ADMIN) ============
+var adminWalkInCart = [];
+
+function openWalkInOrderModal() {
+    adminWalkInCart = [];
+    document.getElementById('adminWalkInClientName').value = '';
+    document.getElementById('adminWalkInClientPhone').value = '';
+    document.getElementById('adminWalkInClientEmail').value = '';
+    document.getElementById('adminWalkInAddress').value = '';
+    document.getElementById('adminWalkInMsg').innerHTML = '';
+    populateAdminWalkInServices();
+    renderAdminWalkInItems();
+    calcAdminWalkInTotal();
+    document.getElementById('walkInOrderModal').classList.add('active');
+}
+
+function populateAdminWalkInServices() {
+    var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var select = document.getElementById('adminWalkInServiceSelect');
+    var html = '<optgroup label="🧺 Laundry & Care Services">';
+    laundry.forEach(s => {
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup><optgroup label="✂️ Bespoke Tailoring Services">';
+    outfits.forEach(s => {
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="tailoring">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup>';
+    select.innerHTML = html;
+}
+
+function addAdminWalkInItem() {
+    var select = document.getElementById('adminWalkInServiceSelect');
+    var opt = select.options[select.selectedIndex];
+    if (!opt) return;
+    var id = opt.value;
+    var name = opt.getAttribute('data-name');
+    var price = Number(opt.getAttribute('data-price'));
+    var type = opt.getAttribute('data-type');
+    var qty = parseInt(document.getElementById('adminWalkInServiceQty').value) || 1;
+
+    var existing = adminWalkInCart.find(i => i.id === id);
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        adminWalkInCart.push({ id, name, price, type, quantity: qty });
+    }
+    document.getElementById('adminWalkInServiceQty').value = 1;
+    renderAdminWalkInItems();
+    calcAdminWalkInTotal();
+}
+
+function removeAdminWalkInItem(index) {
+    adminWalkInCart.splice(index, 1);
+    renderAdminWalkInItems();
+    calcAdminWalkInTotal();
+}
+
+function renderAdminWalkInItems() {
+    var container = document.getElementById('adminWalkInItemsList');
+    if (adminWalkInCart.length === 0) {
+        container.innerHTML = '<p style="color:#888; font-size:0.85rem; margin:0;">No items added yet</p>';
+        return;
+    }
+    var html = '<table style="width:100%; font-size:0.85rem; border-collapse:collapse;">';
+    adminWalkInCart.forEach((item, idx) => {
+        var lineTotal = item.price * item.quantity;
+        html += '<tr style="border-bottom:1px solid #2d3561;">' +
+            '<td style="padding:4px 0;">' + item.name + '</td>' +
+            '<td style="padding:4px 6px; text-align:center;">x' + item.quantity + '</td>' +
+            '<td style="padding:4px 6px; text-align:right; font-weight:600; color:var(--gold);">₦' + lineTotal.toLocaleString() + '</td>' +
+            '<td style="padding:4px 0; text-align:right;"><button class="btn-sm btn btn-danger" onclick="removeAdminWalkInItem(' + idx + ')" style="padding:2px 6px; font-size:0.75rem;">&times;</button></td>' +
+        '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function calcAdminWalkInTotal() {
+    var tierKey = document.getElementById('adminWalkInTier').value;
+    var subtotal = adminWalkInCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    var mult = serviceTiers[tierKey] ? serviceTiers[tierKey].multiplier : 1.0;
+    var total = Math.floor(subtotal * mult);
+    document.getElementById('adminWalkInTotalDisplay').textContent = '₦' + total.toLocaleString();
+    return { subtotal, total, mult };
+}
+
+function submitAdminWalkInOrder() {
+    var clientName = document.getElementById('adminWalkInClientName').value.trim();
+    var clientPhone = document.getElementById('adminWalkInClientPhone').value.trim();
+    var clientEmail = document.getElementById('adminWalkInClientEmail').value.trim();
+    var msgDiv = document.getElementById('adminWalkInMsg');
+
+    if (!clientName || !clientPhone) {
+        msgDiv.innerHTML = '<span class="error-msg">Client Name and Phone are required</span>';
+        return;
+    }
+    if (adminWalkInCart.length === 0) {
+        msgDiv.innerHTML = '<span class="error-msg">Please add at least one garment/service</span>';
+        return;
+    }
+
+    var tierKey = document.getElementById('adminWalkInTier').value;
+    var totals = calcAdminWalkInTotal();
+    var fulfillment = document.getElementById('adminWalkInFulfillment').value;
+    var address = document.getElementById('adminWalkInAddress').value.trim() || fulfillment;
+    var payMethod = document.getElementById('adminWalkInPayMethod').value;
+    var payStatus = document.getElementById('adminWalkInPayStatus').value;
+
+    var days = serviceTiers[tierKey] ? serviceTiers[tierKey].cycleLengthDays : 7;
+    var expDate = new Date();
+    expDate.setDate(expDate.getDate() + days);
+
+    var orderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+    var newOrder = {
+        orderId: orderId,
+        customerId: 'WALK-IN',
+        customerName: clientName,
+        customerPhone: clientPhone,
+        customerEmail: clientEmail,
+        items: [...adminWalkInCart],
+        subtotal: totals.subtotal,
+        total: totals.total,
+        tierId: tierKey,
+        tierName: serviceTiers[tierKey] ? serviceTiers[tierKey].displayName : tierKey,
+        tierMultiplier: totals.mult,
+        deliveryAddress: address,
+        fulfillmentMethod: fulfillment,
+        paymentMethod: payMethod,
+        paymentStatus: payStatus,
+        status: 'Pending',
+        assignedTo: '',
+        createdAt: new Date().toISOString(),
+        expectedDeliveryDate: expDate.toISOString().split('T')[0]
+    };
+
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Creating booking...</span>';
+
+    fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
+    }).then(function(r) { return r.json(); })
+    .then(function(res) {
+        couture_orders.unshift(newOrder);
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        logAudit('Create Walk-In Order', 'Booked #' + orderId + ' for ' + clientName + ' (₦' + totals.total + ')');
+        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' created successfully!</span>';
+        setTimeout(function() {
+            closeModal('walkInOrderModal');
+            syncOrdersFromCloud();
+            loadOrdersTable();
+            loadCustomersTable();
+        }, 1200);
+    }).catch(function(err) {
+        couture_orders.unshift(newOrder);
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        logAudit('Create Walk-In Order (Local)', 'Booked #' + orderId + ' for ' + clientName);
+        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' saved locally!</span>';
+        setTimeout(function() {
+            closeModal('walkInOrderModal');
+            loadOrdersTable();
+            loadCustomersTable();
+        }, 1200);
+    });
+}
+
 // ============ MODAL CONTROL ============
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
@@ -1368,7 +2342,23 @@ function closeModal(modalId) {
 // ============ INITIALIZATION ============
 window.onload = function() {
     localStorage.setItem('app_users_v1', JSON.stringify(users));
+    if (window.CoutureDB && typeof window.CoutureDB.init === 'function') {
+        window.CoutureDB.init();
+    }
 };
+</script>
+
+<script>
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('Admin PWA ServiceWorker active');
+        }).catch(function(err) {
+            console.log('SW registration note:', err);
+        });
+    });
+}
 </script>
 
 </body>

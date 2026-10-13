@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Portal - Couture dé Cywila</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#C8A96A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cywila Staff">
+    <link rel="apple-touch-icon" href="/images/icon-192.svg">
     <script src="/shared/seed-data.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1200px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center}.logout-btn{padding:0.8rem 1.5rem;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;width:auto}.login-form{max-width:500px;margin:3rem auto;background:#16213e;padding:2rem;border-radius:12px}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem;font-weight:600}.form-group input,.form-group select{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem;width:auto;margin:0.2rem 0.2rem 0 0}.btn-success{background:#10b981}.task-item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.task-item.tier-EXPRESS{border-left-color:#ef4444}.task-item.tier-PREMIUM{border-left-color:#d946ef}.task-item.tier-STANDARD{border-left-color:#06b6d4}.task-item.tier-BASIC{border-left-color:#6b7280}.task-item p{color:#999;font-size:0.9rem;margin:0.25rem 0}.tier-badge{display:inline-block;padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;font-weight:600}.tier-EXPRESS{background:#ef4444;color:white}.tier-PREMIUM{background:#d946ef;color:white}.tier-STANDARD{background:#06b6d4;color:white}.tier-BASIC{background:#6b7280;color:white}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.error-msg{color:#ef4444;font-size:0.9rem;margin-top:0.5rem}.success-msg{color:#10b981;font-size:0.9rem;margin-top:0.5rem}
@@ -15,11 +21,14 @@
         <h2 style="color:var(--primary);margin-bottom:1.5rem;text-align:center;">👨‍💼 Staff Portal</h2>
         <div class="form-group">
             <label>Username</label>
-            <input type="text" id="staffUsername" placeholder="Enter username">
+            <input type="text" id="staffUsername" placeholder="Enter username (e.g. staff1, manager1, nkay)">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0.5rem;">
             <label>PIN</label>
             <input type="password" id="staffPin" placeholder="Enter PIN">
+        </div>
+        <div style="text-align:right; margin-bottom:1rem;">
+            <a href="javascript:void(0)" onclick="openStaffForgotPinModal()" style="color:var(--gold); font-size:0.85rem; text-decoration:none; font-weight:600;">Forgot PIN?</a>
         </div>
         <button class="btn" onclick="staffLogin()">Login</button>
         <div id="loginError"></div>
@@ -34,13 +43,17 @@
                     <span id="staffSyncBadge" style="font-size:0.75rem;padding:3px 10px;border-radius:12px;background:rgba(16,185,129,0.2);color:#10b981;border:1px solid #10b981;font-weight:600;">🟢 Live Sync: Connected</span>
                 </div>
             </div>
-            <button class="logout-btn" onclick="staffLogout()">Logout</button>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button id="staffPwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background:#C8A96A; color:#000; font-weight:700; width:auto; margin:0;">📲 Install App</button>
+                <button class="logout-btn" onclick="staffLogout()">Logout</button>
+            </div>
         </div>
 
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('tasks')">📋 My Tasks</button>
             <button class="tab-btn" onclick="switchTab('earnings')">💰 Earnings</button>
             <button class="tab-btn" onclick="switchTab('performance')">📊 Performance</button>
+            <button class="tab-btn" onclick="openWalkInModal()" style="color:#10b981; font-weight:700;">➕ New Walk-In Order</button>
         </div>
 
         <!-- TASKS TAB -->
@@ -91,6 +104,131 @@
                 <h3>Tier-Based Performance</h3>
                 <div id="performanceDisplay"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- WALK-IN ORDER MODAL (POS) -->
+<div id="walkInModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y:auto; padding:20px;">
+    <div style="background:#16213e; max-width:650px; margin:30px auto; padding:25px; border-radius:12px; border:1px solid #2d3561;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #2d3561; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="color:var(--gold); margin:0;">➕ Front-Desk Walk-In Order (POS)</h3>
+            <span style="font-size:24px; cursor:pointer; color:#999;" onclick="closeModal('walkInModal')">&times;</span>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="form-group">
+                <label>Client Full Name *</label>
+                <input type="text" id="walkInClientName" placeholder="e.g. Chief Adeyemi">
+            </div>
+            <div class="form-group">
+                <label>Client Phone *</label>
+                <input type="tel" id="walkInClientPhone" placeholder="+234...">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Client Email (For Automated Receipt / Marketing List)</label>
+            <input type="email" id="walkInClientEmail" placeholder="client@example.com">
+        </div>
+
+        <div style="background:#1a1a2e; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #2d3561;">
+            <label style="font-weight:600; color:var(--primary); margin-bottom:8px; display:block;">Select Service / Garment</label>
+            <div style="display:grid; grid-template-columns:2fr 1fr auto; gap:8px; align-items:center;">
+                <select id="walkInServiceSelect" style="padding:8px; background:#16213e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                </select>
+                <input type="number" id="walkInServiceQty" value="1" min="1" style="padding:8px; background:#16213e; border:1px solid #2d3561; border-radius:6px; color:#fff; text-align:center;">
+                <button class="btn btn-sm" onclick="addWalkInItem()" style="width:auto; margin:0; padding:8px 14px; background:var(--primary);">+ Add</button>
+            </div>
+
+            <!-- Selected Items Table -->
+            <div id="walkInItemsList" style="margin-top:12px; max-height:160px; overflow-y:auto;">
+                <p style="color:#888; font-size:0.85rem; margin:0;">No items added yet</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="form-group">
+                <label>Turnaround Tier</label>
+                <select id="walkInTier" onchange="calcWalkInTotal()" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                    <option value="EXPRESS">EXPRESS (2 Days - 2.0x)</option>
+                    <option value="PREMIUM">PREMIUM (4 Days - 1.5x)</option>
+                    <option value="STANDARD" selected>STANDARD (7 Days - 1.0x)</option>
+                    <option value="BASIC">BASIC (10 Days - 0.8x)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fulfillment Method</label>
+                <select id="walkInFulfillment" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                    <option value="Showroom Pickup">Showroom Pickup</option>
+                    <option value="Home/Office Delivery">Home/Office Delivery</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Delivery / Pickup Address Note</label>
+            <input type="text" id="walkInAddress" placeholder="Showroom Counter or client delivery address" value="Showroom Pickup">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px;">
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="walkInPayMethod" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                    <option value="CASH">Cash</option>
+                    <option value="POS">POS Terminal Card</option>
+                    <option value="BANK TRANSFER">Bank Transfer</option>
+                    <option value="UNPAID">Pay on Collection (Unpaid)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Payment Status</label>
+                <select id="walkInPayStatus" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="background:#1a1a2e; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:#aaa;">Order Total:</span>
+            <strong id="walkInTotalDisplay" style="font-size:1.4rem; color:var(--gold);">₦0</strong>
+        </div>
+
+        <button class="btn btn-success" onclick="submitWalkInOrder()" style="padding:10px; font-size:1rem; font-weight:700;">✅ Create Walk-In Booking</button>
+        <div id="walkInMsg" style="margin-top:8px;"></div>
+    </div>
+</div>
+
+<!-- STAFF FORGOT PIN MODAL -->
+<div id="staffForgotPinModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y:auto; padding:20px;">
+    <div style="background:#16213e; max-width:480px; margin:50px auto; padding:25px; border-radius:12px; border:1px solid #2d3561;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #2d3561; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="color:var(--gold); margin:0;">🔒 Staff PIN Recovery</h3>
+            <span style="font-size:24px; cursor:pointer; color:#999;" onclick="closeModal('staffForgotPinModal')">&times;</span>
+        </div>
+        
+        <div id="staffResetStep1">
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:12px;">Enter your staff username to receive a recovery code.</p>
+            <div class="form-group">
+                <label>Staff Username</label>
+                <input type="text" id="staffRecoveryInput" placeholder="e.g. staff1 or manager1">
+            </div>
+            <button class="btn btn-success" onclick="sendStaffResetCode()">Send Recovery Code</button>
+            <div id="staffResetStep1Msg" style="margin-top:8px;"></div>
+        </div>
+
+        <div id="staffResetStep2" style="display:none;">
+            <div class="form-group">
+                <label>6-Digit Code</label>
+                <input type="text" id="staffResetCode" placeholder="e.g. 582914" maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center;">
+            </div>
+            <div class="form-group">
+                <label>New PIN (4-6 digits)</label>
+                <input type="password" id="staffNewPin" placeholder="e.g. 5001" maxlength="6">
+            </div>
+            <button class="btn btn-success" onclick="completeStaffPinReset()">Update PIN</button>
+            <div id="staffResetStep2Msg" style="margin-top:8px;"></div>
         </div>
     </div>
 </div>
@@ -232,6 +370,280 @@ function switchTab(tabName){
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-'+tabName).classList.add('active');
     event.target.classList.add('active');
+}
+
+// ============ WALK-IN ORDER LOGIC (POS) ============
+var walkInCart = [];
+
+function openWalkInModal() {
+    walkInCart = [];
+    document.getElementById('walkInClientName').value = '';
+    document.getElementById('walkInClientPhone').value = '';
+    document.getElementById('walkInClientEmail').value = '';
+    document.getElementById('walkInMsg').innerHTML = '';
+    renderWalkInItems();
+    populateWalkInServices();
+    calcWalkInTotal();
+    document.getElementById('walkInModal').style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function populateWalkInServices() {
+    var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var select = document.getElementById('walkInServiceSelect');
+    var html = '<optgroup label="🧺 Laundry & Care Services">';
+    laundry.forEach(s => {
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup><optgroup label="✂️ Bespoke Tailoring Services">';
+    outfits.forEach(o => {
+        html += '<option value="' + o.id + '" data-price="' + o.price + '" data-name="' + o.name + '" data-type="tailoring">' + o.name + ' (₦' + Number(o.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup>';
+    select.innerHTML = html;
+}
+
+function addWalkInItem() {
+    var select = document.getElementById('walkInServiceSelect');
+    var opt = select.options[select.selectedIndex];
+    if (!opt) return;
+    var id = opt.value;
+    var name = opt.getAttribute('data-name');
+    var price = Number(opt.getAttribute('data-price'));
+    var type = opt.getAttribute('data-type');
+    var qty = parseInt(document.getElementById('walkInServiceQty').value) || 1;
+
+    var existing = walkInCart.find(i => i.id === id);
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        walkInCart.push({ id, name, price, type, quantity: qty });
+    }
+    document.getElementById('walkInServiceQty').value = 1;
+    renderWalkInItems();
+    calcWalkInTotal();
+}
+
+function removeWalkInItem(index) {
+    walkInCart.splice(index, 1);
+    renderWalkInItems();
+    calcWalkInTotal();
+}
+
+function renderWalkInItems() {
+    var container = document.getElementById('walkInItemsList');
+    if (walkInCart.length === 0) {
+        container.innerHTML = '<p style="color:#888; font-size:0.85rem; margin:0;">No items added yet</p>';
+        return;
+    }
+    var html = '<table style="width:100%; font-size:0.85rem; border-collapse:collapse;">';
+    walkInCart.forEach((item, idx) => {
+        var lineTotal = item.price * item.quantity;
+        html += '<tr style="border-bottom:1px solid #2d3561;">' +
+            '<td style="padding:4px 0;">' + item.name + '</td>' +
+            '<td style="padding:4px 6px; text-align:center;">x' + item.quantity + '</td>' +
+            '<td style="padding:4px 6px; text-align:right; font-weight:600; color:var(--gold);">₦' + lineTotal.toLocaleString() + '</td>' +
+            '<td style="padding:4px 0; text-align:right;"><button class="btn-sm btn btn-danger" onclick="removeWalkInItem(' + idx + ')" style="padding:2px 6px; font-size:0.75rem;">&times;</button></td>' +
+        '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function calcWalkInTotal() {
+    var tierKey = document.getElementById('walkInTier').value;
+    var subtotal = walkInCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    var mult = serviceTiers[tierKey] ? serviceTiers[tierKey].multiplier : 1.0;
+    var total = Math.floor(subtotal * mult);
+    document.getElementById('walkInTotalDisplay').textContent = '₦' + total.toLocaleString();
+    return { subtotal, total, mult };
+}
+
+function submitWalkInOrder() {
+    var clientName = document.getElementById('walkInClientName').value.trim();
+    var clientPhone = document.getElementById('walkInClientPhone').value.trim();
+    var clientEmail = document.getElementById('walkInClientEmail').value.trim();
+    var msgDiv = document.getElementById('walkInMsg');
+
+    if (!clientName || !clientPhone) {
+        msgDiv.innerHTML = '<span class="error-msg">Client Name and Phone are required</span>';
+        return;
+    }
+    if (walkInCart.length === 0) {
+        msgDiv.innerHTML = '<span class="error-msg">Please add at least one garment/service</span>';
+        return;
+    }
+
+    var tierKey = document.getElementById('walkInTier').value;
+    var totals = calcWalkInTotal();
+    var fulfillment = document.getElementById('walkInFulfillment').value;
+    var address = document.getElementById('walkInAddress').value.trim() || fulfillment;
+    var payMethod = document.getElementById('walkInPayMethod').value;
+    var payStatus = document.getElementById('walkInPayStatus').value;
+
+    var days = serviceTiers[tierKey] ? serviceTiers[tierKey].cycleLengthDays : 7;
+    var expDate = new Date();
+    expDate.setDate(expDate.getDate() + days);
+
+    var orderId = 'ORD-' + Date.now().toString().slice(-6);
+    var newOrder = {
+        orderId: orderId,
+        customerId: 'WALK-IN',
+        customerName: clientName,
+        customerPhone: clientPhone,
+        customerEmail: clientEmail,
+        items: [...walkInCart],
+        subtotal: totals.subtotal,
+        total: totals.total,
+        tierId: tierKey,
+        tierName: serviceTiers[tierKey] ? serviceTiers[tierKey].displayName : tierKey,
+        tierMultiplier: totals.mult,
+        deliveryAddress: address,
+        paymentMethod: payMethod,
+        paymentStatus: payStatus,
+        status: 'Pending',
+        assignedTo: currentStaff ? currentStaff.username : 'Staff Desk',
+        createdAt: new Date().toISOString(),
+        expectedDeliveryDate: expDate.toISOString().split('T')[0]
+    };
+
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Creating and saving booking to cloud...</span>';
+
+    fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
+    }).then(function(res) { return res.json(); }).then(function(data) {
+        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' created successfully!</span>';
+        setTimeout(function() {
+            closeModal('walkInModal');
+            syncOrdersFromCloud();
+        }, 1200);
+    }).catch(function(err) {
+        couture_orders.unshift(newOrder);
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' saved locally!</span>';
+        setTimeout(function() {
+            closeModal('walkInModal');
+            loadTasks();
+            loadEarnings();
+        }, 1200);
+    });
+}
+
+// ============ STAFF PIN RECOVERY ============
+var activeStaffResetData = null;
+
+function openStaffForgotPinModal() {
+    document.getElementById('staffResetStep1').style.display = 'block';
+    document.getElementById('staffResetStep2').style.display = 'none';
+    document.getElementById('staffResetStep1Msg').innerHTML = '';
+    document.getElementById('staffResetStep2Msg').innerHTML = '';
+    document.getElementById('staffForgotPinModal').style.display = 'block';
+}
+
+function sendStaffResetCode() {
+    var input = document.getElementById('staffRecoveryInput').value.trim().toLowerCase();
+    var msgDiv = document.getElementById('staffResetStep1Msg');
+    if (!input) {
+        msgDiv.innerHTML = '<span class="error-msg">Enter username</span>';
+        return;
+    }
+    var staff = staffUsers.find(u => u.username.toLowerCase() === input);
+    if (!staff) {
+        msgDiv.innerHTML = '<span class="error-msg">Staff account not found</span>';
+        return;
+    }
+
+    var code = Math.floor(100000 + Math.random() * 900000).toString();
+    activeStaffResetData = { username: staff.username, code: code, expires: Date.now() + 900000 };
+
+    msgDiv.innerHTML = '<span style="color:#C8A96A;">Sending security code...</span>';
+
+    fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'password_reset',
+            email: 'greatcywila@gmail.com',
+            recipientName: staff.username,
+            resetCode: code,
+            role: 'Staff'
+        })
+    }).then(function() {
+        msgDiv.innerHTML = '<span class="success-msg">Code dispatched to registered admin/staff email</span>';
+        setTimeout(function() {
+            document.getElementById('staffResetStep1').style.display = 'none';
+            document.getElementById('staffResetStep2').style.display = 'block';
+        }, 1200);
+    }).catch(function() {
+        msgDiv.innerHTML = '<span class="success-msg">Security Code: ' + code + '</span>';
+        setTimeout(function() {
+            document.getElementById('staffResetStep1').style.display = 'none';
+            document.getElementById('staffResetStep2').style.display = 'block';
+            document.getElementById('staffResetCode').value = code;
+        }, 1200);
+    });
+}
+
+function completeStaffPinReset() {
+    var code = document.getElementById('staffResetCode').value.trim();
+    var newPin = document.getElementById('staffNewPin').value.trim();
+    var msgDiv = document.getElementById('staffResetStep2Msg');
+
+    if (!code || !newPin) {
+        msgDiv.innerHTML = '<span class="error-msg">Enter code and new PIN</span>';
+        return;
+    }
+    if (!activeStaffResetData || activeStaffResetData.code !== code) {
+        msgDiv.innerHTML = '<span class="error-msg">Invalid recovery code</span>';
+        return;
+    }
+
+    var staff = staffUsers.find(u => u.username === activeStaffResetData.username);
+    if (staff) {
+        staff.pin = newPin;
+        localStorage.setItem('app_users_v1', JSON.stringify(staffUsers));
+        msgDiv.innerHTML = '<span class="success-msg">PIN updated! Redirecting to login...</span>';
+        setTimeout(function() {
+            closeModal('staffForgotPinModal');
+            document.getElementById('staffUsername').value = staff.username;
+            document.getElementById('staffPin').value = newPin;
+            staffLogin();
+        }, 1500);
+    }
+}
+
+// ============ PWA INSTALL & SERVICE WORKER ============
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    var btn = document.getElementById('staffPwaInstallBtn');
+    if (btn) btn.style.display = 'inline-block';
+});
+
+function triggerPwaInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+            deferredPrompt = null;
+            var btn = document.getElementById('staffPwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        });
+    }
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(function(e) {
+            console.log('SW registration note:', e);
+        });
+    });
 }
 </script>
 </body>

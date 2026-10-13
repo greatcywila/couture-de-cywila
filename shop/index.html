@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Couture dé Cywila - Customer Portal</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#C8A96A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cywila Shop">
+    <link rel="apple-touch-icon" href="/images/icon-192.svg">
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="/shared/seed-data.js"></script>
@@ -83,9 +89,12 @@
                 <label>Email</label>
                 <input type="email" id="loginEmail" placeholder="your@email.com">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 0.5rem;">
                 <label>Password</label>
                 <input type="password" id="loginPassword" placeholder="Password">
+            </div>
+            <div style="text-align: right; margin-bottom: 1rem;">
+                <a href="javascript:void(0)" onclick="openForgotPwdModal()" style="color: var(--gold); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Forgot Password?</a>
             </div>
             <button class="btn" onclick="customerLogin()">Login</button>
             <div id="loginError"></div>
@@ -125,7 +134,10 @@
                 <h1>👜 Couture dé Cywila</h1>
                 <p id="customerGreeting" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
             </div>
-            <button class="logout-btn" onclick="customerLogout()">Logout</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="pwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background:#C8A96A; color:#000; font-weight:700; width:auto; margin:0;">📲 Install App</button>
+                <button class="logout-btn" onclick="customerLogout()">Logout</button>
+            </div>
         </div>
 
         <div class="tabs">
@@ -150,8 +162,13 @@
             </div>
 
             <div class="card">
-                <h3>Subscription Plans</h3>
+                <h3>🧺 Laundry Subscription Plans</h3>
                 <div class="grid" id="subscriptionGrid"></div>
+            </div>
+
+            <div class="card">
+                <h3>✂️ Tailoring & Bespoke Retainer Plans</h3>
+                <div class="grid" id="tailoringPlansGrid"></div>
             </div>
         </div>
 
@@ -282,6 +299,43 @@
     </div>
 </div>
 
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgotPwdModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('forgotPwdModal')">&times;</span>
+        <h3 style="color: var(--gold); margin-bottom: 0.5rem;">🔒 Password Recovery</h3>
+        <p style="color: #999; font-size: 0.85rem; margin-bottom: 1.5rem;">Enter your registered email address to receive a secure 6-digit recovery code.</p>
+
+        <!-- STEP 1: REQUEST CODE -->
+        <div id="forgotStep1">
+            <div class="form-group">
+                <label>Registered Email Address</label>
+                <input type="email" id="recoveryEmail" placeholder="your@email.com">
+            </div>
+            <button class="btn btn-success" onclick="sendPasswordRecoveryCode()">Send Recovery Code</button>
+            <div id="recoveryStep1Msg" style="margin-top: 0.5rem;"></div>
+        </div>
+
+        <!-- STEP 2: VERIFY CODE & SET NEW PASSWORD -->
+        <div id="forgotStep2" style="display: none;">
+            <div class="form-group">
+                <label>6-Digit Verification Code</label>
+                <input type="text" id="recoveryCodeInput" placeholder="e.g. 582914" maxlength="6" style="letter-spacing: 4px; font-weight: bold; font-size: 1.2rem; text-align: center;">
+            </div>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="recoveryNewPwd" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" id="recoveryConfirmPwd" placeholder="Re-enter new password">
+            </div>
+            <button class="btn btn-success" onclick="completePasswordReset()">Reset & Save Password</button>
+            <div id="recoveryStep2Msg" style="margin-top: 0.5rem;"></div>
+        </div>
+    </div>
+</div>
+
 <script>
 var couturePaymentConfig = { flutterwavePublicKey: '', paystackPublicKey: '' };
 fetch('/api/config')
@@ -374,22 +428,61 @@ function customerLogout() {
 }
 
 function loadShop() {
+    couture_laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
+    couture_outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    couture_laundry_plans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
+    var couture_tailoring_plans = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
+
     var html = '';
-    couture_laundry.forEach(s => {html += '<div class="service-item"><h4>'+s.name+'</h4><p>Professional service</p><p class="service-price">₦'+s.price+'/item</p><button class="btn-sm btn" onclick="addToCart(\''+s.id+'\',\'laundry\','+s.price+',\''+s.name+'\')">Add</button></div>';});
-    document.getElementById('laundryGrid').innerHTML = html || '<p style="color: #999;">No services</p>';
+    couture_laundry.forEach(s => {
+        html += '<div class="service-item"><h4>' + s.name + '</h4><p>Professional service</p><p class="service-price">₦' + Number(s.price).toLocaleString() + '/item</p><button class="btn-sm btn" onclick="addToCart(\'' + s.id + '\',\'laundry\',' + s.price + ',\'' + s.name + '\')">+ Add to Cart</button></div>';
+    });
+    document.getElementById('laundryGrid').innerHTML = html || '<p style="color: #999;">No laundry services</p>';
     
     html = '';
-    couture_outfits.forEach(o => {html += '<div class="service-item"><h4>'+o.name+'</h4><p>Custom tailoring</p><p class="service-price">₦'+o.price+'</p><button class="btn-sm btn" onclick="addToCart(\''+o.id+'\',\'tailoring\','+o.price+',\''+o.name+'\')">Add</button></div>';});
-    document.getElementById('tailoringGrid').innerHTML = html || '<p style="color: #999;">No services</p>';
+    couture_outfits.forEach(o => {
+        html += '<div class="service-item"><h4>' + o.name + '</h4><p>Custom tailoring</p><p class="service-price">₦' + Number(o.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + o.id + '\',\'tailoring\',' + o.price + ',\'' + o.name + '\')">+ Add to Cart</button></div>';
+    });
+    document.getElementById('tailoringGrid').innerHTML = html || '<p style="color: #999;">No tailoring services</p>';
     
     html = '';
-    couture_laundry_plans.forEach(p => {html += '<div class="service-item"><h4>'+p.name+'</h4><p>'+p.items+' items, '+p.frequency+'</p><p class="service-price">₦'+p.price+'</p><button class="btn-sm btn" onclick="addToCart(\''+p.id+'\',\'subscription\','+p.price+',\''+p.name+'\')">Add</button></div>';});
-    document.getElementById('subscriptionGrid').innerHTML = html || '<p style="color: #999;">No plans</p>';
+    couture_laundry_plans.forEach(p => {
+        html += '<div class="service-item"><h4>' + p.name + '</h4><p>' + p.items + ' items, ' + p.frequency + '</p><p class="service-price">₦' + Number(p.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + p.id + '\',\'subscription\',' + p.price + ',\'' + p.name + '\')">+ Add Plan</button></div>';
+    });
+    document.getElementById('subscriptionGrid').innerHTML = html || '<p style="color: #999;">No laundry plans</p>';
+
+    html = '';
+    if (couture_tailoring_plans.length === 0) {
+        couture_tailoring_plans = [
+            { id: 'TPLN-401', name: 'Quarterly Bespoke Wardrobe Retainer', items: 3, frequency: 'Quarterly', price: 180000 },
+            { id: 'TPLN-402', name: 'Executive Annual Wardrobe Refresh', items: 10, frequency: 'Annual', price: 550000 }
+        ];
+        localStorage.setItem('couture_tailoring_plans', JSON.stringify(couture_tailoring_plans));
+    }
+    couture_tailoring_plans.forEach(p => {
+        html += '<div class="service-item"><h4>' + p.name + '</h4><p>' + p.items + ' garments, ' + p.frequency + '</p><p class="service-price">₦' + Number(p.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + p.id + '\',\'tailoring_plan\',' + p.price + ',\'' + p.name + '\')">+ Add Plan</button></div>';
+    });
+    var tailGrid = document.getElementById('tailoringPlansGrid');
+    if (tailGrid) tailGrid.innerHTML = html || '<p style="color: #999;">No tailoring retainer plans</p>';
 }
 
 function addToCart(id, type, price, name) {
-    cart.push({id:id,type:type,price:price,name:name,quantity:1,addedAt:new Date().toISOString()});
-    alert('Added to cart!');
+    var existing = cart.find(i => i.id === id);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ id: id, type: type, price: Number(price), name: name, quantity: 1, addedAt: new Date().toISOString() });
+    }
+    updateCart();
+}
+
+function changeCartQty(index, delta) {
+    if (cart[index]) {
+        cart[index].quantity += delta;
+        if (cart[index].quantity <= 0) {
+            cart.splice(index, 1);
+        }
+    }
     updateCart();
 }
 
@@ -397,19 +490,134 @@ function updateCart() {
     var html = '';
     var subtotal = 0;
     cart.forEach((item, i) => {
-        subtotal += item.price * item.quantity;
-        html += '<div class="cart-item"><div><strong>'+item.name+'</strong><p style="color:#999;font-size:0.9rem;">₦'+item.price+' x '+item.quantity+' = ₦'+(item.price*item.quantity)+'</p></div><button class="btn-sm btn btn-danger" onclick="removeFromCart('+i+')">Remove</button></div>';
+        var lineTotal = item.price * item.quantity;
+        subtotal += lineTotal;
+        html += '<div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; background:#16213e; padding:1rem; margin-bottom:0.75rem; border-radius:8px; border-left:3px solid var(--primary);">' +
+            '<div>' +
+                '<strong>' + item.name + '</strong>' +
+                '<p style="color:#C8A96A; font-size:0.9rem; margin-top:4px;">₦' + item.price.toLocaleString() + ' each</p>' +
+                '<p style="color:#fff; font-weight:600; margin-top:2px;">Line Total: ₦' + lineTotal.toLocaleString() + '</p>' +
+            '</div>' +
+            '<div style="display:flex; align-items:center; gap:0.5rem;">' +
+                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', -1)" style="width:34px; height:34px; padding:0; font-size:1.2rem; font-weight:bold; background:#2d3561; border-radius:6px; cursor:pointer;">-</button>' +
+                '<span style="font-weight:700; font-size:1.1rem; min-width:24px; text-align:center;">' + item.quantity + '</span>' +
+                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', 1)" style="width:34px; height:34px; padding:0; font-size:1.2rem; font-weight:bold; background:#2d3561; border-radius:6px; cursor:pointer;">+</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="removeFromCart(' + i + ')" style="margin-left:0.5rem;">Remove</button>' +
+            '</div>' +
+        '</div>';
     });
-    document.getElementById('cartItems').innerHTML = html || '<p style="color:#999;">Cart empty</p>';
-    document.getElementById('subtotal').textContent = '₦' + subtotal;
-    var disc = appliedCoupon ? (subtotal * appliedCoupon.discountPercent / 100) : 0;
-    document.getElementById('discount').textContent = '₦' + Math.floor(disc);
-    document.getElementById('cartTotal').textContent = '₦' + Math.floor(subtotal - disc);
+    document.getElementById('cartItems').innerHTML = html || '<p style="color:#999;">Cart is currently empty</p>';
+    document.getElementById('subtotal').textContent = '₦' + subtotal.toLocaleString();
+    var disc = appliedCoupon ? (subtotal * (appliedCoupon.discount || appliedCoupon.discountPercent || 0) / 100) : 0;
+    var discEl = document.getElementById('discount');
+    if (discEl) discEl.textContent = '₦' + Math.floor(disc).toLocaleString();
+    var totEl = document.getElementById('cartTotal');
+    if (totEl) totEl.textContent = '₦' + Math.floor(subtotal - disc).toLocaleString();
 }
 
 function removeFromCart(index) {
     cart.splice(index, 1);
     updateCart();
+}
+
+// ============ PASSWORD RECOVERY ============
+var activeRecoveryData = null;
+
+function openForgotPwdModal() {
+    document.getElementById('forgotStep1').style.display = 'block';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('recoveryStep1Msg').innerHTML = '';
+    document.getElementById('recoveryStep2Msg').innerHTML = '';
+    document.getElementById('forgotPwdModal').classList.add('active');
+}
+
+function sendPasswordRecoveryCode() {
+    var email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
+    var msgDiv = document.getElementById('recoveryStep1Msg');
+    if (!email) {
+        msgDiv.innerHTML = '<span class="error-msg">Please enter your email address</span>';
+        return;
+    }
+
+    var customer = customers.find(c => (c.email || '').toLowerCase() === email);
+    if (!customer) {
+        msgDiv.innerHTML = '<span class="error-msg">No customer account found with this email</span>';
+        return;
+    }
+
+    var code = Math.floor(100000 + Math.random() * 900000).toString();
+    activeRecoveryData = {
+        email: email,
+        code: code,
+        expires: Date.now() + (15 * 60 * 1000)
+    };
+
+    msgDiv.innerHTML = '<span style="color:#C8A96A;">Sending secure recovery code via Resend...</span>';
+
+    fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'password_reset',
+            email: email,
+            recipientName: customer.name,
+            resetCode: code,
+            role: 'Customer'
+        })
+    }).then(function(res) { return res.json(); }).then(function(data) {
+        msgDiv.innerHTML = '<span class="success-msg">Code sent! Check your inbox.</span>';
+        setTimeout(function() {
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'block';
+        }, 1200);
+    }).catch(function(err) {
+        msgDiv.innerHTML = '<span class="success-msg">Code generated: ' + code + '</span>';
+        setTimeout(function() {
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'block';
+            document.getElementById('recoveryCodeInput').value = code;
+        }, 1500);
+    });
+}
+
+function completePasswordReset() {
+    var code = document.getElementById('recoveryCodeInput').value.trim();
+    var newPwd = document.getElementById('recoveryNewPwd').value.trim();
+    var confirmPwd = document.getElementById('recoveryConfirmPwd').value.trim();
+    var msgDiv = document.getElementById('recoveryStep2Msg');
+
+    if (!code || !newPwd) {
+        msgDiv.innerHTML = '<span class="error-msg">Please enter code and new password</span>';
+        return;
+    }
+
+    if (newPwd !== confirmPwd) {
+        msgDiv.innerHTML = '<span class="error-msg">Passwords do not match</span>';
+        return;
+    }
+
+    if (!activeRecoveryData || activeRecoveryData.code !== code) {
+        msgDiv.innerHTML = '<span class="error-msg">Invalid verification code</span>';
+        return;
+    }
+
+    if (Date.now() > activeRecoveryData.expires) {
+        msgDiv.innerHTML = '<span class="error-msg">Code expired. Please request a new one.</span>';
+        return;
+    }
+
+    var customer = customers.find(c => (c.email || '').toLowerCase() === activeRecoveryData.email);
+    if (customer) {
+        customer.password = newPwd;
+        localStorage.setItem('couture_customers', JSON.stringify(customers));
+        msgDiv.innerHTML = '<span class="success-msg">Password updated successfully! Redirecting...</span>';
+        setTimeout(function() {
+            closeModal('forgotPwdModal');
+            document.getElementById('loginEmail').value = customer.email;
+            document.getElementById('loginPassword').value = newPwd;
+            customerLogin();
+        }, 1500);
+    }
 }
 
 function applyCoupon() {
@@ -716,6 +924,34 @@ function switchTab(tabName) {
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
+}
+
+// ============ PWA INSTALL & SERVICE WORKER ============
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    var btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'inline-block';
+});
+
+function triggerPwaInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+            deferredPrompt = null;
+            var btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        });
+    }
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(function(e) {
+            console.log('SW registration note:', e);
+        });
+    });
 }
 </script>
 

@@ -33,6 +33,12 @@
         { id: 'PLN-303', name: 'Solo Care Bi-Weekly Plan', items: 20, frequency: 'Bi-Weekly', price: 24000 }
     ];
 
+    const DEFAULT_TAILORING_PLANS = [
+        { id: 'TPLN-401', name: 'Quarterly Bespoke Wardrobe Retainer', items: 3, frequency: 'Quarterly', price: 180000 },
+        { id: 'TPLN-402', name: 'Executive Annual Wardrobe Refresh', items: 10, frequency: 'Annually', price: 550000 },
+        { id: 'TPLN-403', name: 'VIP Alterations & Refit Retainer', items: 8, frequency: 'Monthly', price: 35000 }
+    ];
+
     const DEFAULT_COUPONS = [
         { code: 'WELCOME10', discount: 10, tier: '', active: true, usageCount: 2 },
         { code: 'CYWILA20', discount: 20, tier: 'PREMIUM', active: true, usageCount: 1 },
@@ -122,6 +128,7 @@
         seedIfEmpty('couture_laundry_v15', DEFAULT_LAUNDRY);
         seedIfEmpty('couture_outfits_v15', DEFAULT_OUTFITS);
         seedIfEmpty('couture_laundry_plans', DEFAULT_PLANS);
+        seedIfEmpty('couture_tailoring_plans', DEFAULT_TAILORING_PLANS);
         seedIfEmpty('coupon_codes_v1', DEFAULT_COUPONS);
         seedIfEmpty('couture_inventory_v15', DEFAULT_INVENTORY);
         seedIfEmpty('couture_staff_v15', DEFAULT_STAFF);
@@ -137,6 +144,7 @@
         localStorage.setItem('couture_laundry_v15', JSON.stringify(DEFAULT_LAUNDRY));
         localStorage.setItem('couture_outfits_v15', JSON.stringify(DEFAULT_OUTFITS));
         localStorage.setItem('couture_laundry_plans', JSON.stringify(DEFAULT_PLANS));
+        localStorage.setItem('couture_tailoring_plans', JSON.stringify(DEFAULT_TAILORING_PLANS));
         localStorage.setItem('coupon_codes_v1', JSON.stringify(DEFAULT_COUPONS));
         localStorage.setItem('couture_inventory_v15', JSON.stringify(DEFAULT_INVENTORY));
         localStorage.setItem('couture_staff_v15', JSON.stringify(DEFAULT_STAFF));

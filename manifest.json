@@ -1,0 +1,25 @@
+{
+  "name": "Couture dé Cywila",
+  "short_name": "Cywila",
+  "description": "Luxury Bespoke Tailoring & Executive Garment Care Platform",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#C8A96A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
