@@ -185,6 +185,7 @@ async function dispatchResendEmails(order) {
                 body: JSON.stringify({
                     from: `Couture dé Cywila <${senderEmail}>`,
                     to: [order.customerEmail],
+                    reply_to: adminEmail,
                     subject: `Order Confirmation #${order.orderId} | Couture dé Cywila`,
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px;">

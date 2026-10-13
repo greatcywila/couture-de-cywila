@@ -55,6 +55,7 @@ exports.handler = async function(event, context) {
         const customerPayload = {
             from: `Couture dé Cywila <${senderEmail}>`,
             to: [customerEmail],
+            reply_to: adminEmail,
             subject: `Order Confirmation #${orderId} | Couture dé Cywila`,
             html: `
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 32px 24px; border: 1px solid #e8e8e8; border-radius: 10px;">
