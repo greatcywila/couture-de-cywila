@@ -30,31 +30,10 @@ couture-deploy/
 │   └── index.html
 └── loyalty/                     # APP 6: Customer Engagement & Promo Suite
     └── index.html
-```
 
 ---
 
-## 🔑 Pre-Configured Credentials Directory
 
-| Portal | Role | Username / Email | PIN / Password | URL |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin Portal** | Super Admin (Owner) | `nkay` | `1986` | `/admin/` |
-| **Admin Portal** | Operations Admin | `admin1` | `2001` | `/admin/` |
-| **Admin Portal** | Floor Manager | `manager1` | `3001` | `/admin/` |
-| **Admin Portal** | Receptionist | `receptionist1` | `4001` | `/admin/` |
-| **Customer Shop** | Demo Customer 1 | `chinedu@example.com` | `password123` | `/shop/` |
-| **Customer Shop** | Demo Customer 2 | `amina@example.com` | `password123` | `/shop/` |
-| **Staff App** | Tailor / Washer / Driver | Select active staff member | — | `/staff/` |
-
----
-
-## 💳 Flutterwave Payment Gateway Integration
-
-1. The customer shop is pre-wired with the **Flutterwave Inline Checkout SDK** (`v3.js`).
-2. When testing without an API key, payments run in simulated mock mode so you can test orders and tier flows without debiting a card.
-3. To activate live payments, go to **`/portal/`**, enter your Flutterwave Public Key (`FLWPUBK_TEST-...` or `FLWPUBK-LIVE-...`), and click **Save API Key**.
-
----
 
 ## 🚀 Quick Deployment Guide (GitHub + Netlify)
 
