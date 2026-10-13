@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Portal - Couture dé Cywila</title>
-    <script src="../shared/seed-data.js"></script>
-    <script src="../shared/ecosystem-bar.js"></script>
+    <script src="/shared/seed-data.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1200px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center}.logout-btn{padding:0.8rem 1.5rem;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;width:auto}.login-form{max-width:500px;margin:3rem auto;background:#16213e;padding:2rem;border-radius:12px}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem;font-weight:600}.form-group input,.form-group select{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem;width:auto;margin:0.2rem 0.2rem 0 0}.btn-success{background:#10b981}.task-item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.task-item.tier-EXPRESS{border-left-color:#ef4444}.task-item.tier-PREMIUM{border-left-color:#d946ef}.task-item.tier-STANDARD{border-left-color:#06b6d4}.task-item.tier-BASIC{border-left-color:#6b7280}.task-item p{color:#999;font-size:0.9rem;margin:0.25rem 0}.tier-badge{display:inline-block;padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;font-weight:600}.tier-EXPRESS{background:#ef4444;color:white}.tier-PREMIUM{background:#d946ef;color:white}.tier-STANDARD{background:#06b6d4;color:white}.tier-BASIC{background:#6b7280;color:white}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.error-msg{color:#ef4444;font-size:0.9rem;margin-top:0.5rem}.success-msg{color:#10b981;font-size:0.9rem;margin-top:0.5rem}
     </style>
@@ -28,7 +27,13 @@
 
     <div id="staffPortal" style="display:none">
         <div class="header">
-            <div><h1>👨‍💼 Staff Portal</h1><p id="staffGreeting" style="font-size:0.9rem;margin-top:0.5rem;"></p></div>
+            <div>
+                <h1>👨‍💼 Staff Portal</h1>
+                <p id="staffGreeting" style="font-size:0.9rem;margin-top:0.5rem;"></p>
+                <div style="margin-top: 6px;">
+                    <span id="staffSyncBadge" style="font-size:0.75rem;padding:3px 10px;border-radius:12px;background:rgba(16,185,129,0.2);color:#10b981;border:1px solid #10b981;font-weight:600;">🟢 Live Sync: Connected</span>
+                </div>
+            </div>
             <button class="logout-btn" onclick="staffLogout()">Logout</button>
         </div>
 
@@ -103,7 +108,7 @@ function staffLogin(){
         document.getElementById('loginError').innerHTML = '<span class="error-msg">Enter username and PIN</span>';
         return;
     }
-    var user = staffUsers.find(u => u.username === username && u.pin === pin && u.status === 'Active' && (u.role === 'Staff' || u.role === 'Manager'));
+    var user = staffUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.pin === pin && u.status === 'Active');
     if(!user){
         document.getElementById('loginError').innerHTML = '<span class="error-msg">Invalid credentials</span>';
         return;
@@ -112,9 +117,34 @@ function staffLogin(){
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('staffPortal').style.display = 'block';
     document.getElementById('staffGreeting').textContent = 'Welcome back, ' + user.username + '! ('+user.role+')';
-    loadTasks();
-    loadEarnings();
-    loadPerformance();
+    syncOrdersFromCloud();
+    setInterval(syncOrdersFromCloud, 5000);
+}
+
+function syncOrdersFromCloud(){
+    fetch('/api/orders')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            if(data && Array.isArray(data.orders)){
+                couture_orders = data.orders;
+                localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+                loadTasks();
+                loadEarnings();
+                loadPerformance();
+                var badge = document.getElementById('staffSyncBadge');
+                if(badge){
+                    badge.textContent = '🟢 Live Sync: Connected (' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ')';
+                    badge.style.color = '#10b981';
+                }
+            }
+        })
+        .catch(function(err){
+            var badge = document.getElementById('staffSyncBadge');
+            if(badge){
+                badge.textContent = '🟡 Local Mode (Offline)';
+                badge.style.color = '#f59e0b';
+            }
+        });
 }
 
 function staffLogout(){
@@ -130,7 +160,8 @@ function loadTasks(){
         if(tierOrders.length === 0) return;
         html += '<h4 style="color:var(--primary);margin:1.5rem 0 0.5rem;font-weight:600">'+serviceTiers[tierKey].displayName+' Orders ('+tierOrders.length+')</h4>';
         tierOrders.forEach(order => {
-            html += '<div class="task-item tier-'+tierKey+'"><div><strong>'+order.orderId+'</strong> <span class="tier-badge tier-'+tierKey+'">'+order.tierName+'</span></div><p>Customer: '+order.customerId+'</p><p>Status: '+order.status+'</p><p>Delivery: '+new Date(order.expectedDeliveryDate).toLocaleDateString()+'</p><button class="btn-sm btn btn-success" onclick="completeTask(\''+order.orderId+'\')">Mark Complete</button></div>';
+            var isDone = order.status === 'Completed';
+            html += '<div class="task-item tier-'+tierKey+'"><div><strong>'+order.orderId+'</strong> <span class="tier-badge tier-'+tierKey+'">'+order.tierName+'</span></div><p>Customer: '+(order.customerName||order.customerId)+'</p><p>Status: <strong style="color:'+(isDone?'#10b981':'#f59e0b')+'">'+order.status+'</strong></p><p>Delivery: '+new Date(order.expectedDeliveryDate).toLocaleDateString()+'</p>'+(!isDone ? '<button class="btn-sm btn btn-success" onclick="completeTask(\''+order.orderId+'\')">Mark Complete</button>' : '<span style="color:#10b981;font-weight:600;font-size:0.85rem;">✓ Completed</span>')+'</div>';
         });
     });
     document.getElementById('tasksDisplay').innerHTML = html || '<p style="color:#999;">No tasks assigned</p>';
@@ -144,7 +175,21 @@ function completeTask(orderId){
     loadTasks();
     loadEarnings();
     loadPerformance();
-    alert('Task marked as complete!');
+
+    // Persist to Central Cloud Store
+    fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            orderId: orderId,
+            status: 'Completed',
+            assignedTo: currentStaff.username
+        })
+    }).then(function(){
+        syncOrdersFromCloud();
+    }).catch(function(e){ console.log('Offline complete:', e); });
+
+    alert('Task #' + orderId + ' marked as Complete!');
 }
 
 function loadEarnings(){

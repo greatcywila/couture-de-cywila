@@ -1,0 +1,24 @@
+{
+  "name": "couture-deploy",
+  "version": "1.0.0",
+  "description": "A complete, synchronized multi-department digital operating platform for **Couture dé Cywila** (Luxury Bespoke Tailoring, Ready-to-Wear & Garment Care).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greatcywila/couture-de-cywila.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/greatcywila/couture-de-cywila/issues"
+  },
+  "homepage": "https://github.com/greatcywila/couture-de-cywila#readme",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.4"
+  }
+}

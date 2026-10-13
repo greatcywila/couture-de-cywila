@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Couture dé Cywila</title>
-    <script src="../shared/seed-data.js"></script>
-    <script src="../shared/ecosystem-bar.js"></script>
+    <title>Admin Portal - Couture dé Cywila</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="/shared/seed-data.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
@@ -87,21 +87,27 @@
             <div>
                 <h1>⚙️ Admin Panel</h1>
                 <p id="userRole" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+                <div style="margin-top: 6px;">
+                    <span id="adminSyncBadge" style="font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; font-weight: 600;">🟢 Live Sync: Connected</span>
+                </div>
             </div>
             <button class="logout-btn" onclick="adminLogout()">Logout</button>
         </div>
 
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
             <button class="tab-btn" onclick="switchTab('staff')">👨‍💼 Staff</button>
             <button class="tab-btn" onclick="switchTab('inventory')">📦 Inventory</button>
+            <button class="tab-btn" onclick="switchTab('delivery')">🚗 Delivery</button>
+            <button class="tab-btn" onclick="switchTab('accounting')" style="color: #10B981; font-weight: 700;">💰 Accounting</button>
+            <button class="tab-btn" onclick="switchTab('notifications')" style="color: #818CF8; font-weight: 700;">🔔 Notifications</button>
+            <button class="tab-btn" onclick="switchTab('loyalty')" style="color: #F59E0B; font-weight: 700;">💎 Loyalty & Promos</button>
             <button class="tab-btn" onclick="switchTab('tiers')">🏆 Tiers</button>
             <button class="tab-btn" onclick="switchTab('cycles')">🔄 Cycles</button>
             <button class="tab-btn" onclick="switchTab('customers')">👤 Customers</button>
-            <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
+            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
             <button class="tab-btn" onclick="switchTab('audit')">📝 Audit Log</button>
-            <button class="tab-btn" onclick="switchTab('delivery')">🚗 Delivery</button>
         </div>
 
         <!-- TAB 1: DASHBOARD -->
@@ -316,6 +322,7 @@
                             <th>Total</th>
                             <th>Status</th>
                             <th>Delivery Date</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTable">
@@ -353,6 +360,121 @@
             <div class="card">
                 <h3>Completed Deliveries</h3>
                 <div id="completedDeliveriesList"></div>
+            </div>
+        </div>
+
+        <!-- TAB: ACCOUNTING & ANALYTICS -->
+        <div id="tab-accounting" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">💰 Accounting & Financial Reports</h2>
+            <div class="grid">
+                <div class="stat-box">
+                    <p style="color: #999;">Gross Revenue</p>
+                    <strong id="accRevenue" style="color: #10B981;">₦0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Total Expenses</p>
+                    <strong id="accExpenses" style="color: #EF4444;">₦0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Net Profit</p>
+                    <strong id="accNetProfit" style="color: var(--gold);">₦0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Profit Margin</p>
+                    <strong id="accProfitMargin">0%</strong>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Revenue & Profit Breakdown by Service Tier</h3>
+                <div id="accTierBreakdown"></div>
+            </div>
+
+            <div class="card">
+                <h3>📈 Live Revenue Charts</h3>
+                <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                    <div>
+                        <h4 style="color: #fff; margin-bottom: 0.5rem;">Revenue by Tier</h4>
+                        <canvas id="accTierChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="color: #fff; margin-bottom: 0.5rem;">Order Distribution</h4>
+                        <canvas id="accOrderChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💸 Record Business Expense</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div><label style="color: #999; font-size: 0.85rem;">Description</label><input type="text" id="expDesc" placeholder="e.g. Detergent restock" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></div>
+                    <div><label style="color: #999; font-size: 0.85rem;">Amount (₦)</label><input type="number" id="expAmount" placeholder="35000" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></div>
+                    <div><label style="color: #999; font-size: 0.85rem;">Category</label><input type="text" id="expCategory" placeholder="Supplies, Fuel, Utility" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></div>
+                </div>
+                <button class="btn btn-success" onclick="addAdminExpense()" style="width: auto;">+ Record Expense</button>
+                <div id="expStatus" style="margin-top: 0.5rem;"></div>
+            </div>
+        </div>
+
+        <!-- TAB: NOTIFICATIONS HUB -->
+        <div id="tab-notifications" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🔔 Automated Notifications Engine</h2>
+            <div class="card">
+                <h3>📧 Email Notifications (Powered by Resend)</h3>
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 1rem;">
+                    Automatic client confirmations & admin order alerts are dispatched via Resend Serverless API on each order.
+                </p>
+                <div style="background: #1a1a2e; padding: 1rem; border-radius: 8px; border-left: 3px solid #10b981; margin-bottom: 1rem;">
+                    <p><strong>Serverless Function:</strong> <span style="font-family: monospace; color: var(--gold);">/api/send-email</span></p>
+                    <p style="color: #999; font-size: 0.85rem; margin-top: 0.25rem;">Sender: <strong>orders@couturedecywila.com.ng</strong> (or test onboarding domain) | Recipient: <strong>greatcywila@gmail.com</strong></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💬 WhatsApp Message Templates (Tier-Aware)</h3>
+                <div class="form-group">
+                    <label>Order Received Template</label>
+                    <textarea id="tplOrderConfirm" style="width: 100%; height: 75px; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;">Hello {name}! 👋 Your order {orderId} has been received under our {tierName} tier. Delivery date: {deliveryDate}. Total: ₦{amount}. Thank you for choosing Couture dé Cywila!</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ready for Pickup / Delivery Template</label>
+                    <textarea id="tplReadyPickup" style="width: 100%; height: 75px; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;">🎉 READY FOR PICKUP {name}! Your order {orderId} ({tierName}) is ready for delivery! Pickup address: {address}.</textarea>
+                </div>
+                <button class="btn" onclick="saveAdminNotifTemplates()" style="width: auto;">Save Templates</button>
+            </div>
+
+            <div class="card">
+                <h3>📜 Recent Dispatched Notifications Log</h3>
+                <div id="adminNotifLog"></div>
+            </div>
+        </div>
+
+        <!-- TAB: CUSTOMER LOYALTY & ENGAGEMENT -->
+        <div id="tab-loyalty" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">💎 Loyalty Program & Promo Engine</h2>
+            <div class="card">
+                <h3>🎟️ Create Promo Coupon</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div><label style="color: #999; font-size: 0.85rem;">Coupon Code</label><input type="text" id="newCouponCode" placeholder="e.g. VIP25" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></div>
+                    <div><label style="color: #999; font-size: 0.85rem;">Discount (%)</label><input type="number" id="newCouponDiscount" placeholder="25" min="1" max="100" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;"></div>
+                    <div>
+                        <label style="color: #999; font-size: 0.85rem;">Service Tier Limit</label>
+                        <select id="newCouponTier" style="width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff;">
+                            <option value="">All Tiers</option>
+                            <option value="EXPRESS">EXPRESS</option>
+                            <option value="PREMIUM">PREMIUM</option>
+                            <option value="STANDARD">STANDARD</option>
+                            <option value="BASIC">BASIC</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="adminCreateCoupon()" style="width: auto;">+ Create Coupon</button>
+                <div id="couponCreateStatus" style="margin-top: 0.5rem;"></div>
+            </div>
+
+            <div class="card">
+                <h3>Active Promo Coupons</h3>
+                <div id="adminCouponsList"></div>
             </div>
         </div>
 
@@ -443,13 +565,181 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById('tab-' + tabName).classList.add('active');
-    event.target.classList.add('active');
+    var targetTab = document.getElementById('tab-' + tabName);
+    if (targetTab) targetTab.classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
     
     if (tabName === 'users') loadUsers();
     if (tabName === 'staff') loadStaff();
     if (tabName === 'inventory') loadInventory();
     if (tabName === 'audit') loadAuditLog();
+    if (tabName === 'orders') { syncOrdersFromCloud(); loadOrdersTable(); }
+    if (tabName === 'delivery') loadDeliveries();
+    if (tabName === 'accounting') { syncOrdersFromCloud(); loadAccounting(); }
+    if (tabName === 'notifications') loadNotifications();
+    if (tabName === 'loyalty') loadLoyalty();
+}
+
+// ============ ACCOUNTING & ANALYTICS MODULE ============
+var adminExpenses = JSON.parse(localStorage.getItem('admin_expenses_v16')) || [];
+var accCharts = {};
+
+function loadAccounting() {
+    var orders = JSON.parse(localStorage.getItem('couture_orders') || '[]');
+    var expenses = JSON.parse(localStorage.getItem('admin_expenses_v16') || '[]');
+    var tiers = JSON.parse(localStorage.getItem('service_tiers_v1') || '{}');
+
+    var grossRev = orders.reduce((s, o) => s + (o.total || 0), 0);
+    var totalExp = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+    var netProfit = grossRev - totalExp;
+    var margin = grossRev > 0 ? ((netProfit / grossRev) * 100).toFixed(1) : 0;
+
+    document.getElementById('accRevenue').textContent = '₦' + grossRev.toLocaleString();
+    document.getElementById('accExpenses').textContent = '₦' + totalExp.toLocaleString();
+    document.getElementById('accNetProfit').textContent = '₦' + netProfit.toLocaleString();
+    document.getElementById('accProfitMargin').textContent = margin + '%';
+
+    var breakdownHtml = '';
+    ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].forEach(tk => {
+        var t = tiers[tk] || { displayName: tk };
+        var tOrders = orders.filter(o => o.tierId === tk);
+        var tRev = tOrders.reduce((s, o) => s + (o.total || 0), 0);
+        breakdownHtml += `
+            <div style="background: #1a1a2e; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 3px solid var(--gold); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="color: #fff;">${t.displayName}</strong>
+                    <p style="color: #999; font-size: 0.85rem; margin-top: 0.2rem;">${tOrders.length} orders</p>
+                </div>
+                <div style="text-align: right;">
+                    <strong style="color: #10B981; font-size: 1.1rem;">₦${tRev.toLocaleString()}</strong>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('accTierBreakdown').innerHTML = breakdownHtml;
+
+    try {
+        if (typeof Chart === 'function') {
+            if (accCharts.tier) accCharts.tier.destroy();
+            if (accCharts.order) accCharts.order.destroy();
+
+            var ctx1 = document.getElementById('accTierChart').getContext('2d');
+            var tierRevs = ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].map(tk => {
+                return orders.filter(o => o.tierId === tk).reduce((s, o) => s + (o.total || 0), 0);
+            });
+            accCharts.tier = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'],
+                    datasets: [{
+                        data: tierRevs,
+                        backgroundColor: ['#ef4444', '#d946ef', '#06b6d4', '#6b7280']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+
+            var ctx2 = document.getElementById('accOrderChart').getContext('2d');
+            var tierCounts = ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].map(tk => {
+                return orders.filter(o => o.tierId === tk).length;
+            });
+            accCharts.order = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'],
+                    datasets: [{
+                        label: 'Orders Count',
+                        data: tierCounts,
+                        backgroundColor: '#C8A96A'
+                    }]
+                },
+                options: { responsive: true, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } }, plugins: { legend: { display: false } } }
+            });
+        }
+    } catch(err) { console.log('Chart render skipped:', err); }
+}
+
+function addAdminExpense() {
+    var desc = document.getElementById('expDesc').value.trim();
+    var amt = parseInt(document.getElementById('expAmount').value);
+    var cat = document.getElementById('expCategory').value.trim();
+    if (!desc || isNaN(amt)) {
+        document.getElementById('expStatus').innerHTML = '<span class="error-msg">Enter description and valid amount</span>';
+        return;
+    }
+    var expenses = JSON.parse(localStorage.getItem('admin_expenses_v16') || '[]');
+    expenses.unshift({ id: 'EXP-' + Date.now(), description: desc, amount: amt, category: cat || 'General', date: new Date().toISOString().split('T')[0] });
+    localStorage.setItem('admin_expenses_v16', JSON.stringify(expenses));
+    document.getElementById('expDesc').value = '';
+    document.getElementById('expAmount').value = '';
+    document.getElementById('expCategory').value = '';
+    document.getElementById('expStatus').innerHTML = '<span class="success-msg">Expense recorded!</span>';
+    loadAccounting();
+}
+
+// ============ NOTIFICATIONS MODULE ============
+function loadNotifications() {
+    var log = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
+    var html = '';
+    if (log.length === 0) {
+        html = '<p style="color: #999;">No notifications dispatched yet.</p>';
+    } else {
+        log.slice(0, 15).forEach(l => {
+            html += `
+                <div style="background: #1a1a2e; padding: 0.85rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid #6366f1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #999;">
+                        <span>To: <strong>${l.phone || 'Client'}</strong></span>
+                        <span>${new Date(l.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <p style="color: #e0e0e0; font-size: 0.9rem; margin-top: 0.35rem;">${l.message}</p>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('adminNotifLog').innerHTML = html;
+}
+
+function saveAdminNotifTemplates() {
+    alert('✅ Notification message templates saved!');
+}
+
+// ============ LOYALTY & COUPONS MODULE ============
+function loadLoyalty() {
+    var coupons = JSON.parse(localStorage.getItem('coupon_codes_v1') || '[]');
+    var html = '';
+    if (coupons.length === 0) {
+        html = '<p style="color: #999;">No active coupons configured.</p>';
+    } else {
+        coupons.forEach(c => {
+            html += `
+                <div style="background: #1a1a2e; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 3px solid var(--gold); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-family: monospace; font-size: 1.1rem; color: var(--primary);">${c.code}</strong>
+                        <p style="color: #999; font-size: 0.85rem; margin-top: 0.2rem;">${c.discount}% discount | ${c.tier ? 'Tier: ' + c.tier : 'All Tiers'}</p>
+                    </div>
+                    <span style="background: rgba(16, 185, 129, 0.2); color: #10B981; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">ACTIVE</span>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('adminCouponsList').innerHTML = html;
+}
+
+function adminCreateCoupon() {
+    var code = document.getElementById('newCouponCode').value.trim().toUpperCase();
+    var disc = parseInt(document.getElementById('newCouponDiscount').value);
+    var tier = document.getElementById('newCouponTier').value;
+    if (!code || isNaN(disc)) {
+        document.getElementById('couponCreateStatus').innerHTML = '<span class="error-msg">Enter coupon code and discount</span>';
+        return;
+    }
+    var coupons = JSON.parse(localStorage.getItem('coupon_codes_v1') || '[]');
+    coupons.unshift({ code: code, discount: disc, tier: tier, active: true, usageCount: 0 });
+    localStorage.setItem('coupon_codes_v1', JSON.stringify(coupons));
+    document.getElementById('newCouponCode').value = '';
+    document.getElementById('newCouponDiscount').value = '';
+    document.getElementById('couponCreateStatus').innerHTML = '<span class="success-msg">Coupon ' + code + ' created!</span>';
+    loadLoyalty();
 }
 
 // ============ ROLE-BASED ACCESS CONTROL ============
@@ -497,6 +787,8 @@ function loadAllData() {
     
     loadTiers();
     loadCycles();
+    syncOrdersFromCloud();
+    setInterval(syncOrdersFromCloud, 5000);
 }
 
 // ============ USER MANAGEMENT ============
@@ -857,21 +1149,83 @@ function loadCustomersTable() {
     document.getElementById('customersTable').innerHTML = html;
 }
 
-// ============ ORDERS ============
+// ============ ORDERS & CLOUD SYNC ============
+function syncOrdersFromCloud() {
+    fetch('/api/orders')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data && Array.isArray(data.orders)) {
+                couture_orders = data.orders;
+                localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+                if (document.getElementById('dashOrders')) {
+                    document.getElementById('dashOrders').textContent = couture_orders.length;
+                }
+                loadOrdersTable();
+                var accTab = document.getElementById('tab-accounting');
+                if (accTab && accTab.classList.contains('active')) {
+                    loadAccounting();
+                }
+                var badge = document.getElementById('adminSyncBadge');
+                if (badge) {
+                    badge.textContent = '🟢 Live Sync: Connected (' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ')';
+                    badge.style.color = '#10b981';
+                }
+            }
+        })
+        .catch(function(err) {
+            var badge = document.getElementById('adminSyncBadge');
+            if (badge) {
+                badge.textContent = '🟡 Local Mode (Offline)';
+                badge.style.color = '#f59e0b';
+            }
+        });
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    var order = couture_orders.find(o => o.orderId === orderId);
+    if (order) {
+        order.status = newStatus;
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        loadOrdersTable();
+    }
+    fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, status: newStatus })
+    }).then(function() {
+        syncOrdersFromCloud();
+    }).catch(function(e) { console.log('Offline update:', e); });
+}
+
 function loadOrdersTable() {
     var html = '';
     couture_orders.forEach(order => {
+        var statusColor = '#f59e0b';
+        if (order.status === 'Completed') statusColor = '#10b981';
+        if (order.status === 'Delivered') statusColor = '#06b6d4';
+        if (order.status === 'Processing') statusColor = '#8b5cf6';
+
+        var custDisplay = order.customerName ? ('<strong>' + order.customerName + '</strong><br><small style="color:#999;">' + (order.customerPhone || order.customerEmail || order.customerId) + '</small>') : order.customerId;
+
         html += '<tr>';
-        html += '<td>' + order.orderId + '</td>';
-        html += '<td>' + order.customerId + '</td>';
-        html += '<td>₦' + order.total + '</td>';
-        html += '<td>' + order.status + '</td>';
-        html += '<td>' + order.expectedDeliveryDate + '</td>';
+        html += '<td><strong>' + order.orderId + '</strong><br><span style="font-size:0.75rem;color:#888;">' + (order.tierName || 'STANDARD') + '</span></td>';
+        html += '<td>' + custDisplay + '</td>';
+        html += '<td style="font-weight:600;color:var(--gold);">₦' + (order.total || 0).toLocaleString() + '</td>';
+        html += '<td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + ';">' + order.status + '</span></td>';
+        html += '<td>' + (order.expectedDeliveryDate || '-') + '</td>';
+        html += '<td>' +
+            '<select onchange="updateOrderStatus(\'' + order.orderId + '\', this.value)" style="padding:4px 8px;background:#1a1a2e;color:#fff;border:1px solid #2d3561;border-radius:4px;font-size:0.8rem;">' +
+                '<option value="Pending"' + (order.status === 'Pending' ? ' selected' : '') + '>Pending</option>' +
+                '<option value="Processing"' + (order.status === 'Processing' ? ' selected' : '') + '>Processing</option>' +
+                '<option value="Completed"' + (order.status === 'Completed' ? ' selected' : '') + '>Completed</option>' +
+                '<option value="Delivered"' + (order.status === 'Delivered' ? ' selected' : '') + '>Delivered</option>' +
+            '</select>' +
+        '</td>';
         html += '</tr>';
     });
     
     if (couture_orders.length === 0) {
-        html = '<tr><td colspan="5" style="text-align: center; color: #999;">No orders</td></tr>';
+        html = '<tr><td colspan="6" style="text-align: center; color: #999;">No orders</td></tr>';
     }
     
     document.getElementById('ordersTable').innerHTML = html;

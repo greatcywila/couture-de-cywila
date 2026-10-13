@@ -55,6 +55,20 @@
     }
   }
   </script>
+
+  <!-- Instant Subdomain Router Fallback -->
+  <script>
+    (function() {
+      var host = window.location.hostname.toLowerCase();
+      if (host.startsWith('book.')) {
+        window.location.replace('/shop/' + window.location.search);
+      } else if (host.startsWith('admin.')) {
+        window.location.replace('/admin/' + window.location.search);
+      } else if (host.startsWith('staff.')) {
+        window.location.replace('/staff/' + window.location.search);
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -67,8 +81,7 @@
         <a href="#about" class="nav-link">About</a>
         <a href="#services" class="nav-link">Services</a>
         <a href="#process" class="nav-link">Process</a>
-        <a href="/shop/" class="nav-btn nav-btn-shop">🛍️ Order Online</a>
-        <a href="/portal/" class="nav-btn nav-btn-portal">⚡ Enterprise Hub</a>
+        <a href="https://book.couturedecywila.com.ng" class="nav-btn nav-btn-shop">Book Services</a>
       </div>
     </div>
   </nav>
@@ -89,16 +102,12 @@
       </p>
 
       <div class="hero-buttons">
-        <a href="/shop/" class="btn-primary" style="background: linear-gradient(135deg, #FF6B35, #C8A96A);">
-          🛍️ Order Online & Laundry
+        <a href="https://book.couturedecywila.com.ng" class="btn-primary" style="background: linear-gradient(135deg, #FF6B35, #C8A96A);">
+          Book Services & Laundry
         </a>
 
         <a href="https://wa.me/2348155559954" class="btn-secondary">
-          WhatsApp Fitting
-        </a>
-
-        <a href="/portal/" class="btn-secondary" style="border-color: #C8A96A; color: #C8A96A;">
-          ⚡ Staff & Admin Hub
+          Private Fitting via WhatsApp
         </a>
       </div>
     </div>
@@ -238,14 +247,11 @@
       </h2>
 
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="/shop/" class="btn-primary" style="background: linear-gradient(135deg, #FF6B35, #C8A96A);">
-          🛍️ Order Online & Laundry
+        <a href="https://book.couturedecywila.com.ng" class="btn-primary" style="background: linear-gradient(135deg, #FF6B35, #C8A96A);">
+          Book Services & Laundry
         </a>
         <a href="https://wa.me/2348155559954" class="btn-primary">
           Book Fitting via WhatsApp
-        </a>
-        <a href="/portal/" class="btn-secondary" style="border-color: #C8A96A; color: #C8A96A;">
-          ⚡ Enterprise Hub
         </a>
       </div>
     </div>
@@ -257,8 +263,7 @@
     <p>Quiet Power. Clean Execution.</p>
 
     <div class="footer-links">
-      <a href="/shop/">Online Shop</a>
-      <a href="/portal/">Staff & Admin Portal</a>
+      <a href="https://book.couturedecywila.com.ng">Book Online</a>
       <a href="https://instagram.com/couture_de_cywila" target="_blank" rel="noopener noreferrer">Instagram</a>
       <a href="https://facebook.com/couture_de_cywila" target="_blank" rel="noopener noreferrer">Facebook</a>
       <a href="https://tiktok.com/@couture_de_cywila" target="_blank" rel="noopener noreferrer">TikTok</a>

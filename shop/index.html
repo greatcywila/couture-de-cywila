@@ -6,8 +6,7 @@
     <title>Couture dé Cywila - Customer Portal</title>
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <script src="../shared/seed-data.js"></script>
-    <script src="../shared/ecosystem-bar.js"></script>
+    <script src="/shared/seed-data.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
@@ -66,6 +65,10 @@
 <body>
 
 <div class="container">
+    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <a href="https://couturedecywila.com.ng" style="color: var(--gold); text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Return to Main Website</a>
+        <span style="color: #666; font-size: 0.85rem;">Couture dé Cywila Booking Portal</span>
+    </div>
     <!-- LOGIN SECTION -->
     <div id="loginSection" class="login-form">
         <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">🛍️ Customer Portal</h2>
@@ -525,6 +528,36 @@ function placeOrder() {
         });
         localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(notifLog));
 
+        // Persist Order to Universal Cloud Store for Realtime Sync
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalOrder)
+        }).then(function(res) { return res.json(); })
+          .then(function(data) {
+              if (data && data.orders) {
+                  couture_orders = data.orders;
+                  localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+              }
+          }).catch(function(err) { console.log('Orders API offline:', err); });
+
+        // Trigger Automated Email Notification via Resend Serverless API
+        fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId: finalOrder.orderId,
+                customerName: currentCustomer.name,
+                customerEmail: currentCustomer.email,
+                customerPhone: currentCustomer.phone,
+                items: finalOrder.items,
+                tierName: finalOrder.tierName,
+                total: finalOrder.total,
+                deliveryAddress: finalOrder.deliveryAddress,
+                expectedDeliveryDate: finalOrder.expectedDeliveryDate
+            })
+        }).catch(function(err) { console.log('Email notify skipped/offline:', err); });
+
         document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">' + successNote + '</span>';
         setTimeout(() => {
             document.getElementById('checkoutModal').classList.remove('active');
@@ -622,30 +655,27 @@ function placeOrder() {
         return;
     }
     
-    // EXISTING: COD payment
-    couture_orders.push(order);
-    localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-    currentCustomer.loyaltyPoints += Math.floor(total/1000);
-    currentCustomer.lifetimeSpending += total;
-    localStorage.setItem('couture_customers', JSON.stringify(customers));
-    document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Order '+order.orderId+' placed!</span>';
-    setTimeout(() => {
-        document.getElementById('checkoutModal').classList.remove('active');
-        cart = [];
-        appliedCoupon = null;
-        selectedTier = null;
-        updateCart();
-        loadOrders();
-        loadAccount();
-        switchTab('orders');
-    }, 2000);
+    // Cash on Delivery (COD) payment
+    order.paymentStatus = 'pending';
+    finalizeOrder(order, 'Order ' + order.orderId + ' placed successfully! Confirmation pending.');
 }
 
 function loadOrders() {
+    renderOrders();
+    fetch('/api/orders').then(function(r) { return r.json(); }).then(function(data) {
+        if (data && Array.isArray(data.orders)) {
+            couture_orders = data.orders;
+            localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+            renderOrders();
+        }
+    }).catch(function(e) { /* offline mode */ });
+}
+
+function renderOrders() {
     var html = '';
     var myOrders = couture_orders.filter(o => o.customerId === currentCustomer.id);
     myOrders.forEach(o => {
-        html += '<div class="order-item"><strong>'+o.orderId+'</strong><span class="tier-badge tier-'+o.tierId.toLowerCase()+'">'+o.tierName+'</span><p>₦'+o.total+' | '+o.status+'</p><p>'+new Date(o.expectedDeliveryDate).toLocaleDateString()+'</p></div>';
+        html += '<div class="order-item"><strong>'+o.orderId+'</strong><span class="tier-badge tier-'+o.tierId.toLowerCase()+'">'+o.tierName+'</span><p>₦'+(o.total || 0).toLocaleString()+' | '+o.status+'</p><p>Delivery: '+new Date(o.expectedDeliveryDate).toLocaleDateString()+'</p></div>';
     });
     document.getElementById('ordersDisplay').innerHTML = html || '<p style="color:#999;">No orders</p>';
 }

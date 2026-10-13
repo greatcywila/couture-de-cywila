@@ -57,7 +57,8 @@
         { username: 'nkay', pin: '1986', role: 'Super Admin', status: 'Active' },
         { username: 'admin1', pin: '2001', role: 'Admin', status: 'Active' },
         { username: 'manager1', pin: '3001', role: 'Manager', status: 'Active' },
-        { username: 'receptionist1', pin: '4001', role: 'Receptionist', status: 'Active' }
+        { username: 'receptionist1', pin: '4001', role: 'Receptionist', status: 'Active' },
+        { username: 'staff1', pin: '5001', role: 'Staff', status: 'Active' }
     ];
 
     const DEFAULT_CUSTOMERS = [
