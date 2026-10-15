@@ -809,52 +809,141 @@ async function placeOrder() {
         expectedDeliveryDate: dd.toISOString().split('T')[0]
     };
     
-    try {
-        var res = await fetch('/api/orders', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + customerToken
-            },
-            body: JSON.stringify(orderPayload)
-        });
-        var data = await res.json();
-        
-        if (!res.ok) {
-            throw new Error(data.error || 'Failed to place order');
+        var payUpper = (pay || '').toUpperCase();
+
+        // Helper to complete order in cloud once payment is confirmed or for COD / Bank Transfer
+        async function sendOrderToCloud(paymentStatusVal, transactionRefVal, successNotice) {
+            orderPayload.paymentStatus = paymentStatusVal;
+            if (transactionRefVal) orderPayload.paymentTransactionId = transactionRefVal;
+
+            var res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + customerToken
+                },
+                body: JSON.stringify(orderPayload)
+            });
+            var data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to place order');
+            }
+            
+            var placedOrder = data.order;
+            
+            // Clear local cart
+            cart = [];
+            localStorage.removeItem('cywila_customer_cart');
+            appliedCoupon = null;
+            selectedTier = null;
+            updateCart();
+            
+            // Success state with WhatsApp one-tap button
+            var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
+            var waMsg = encodeURIComponent(
+                "Hello Couture dé Cywila! I just placed Order #" + placedOrder.orderId + 
+                " for ₦" + placedOrder.total.toLocaleString() + 
+                " (" + placedOrder.tierName + "). Name: " + currentCustomer.name
+            );
+            var waUrl = "https://wa.me/" + businessPhone.replace('+', '') + "?text=" + waMsg;
+            
+            msgDiv.innerHTML = '<div style="margin-top:1rem; padding:1rem; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;">' +
+                '<p style="color:#10b981; font-weight:700; margin-bottom:8px;">🎉 ' + (successNotice || 'Order Placed Successfully!') + '</p>' +
+                '<p style="font-size:0.85rem; color:#fff; margin-bottom:12px;">Invoice has been sent to <strong>' + currentCustomer.email + '</strong>. Order ID: <strong>' + placedOrder.orderId + '</strong></p>' +
+                '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Send Order Summary on WhatsApp</a>' +
+            '</div>';
+            
+            setTimeout(() => {
+                closeModal('checkoutModal');
+                loadOrders();
+                loadAccount();
+                switchCustomerTab('orders');
+            }, 3500);
         }
-        
-        var placedOrder = data.order;
-        
-        // Clear local cart
-        cart = [];
-        localStorage.removeItem('cywila_customer_cart');
-        appliedCoupon = null;
-        selectedTier = null;
-        updateCart();
-        
-        // Success state with WhatsApp one-tap button
-        var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
-        var waMsg = encodeURIComponent(
-            "Hello Couture dé Cywila! I just placed Order #" + placedOrder.orderId + 
-            " for ₦" + placedOrder.total.toLocaleString() + 
-            " (" + placedOrder.tierName + "). Name: " + currentCustomer.name
-        );
-        var waUrl = "https://wa.me/" + businessPhone.replace('+', '') + "?text=" + waMsg;
-        
-        msgDiv.innerHTML = '<div style="margin-top:1rem; padding:1rem; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;">' +
-            '<p style="color:#10b981; font-weight:700; margin-bottom:8px;">🎉 Order Placed Successfully!</p>' +
-            '<p style="font-size:0.85rem; color:#fff; margin-bottom:12px;">Invoice has been sent to <strong>' + currentCustomer.email + '</strong>. Order ID: <strong>' + placedOrder.orderId + '</strong></p>' +
-            '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Send Order Summary on WhatsApp</a>' +
-        '</div>';
-        
-        setTimeout(() => {
-            closeModal('checkoutModal');
-            loadOrders();
-            loadAccount();
-            switchCustomerTab('orders');
-        }, 3500);
-        
+
+        // ================= FLUTTERWAVE GATEWAY =================
+        if (payUpper === 'FLUTTERWAVE') {
+            var flwKey = (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
+            if (flwKey && typeof FlutterwaveCheckout === 'function') {
+                msgDiv.innerHTML = '<span class="success-msg">Opening secure Flutterwave Checkout...</span>';
+                FlutterwaveCheckout({
+                    public_key: flwKey,
+                    tx_ref: 'CYW-' + Date.now(),
+                    amount: total,
+                    currency: 'NGN',
+                    payment_options: 'card,ussd,banktransfer',
+                    customer: {
+                        email: currentCustomer.email,
+                        phone_number: currentCustomer.phone,
+                        name: currentCustomer.name
+                    },
+                    customizations: {
+                        title: 'Couture dé Cywila',
+                        description: 'Turnaround: ' + t.displayName,
+                        logo: window.location.origin + '/images/logo.png'
+                    },
+                    callback: function(payment) {
+                        sendOrderToCloud('paid', payment.transaction_id || payment.tx_ref, 'Payment Verified! Order Booked.');
+                    },
+                    onclose: function() {
+                        msgDiv.innerHTML = '<span class="error-msg">Payment cancelled. You can retry or choose another payment method.</span>';
+                        btn.disabled = false;
+                        btn.textContent = 'Confirm & Place Order';
+                    }
+                });
+                return;
+            } else {
+                // If live API key is not yet added in settings, simulate instant test checkout
+                msgDiv.innerHTML = '<span class="success-msg">Processing Flutterwave test payment...</span>';
+                setTimeout(() => {
+                    sendOrderToCloud('paid', 'FLW-TEST-' + Date.now(), 'Flutterwave Payment Simulated Successfully!');
+                }, 1200);
+                return;
+            }
+        }
+
+        // ================= PAYSTACK GATEWAY =================
+        if (payUpper === 'PAYSTACK') {
+            var pstkKey = (window.CoutureDB && window.CoutureDB.getPaystackKey && window.CoutureDB.getPaystackKey()) || '';
+            if (pstkKey && typeof PaystackPop === 'object') {
+                msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
+                var handler = PaystackPop.setup({
+                    key: pstkKey,
+                    email: currentCustomer.email,
+                    amount: total * 100, // kobo
+                    currency: 'NGN',
+                    ref: 'PSTK-' + Date.now(),
+                    metadata: {
+                        custom_fields: [
+                            { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
+                            { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
+                        ]
+                    },
+                    callback: function(response) {
+                        sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
+                    },
+                    onClose: function() {
+                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment cancelled.</span>';
+                        btn.disabled = false;
+                        btn.textContent = 'Confirm & Place Order';
+                    }
+                });
+                handler.openIframe();
+                return;
+            } else {
+                // If live API key is not yet set, simulate instant test checkout
+                msgDiv.innerHTML = '<span class="success-msg">Processing Paystack test payment...</span>';
+                setTimeout(() => {
+                    sendOrderToCloud('paid', 'PSTK-TEST-' + Date.now(), 'Paystack Payment Simulated Successfully!');
+                }, 1200);
+                return;
+            }
+        }
+
+        // ================= CASH ON DELIVERY / SHOWROOM COLLECTION / BANK TRANSFER =================
+        await sendOrderToCloud('pending', null, 'Order Placed Successfully!');
+
     } catch(err) {
         msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error booking order') + '</span>';
     } finally {

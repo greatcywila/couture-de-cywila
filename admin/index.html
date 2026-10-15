@@ -141,6 +141,20 @@
                     <strong id="dashCustomers">0</strong>
                 </div>
             </div>
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3 style="color: var(--gold); margin-bottom: 1rem;">📈 Live Activity & Revenue Overview</h3>
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <h4 style="color: #fff; margin-bottom: 0.5rem; font-size: 0.95rem;">Revenue by Service Tier</h4>
+                        <canvas id="dashTierChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="color: #fff; margin-bottom: 0.5rem; font-size: 0.95rem;">Orders by Service Tier</h4>
+                        <canvas id="dashOrderChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Your Access Level</h3>
                 <p id="accessInfo" style="color: #999;"></p>
@@ -1217,6 +1231,89 @@ function setupAccessControl() {
     document.getElementById('accessInfo').innerHTML = accessInfo;
 }
 
+// ============ DASHBOARD METRICS & CHARTS ============
+var dashCharts = {};
+
+function renderDashboardCharts(orders) {
+    try {
+        if (typeof Chart !== 'function') return;
+        var canvas1 = document.getElementById('dashTierChart');
+        var canvas2 = document.getElementById('dashOrderChart');
+        if (!canvas1 || !canvas2) return;
+
+        if (dashCharts.tier) dashCharts.tier.destroy();
+        if (dashCharts.order) dashCharts.order.destroy();
+
+        var tiers = ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'];
+        var tierRevs = tiers.map(tk => {
+            return orders.filter(o => (o.tierId || 'STANDARD') === tk).reduce((s, o) => s + (o.total || 0), 0);
+        });
+        var tierCounts = tiers.map(tk => {
+            return orders.filter(o => (o.tierId || 'STANDARD') === tk).length;
+        });
+
+        var ctx1 = canvas1.getContext('2d');
+        dashCharts.tier = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'],
+                datasets: [{
+                    data: tierRevs,
+                    backgroundColor: ['#ef4444', '#d946ef', '#06b6d4', '#6b7280']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff', font: { size: 11 } } } }
+            }
+        });
+
+        var ctx2 = canvas2.getContext('2d');
+        dashCharts.order = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'],
+                datasets: [{
+                    label: 'Orders Count',
+                    data: tierCounts,
+                    backgroundColor: '#EC4899',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#9CA3AF' }, grid: { color: '#262646' } },
+                    y: { ticks: { color: '#9CA3AF', precision: 0 }, grid: { color: '#262646' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    } catch(err) {
+        console.log('Dashboard chart render skipped:', err);
+    }
+}
+
+function loadAllData() {
+    var usersCount = (users || []).length;
+    var ordersCount = (couture_orders || []).length;
+    var custCount = (couture_customers || []).length;
+
+    var elU = document.getElementById('dashUsers');
+    var elO = document.getElementById('dashOrders');
+    var elC = document.getElementById('dashCustomers');
+    if (elU) elU.textContent = usersCount;
+    if (elO) elO.textContent = ordersCount;
+    if (elC) elC.textContent = custCount;
+
+    loadTiers();
+    loadCycles();
+    syncOrdersFromCloud();
+    renderDashboardCharts(couture_orders);
+}
+
 // ============ USER MANAGEMENT ============
 async function loadUsers() {
     var display = document.getElementById('usersDisplay');
@@ -1739,6 +1836,7 @@ function syncOrdersFromCloud() {
                 if (document.getElementById('dashOrders')) {
                     document.getElementById('dashOrders').textContent = couture_orders.length;
                 }
+                renderDashboardCharts(couture_orders);
                 loadOrdersTable();
                 var accTab = document.getElementById('tab-accounting');
                 if (accTab && accTab.classList.contains('active')) {
