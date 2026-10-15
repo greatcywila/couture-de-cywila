@@ -18,7 +18,16 @@ export default async (req) => {
         }
 
         if (req.method === 'GET') {
-            return json({ success: true, settings });
+            // Merge environment variables set directly in Netlify dashboard if not overridden in stored settings
+            const envFlutterwave = process.env.FLUTTERWAVE_PUBLIC_KEY || process.env.FLW_PUBLIC_KEY || '';
+            const envPaystack = process.env.PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_KEY || '';
+            const merged = {
+                ...DEFAULT_SETTINGS,
+                ...settings,
+                flutterwavePublicKey: settings.flutterwavePublicKey || envFlutterwave,
+                paystackPublicKey: settings.paystackPublicKey || envPaystack
+            };
+            return json({ success: true, settings: merged });
         }
 
         if (req.method === 'POST' || req.method === 'PUT') {
@@ -29,16 +38,16 @@ export default async (req) => {
             settings = {
                 ...settings,
                 businessName: b.businessName !== undefined ? String(b.businessName).trim() : settings.businessName,
-                businessEmail: b.businessEmail !== undefined ? String(b.businessEmail).trim() : settings.businessEmail,
+                businessEmail: (b.businessEmail !== undefined ? b.businessEmail : b.supportEmail) !== undefined ? String(b.businessEmail || b.supportEmail).trim() : settings.businessEmail,
                 businessPhone: b.businessPhone !== undefined ? String(b.businessPhone).trim() : settings.businessPhone,
-                businessWhatsapp: b.businessWhatsapp !== undefined ? String(b.businessWhatsapp).trim() : settings.businessWhatsapp,
+                businessWhatsapp: (b.businessWhatsapp !== undefined ? b.businessWhatsapp : b.whatsapp) !== undefined ? String(b.businessWhatsapp || b.whatsapp).trim() : settings.businessWhatsapp,
                 businessAddress: b.businessAddress !== undefined ? String(b.businessAddress).trim() : settings.businessAddress,
                 vatEnabled: Boolean(b.vatEnabled),
                 vatRate: Number(b.vatRate) >= 0 ? Number(b.vatRate) : 7.5,
                 vatName: b.vatName !== undefined ? String(b.vatName).trim() : 'VAT',
                 bankName: b.bankName !== undefined ? String(b.bankName).trim() : settings.bankName,
-                bankAccountName: b.bankAccountName !== undefined ? String(b.bankAccountName).trim() : settings.bankAccountName,
-                bankAccountNumber: b.bankAccountNumber !== undefined ? String(b.bankAccountNumber).trim() : settings.bankAccountNumber,
+                bankAccountName: (b.bankAccountName !== undefined ? b.bankAccountName : b.accountName) !== undefined ? String(b.bankAccountName || b.accountName).trim() : settings.bankAccountName,
+                bankAccountNumber: (b.bankAccountNumber !== undefined ? b.bankAccountNumber : b.bankAccount) !== undefined ? String(b.bankAccountNumber || b.bankAccount).trim() : settings.bankAccountNumber,
                 flutterwavePublicKey: b.flutterwavePublicKey !== undefined ? String(b.flutterwavePublicKey).trim() : (settings.flutterwavePublicKey || ''),
                 paystackPublicKey: b.paystackPublicKey !== undefined ? String(b.paystackPublicKey).trim() : (settings.paystackPublicKey || '')
             };

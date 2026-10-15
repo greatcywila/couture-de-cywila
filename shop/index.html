@@ -834,6 +834,10 @@ async function placeOrder() {
     dd.setDate(dd.getDate() + t.cycleLengthDays);
     
     var orderPayload = {
+        customerId: (currentCustomer && currentCustomer.id) || '',
+        customerName: (currentCustomer && currentCustomer.name) || '',
+        customerEmail: (currentCustomer && currentCustomer.email) || '',
+        customerPhone: (currentCustomer && currentCustomer.phone) || '',
         items: cart,
         subtotal: sub,
         total: total,
@@ -870,6 +874,15 @@ async function placeOrder() {
             
             var placedOrder = data.order;
             
+            // Immediately store into customer-scoped orders list
+            couture_orders = couture_orders || [];
+            couture_orders.unshift(placedOrder);
+            if (currentCustomer && currentCustomer.id) {
+                try {
+                    localStorage.setItem('cywila_orders_' + currentCustomer.id, JSON.stringify(couture_orders));
+                } catch(e) {}
+            }
+
             // Clear local cart
             cart = [];
             localStorage.removeItem('cywila_customer_cart');
@@ -1002,6 +1015,13 @@ async function loadOrders() {
     var display = document.getElementById('ordersDisplay');
     display.innerHTML = '<p style="color:var(--text-muted);">Fetching cloud orders...</p>';
     
+    var myLocalOrders = [];
+    if (currentCustomer && currentCustomer.id) {
+        try {
+            myLocalOrders = JSON.parse(localStorage.getItem('cywila_orders_' + currentCustomer.id) || '[]');
+        } catch(e) {}
+    }
+
     try {
         var res = await fetch('/api/orders', {
             headers: { 'Authorization': 'Bearer ' + customerToken }
@@ -1010,12 +1030,31 @@ async function loadOrders() {
         
         if (data && Array.isArray(data.orders)) {
             couture_orders = data.orders;
+            // Merge with local newly placed if any
+            if (myLocalOrders && myLocalOrders.length) {
+                myLocalOrders.forEach(lo => {
+                    if (!couture_orders.some(co => co.orderId === lo.orderId)) {
+                        couture_orders.unshift(lo);
+                    }
+                });
+            }
+            if (currentCustomer && currentCustomer.id) {
+                localStorage.setItem('cywila_orders_' + currentCustomer.id, JSON.stringify(couture_orders));
+            }
+            renderOrders(couture_orders);
+        } else if (myLocalOrders.length > 0) {
+            couture_orders = myLocalOrders;
             renderOrders(couture_orders);
         } else {
-            display.innerHTML = '<p style="color:var(--text-muted);">No orders placed yet.</p>';
+            display.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">You have no active or previous orders yet. Browse our catalog to place your first booking!</p>';
         }
     } catch(e) {
-        display.innerHTML = '<p style="color:var(--text-muted);">Could not load orders from central server. Please check your internet connection.</p>';
+        if (myLocalOrders && myLocalOrders.length > 0) {
+            couture_orders = myLocalOrders;
+            renderOrders(couture_orders);
+        } else {
+            display.innerHTML = '<p style="color:var(--text-muted);">You have no orders placed yet.</p>';
+        }
     }
 }
 
@@ -1049,11 +1088,79 @@ function renderOrders(ordersList) {
             '</div>' +
 
             '<div style="margin-top:0.8rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                '<button class="cywila-btn-primary btn-sm" onclick="viewOrderInvoice(\'' + order.orderId + '\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.82rem; background:linear-gradient(135deg, #7C3AED, #EC4899);">📄 View & Print Invoice</button>' +
                 '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Inquire on WhatsApp</a>' +
             '</div>' +
         '</div>';
     });
     display.innerHTML = html;
+}
+
+function viewOrderInvoice(orderId) {
+    var order = couture_orders.find(o => o.orderId === orderId);
+    if (!order) return;
+    
+    var sub = order.subtotal || order.total || 0;
+    var itemsRows = (order.items || []).map(i => 
+        '<tr>' +
+            '<td style="padding:10px; border-bottom:1px solid #2d3561;">' + (i.name || 'Service Item') + '</td>' +
+            '<td style="padding:10px; border-bottom:1px solid #2d3561; text-align:center;">' + (i.quantity || 1) + '</td>' +
+            '<td style="padding:10px; border-bottom:1px solid #2d3561; text-align:right;">₦' + Number(i.price || 0).toLocaleString() + '</td>' +
+            '<td style="padding:10px; border-bottom:1px solid #2d3561; text-align:right; font-weight:700; color:var(--gold);">₦' + Number((i.price || 0) * (i.quantity || 1)).toLocaleString() + '</td>' +
+        '</tr>'
+    ).join('');
+
+    var modalHtml = 
+        '<div id="invoiceViewModal" class="modal active" style="display:flex;">' +
+            '<div class="modal-content" style="max-width:680px; background:#151528; border:1px solid #2d3561;">' +
+                '<span class="close-modal" onclick="closeModal(\'invoiceViewModal\')">&times;</span>' +
+                '<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid var(--primary); padding-bottom:1rem; margin-bottom:1.2rem;">' +
+                    '<div>' +
+                        '<h2 style="color:var(--primary); margin:0;">Couture dé Cywila</h2>' +
+                        '<p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Luxury Bespoke & Garment Care</p>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<h3 style="color:#fff; margin:0;">' + (order.invoiceNumber || 'INV-' + order.orderId) + '</h3>' +
+                        '<p style="color:var(--text-muted); font-size:0.85rem;">Date: ' + new Date(order.createdAt).toLocaleDateString('en-GB') + '</p>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.2rem; font-size:0.9rem;">' +
+                    '<div style="background:var(--bg-input); padding:0.9rem; border-radius:6px;">' +
+                        '<strong style="color:var(--primary);">Billed To:</strong>' +
+                        '<p style="color:#fff; margin:4px 0 0;">' + (order.customerName || (currentCustomer && currentCustomer.name) || 'Valued Client') + '</p>' +
+                        '<p style="color:var(--text-muted); margin:2px 0 0;">' + (order.customerEmail || (currentCustomer && currentCustomer.email) || '') + '</p>' +
+                        '<p style="color:var(--text-muted); margin:2px 0 0;">' + (order.customerPhone || (currentCustomer && currentCustomer.phone) || '') + '</p>' +
+                        '<p style="color:var(--text-muted); margin:4px 0 0;">📍 ' + (order.deliveryAddress || 'Showroom Collection') + '</p>' +
+                    '</div>' +
+                    '<div style="background:var(--bg-input); padding:0.9rem; border-radius:6px;">' +
+                        '<strong style="color:var(--primary);">Order Details:</strong>' +
+                        '<p style="color:#fff; margin:4px 0 0;">Order ID: <strong>' + order.orderId + '</strong></p>' +
+                        '<p style="color:#fff; margin:2px 0 0;">Service Tier: <strong>' + (order.tierName || 'STANDARD') + '</strong></p>' +
+                        '<p style="color:#fff; margin:2px 0 0;">Payment: <strong>' + (order.paymentMethod || 'COD') + '</strong> (' + (order.paymentStatus || 'pending').toUpperCase() + ')</p>' +
+                        '<p style="color:#fff; margin:2px 0 0;">Ready Date: <strong>' + (order.expectedDeliveryDate || 'Scheduled') + '</strong></p>' +
+                    '</div>' +
+                '</div>' +
+
+                '<table style="width:100%; font-size:0.9rem; border-collapse:collapse; margin-bottom:1.2rem;">' +
+                    '<thead><tr style="background:#202038; color:#fff;"><th style="padding:10px; text-align:left;">Item Description</th><th style="padding:10px; text-align:center;">Qty</th><th style="padding:10px; text-align:right;">Rate</th><th style="padding:10px; text-align:right;">Amount</th></tr></thead>' +
+                    '<tbody>' + itemsRows + '</tbody>' +
+                '</table>' +
+
+                '<div style="text-align:right; font-size:1.15rem; padding:0.8rem 0; border-top:1px solid #2d3561;">' +
+                    '<span>Grand Total: </span><strong style="color:var(--gold); font-size:1.35rem;">₦' + Number(order.total || 0).toLocaleString() + '</strong>' +
+                '</div>' +
+
+                '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; flex-wrap:wrap; gap:8px;">' +
+                    '<button class="btn btn-secondary" onclick="window.print()" style="width:auto; padding:0.6rem 1.4rem;">🖨️ Print Invoice</button>' +
+                    '<button class="btn btn-danger" onclick="closeModal(\'invoiceViewModal\')" style="width:auto; padding:0.6rem 1.4rem;">Close</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+    var existing = document.getElementById('invoiceViewModal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 // ============ ACCOUNT DETAILS ============

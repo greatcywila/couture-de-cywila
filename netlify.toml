@@ -18,6 +18,11 @@
   to = "/.netlify/functions/payment-config"
   status = 200
 
+[[redirects]]
+  from = "/api/payment-config"
+  to = "/.netlify/functions/payment-config"
+  status = 200
+
 # API Route for Serverless Email Dispatcher (Resend)
 [[redirects]]
   from = "/api/send-email"
