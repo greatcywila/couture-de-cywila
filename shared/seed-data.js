@@ -72,42 +72,7 @@
         { id: 'CUST-002', name: 'Amina Bello', email: 'amina@example.com', phone: '+2348023456789', password: 'password123', loyaltyPoints: 85, lifetimeSpending: 94000, createdAt: new Date(Date.now() - 86400000 * 7).toISOString() }
     ];
 
-    const DEFAULT_ORDERS = [
-        {
-            orderId: 'ORD-901',
-            customerId: 'CUST-001',
-            items: [{ id: 'LND-101', name: 'Executive Suit Wash & Steam', price: 3500, quantity: 2, type: 'laundry' }],
-            subtotal: 7000,
-            total: 10500,
-            tierId: 'PREMIUM',
-            tierName: 'PREMIUM',
-            tierMultiplier: 1.5,
-            deliveryAddress: '15 Victoria Island, Lagos',
-            paymentMethod: 'FLUTTERWAVE',
-            paymentStatus: 'paid',
-            status: 'Processing',
-            assignedTo: 'Lead Washer Ibrahim',
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            expectedDeliveryDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
-        },
-        {
-            orderId: 'ORD-902',
-            customerId: 'CUST-002',
-            items: [{ id: 'TLR-201', name: 'Bespoke Senator Wear (2-Piece)', price: 35000, quantity: 1, type: 'tailoring' }],
-            subtotal: 35000,
-            total: 70000,
-            tierId: 'EXPRESS',
-            tierName: 'EXPRESS',
-            tierMultiplier: 2.0,
-            deliveryAddress: '24 Lekki Phase 1, Lagos',
-            paymentMethod: 'FLUTTERWAVE',
-            paymentStatus: 'paid',
-            status: 'Completed',
-            assignedTo: 'Master Tailor Emeka',
-            createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-            expectedDeliveryDate: new Date(Date.now() - 86400000 * 1).toISOString().split('T')[0]
-        }
-    ];
+    const DEFAULT_ORDERS = [];
 
     const DEFAULT_EXPENSES = [
         { id: 'EXP-1', description: 'Industrial Detergent & Starch Restock', amount: 35000, category: 'Supplies', date: new Date().toISOString().split('T')[0] },
@@ -134,7 +99,10 @@
         seedIfEmpty('couture_staff_v15', DEFAULT_STAFF);
         seedIfEmpty('app_users_v1', DEFAULT_USERS);
         seedIfEmpty('couture_customers', DEFAULT_CUSTOMERS);
-        seedIfEmpty('couture_orders', DEFAULT_ORDERS);
+        // Do not auto-seed demo orders
+        if (localStorage.getItem('couture_orders') === null) {
+            localStorage.setItem('couture_orders', '[]');
+        }
         seedIfEmpty('admin_expenses_v16', DEFAULT_EXPENSES);
         console.log('⚡ [Couture Ecosystem] Storage initialized & verified.');
     }

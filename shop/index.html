@@ -969,48 +969,58 @@ async function placeOrder() {
 
         // ================= PAYSTACK GATEWAY =================
         if (payUpper === 'PAYSTACK') {
+            if (!businessSettings || !businessSettings.paystackPublicKey) {
+                await loadSettings();
+            }
             var pstkKey = (businessSettings && businessSettings.paystackPublicKey) ||
                           (window.CoutureDB && window.CoutureDB.getPaystackKey && window.CoutureDB.getPaystackKey()) ||
                           '';
 
-            if (pstkKey && typeof PaystackPop !== 'undefined' && typeof PaystackPop.setup === 'function') {
-                msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
-                try {
-                    var handler = PaystackPop.setup({
-                        key: pstkKey,
-                        email: currentCustomer.email,
-                        amount: Math.round(total * 100), // kobo
-                        currency: 'NGN',
-                        channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-                        ref: 'PSTK-' + Date.now(),
-                        metadata: {
-                            custom_fields: [
-                                { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
-                                { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
-                            ]
-                        },
-                        callback: function(response) {
-                            sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
-                        },
-                        onClose: function() {
-                            msgDiv.innerHTML = '<span class="error-msg">Paystack payment window was closed. You can retry or choose another payment method.</span>';
-                            btn.disabled = false;
-                            btn.textContent = 'Confirm & Place Order';
-                        }
-                    });
-                    handler.openIframe();
-                    return;
-                } catch(pstkErr) {
-                    console.error('Paystack popup error:', pstkErr);
-                    msgDiv.innerHTML = '<span class="error-msg">Could not load Paystack gateway popup: ' + pstkErr.message + '</span>';
-                    btn.disabled = false;
-                    btn.textContent = 'Confirm & Place Order';
-                    return;
-                }
-            } else {
-                // Paystack gateway key not set yet: Book order as pending so customer does not get false 'paid' status
-                msgDiv.innerHTML = '<span style="color:var(--gold);">Booking order with payment pending (Paystack gateway not configured by store administrator)...</span>';
-                await sendOrderToCloud('pending', null, 'Order Booked! Please transfer to store account or pay on pickup.');
+            if (!pstkKey) {
+                msgDiv.innerHTML = '<span class="error-msg">Paystack gateway is currently being initialized by the administrator. Please select Flutterwave or Bank Transfer to proceed immediately.</span>';
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+                return;
+            }
+
+            if (typeof PaystackPop === 'undefined' || typeof PaystackPop.setup !== 'function') {
+                msgDiv.innerHTML = '<span class="error-msg">Paystack secure checkout script is loading. Please wait 2 seconds and click confirm again.</span>';
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+                return;
+            }
+
+            msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
+            try {
+                var handler = PaystackPop.setup({
+                    key: pstkKey,
+                    email: currentCustomer.email,
+                    amount: Math.round(total * 100), // kobo
+                    currency: 'NGN',
+                    channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+                    ref: 'PSTK-' + Date.now(),
+                    metadata: {
+                        custom_fields: [
+                            { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
+                            { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
+                        ]
+                    },
+                    callback: function(response) {
+                        sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
+                    },
+                    onClose: function() {
+                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment window was closed. You can retry or choose another payment method.</span>';
+                        btn.disabled = false;
+                        btn.textContent = 'Confirm & Place Order';
+                    }
+                });
+                handler.openIframe();
+                return;
+            } catch(pstkErr) {
+                console.error('Paystack popup error:', pstkErr);
+                msgDiv.innerHTML = '<span class="error-msg">Could not load Paystack checkout: ' + pstkErr.message + '</span>';
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
                 return;
             }
         }
@@ -1045,11 +1055,22 @@ async function loadOrders() {
         var data = await res.json();
         
         if (data && Array.isArray(data.orders)) {
-            couture_orders = data.orders;
+            // Strictly enforce matching current customer
+            var myEmail = (currentCustomer && currentCustomer.email) ? currentCustomer.email.toLowerCase().trim() : '';
+            var myId = (currentCustomer && currentCustomer.id) ? currentCustomer.id : '';
+            
+            var filteredOrders = data.orders.filter(o => {
+                if (myId && o.customerId === myId) return true;
+                if (myEmail && o.customerEmail && o.customerEmail.toLowerCase().trim() === myEmail) return true;
+                return false;
+            });
+
+            couture_orders = filteredOrders;
             // Merge with local newly placed if any
             if (myLocalOrders && myLocalOrders.length) {
                 myLocalOrders.forEach(lo => {
-                    if (!couture_orders.some(co => co.orderId === lo.orderId)) {
+                    var isMine = (myId && lo.customerId === myId) || (myEmail && lo.customerEmail && lo.customerEmail.toLowerCase().trim() === myEmail);
+                    if (isMine && !couture_orders.some(co => co.orderId === lo.orderId)) {
                         couture_orders.unshift(lo);
                     }
                 });
@@ -1353,7 +1374,13 @@ function switchCustomerTab(tabName) {
 
 function closeModal(modalId) {
     var el = document.getElementById(modalId);
-    if (el) el.classList.remove('active');
+    if (el) {
+        el.classList.remove('active');
+        el.style.display = 'none';
+        if (modalId === 'invoiceViewModal') {
+            el.remove();
+        }
+    }
 }
 
 // ============ PWA INSTALL & SERVICE WORKER ============

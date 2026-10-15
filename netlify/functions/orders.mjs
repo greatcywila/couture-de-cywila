@@ -34,11 +34,15 @@ export default async (req, context) => {
         if (req.method === 'GET') {
             if (who && who.kind === 'customer') {
                 const email = normEmail(who.email);
-                const mine = orders.filter(o => o.customerId === who.id || normEmail(o.customerEmail) === email);
-                return json({ success: true, orders: mine });
+                const mine = orders.filter(o => o.customerId === who.id || (o.customerEmail && normEmail(o.customerEmail) === email));
+                return json({ success: true, count: mine.length, orders: mine });
             }
-            // For admin/staff or authorized request, return all orders
-            return json({ success: true, count: orders.length, orders });
+            if (who && who.kind === 'user') {
+                // Admin / Staff portal
+                return json({ success: true, count: orders.length, orders });
+            }
+            // If not authenticated or unverified token, return empty array to protect customer privacy
+            return json({ success: true, count: 0, orders: [] });
         }
 
         // ---------------------------------------------------------- POST
@@ -166,8 +170,15 @@ export default async (req, context) => {
             await writeKey('orders', orders);
 
             if (statusChanged && order.customerEmail) {
-                sendEmail({ to: order.customerEmail, subject: `Order ${order.orderId} is now ${order.status} | Couture dé Cywila`, html: statusEmailHtml(order) })
-                    .catch(e => console.log('[status email err]', e.message));
+                try {
+                    await sendEmail({
+                        to: order.customerEmail,
+                        subject: `Order ${order.orderId} is now ${order.status} | Couture dé Cywila`,
+                        html: statusEmailHtml(order)
+                    });
+                } catch(e) {
+                    console.log('[status email err]', e.message);
+                }
             }
             return json({ success: true, order });
         }
