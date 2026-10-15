@@ -494,30 +494,37 @@ function customerLogout() {
 }
 
 async function autoCheckSession() {
+    // 1. Immediately restore cached session so page reload doesn't kick user to login screen
+    var cached = localStorage.getItem('cywila_customer_profile');
+    if (customerToken && cached) {
+        try {
+            currentCustomer = JSON.parse(cached);
+            initCustomerDashboard();
+        } catch(e) {}
+    }
+
     if (!customerToken) return;
+
+    // 2. Validate token in background
     try {
         var res = await fetch('/api/customers', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'me', token: customerToken })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify({ action: 'me' })
         });
         var data = await res.json();
         if (res.ok && data.customer) {
             currentCustomer = data.customer;
             localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
-            initCustomerDashboard();
-        } else {
+            document.getElementById('customerGreeting').textContent = 'Welcome back, ' + (currentCustomer.name || 'Valued Client');
+        } else if (res.status === 401 && !cached) {
             customerLogout();
         }
     } catch(e) {
-        // Fallback to cached profile if offline
-        var cached = localStorage.getItem('cywila_customer_profile');
-        if (cached) {
-            try {
-                currentCustomer = JSON.parse(cached);
-                initCustomerDashboard();
-            } catch(e2) {}
-        }
+        // Offline or network error: keep current logged-in dashboard
     }
 }
 
@@ -968,29 +975,38 @@ async function placeOrder() {
 
             if (pstkKey && typeof PaystackPop !== 'undefined' && typeof PaystackPop.setup === 'function') {
                 msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
-                var handler = PaystackPop.setup({
-                    key: pstkKey,
-                    email: currentCustomer.email,
-                    amount: Math.round(total * 100), // kobo
-                    currency: 'NGN',
-                    ref: 'PSTK-' + Date.now(),
-                    metadata: {
-                        custom_fields: [
-                            { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
-                            { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
-                        ]
-                    },
-                    callback: function(response) {
-                        sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
-                    },
-                    onClose: function() {
-                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment cancelled. You can retry anytime.</span>';
-                        btn.disabled = false;
-                        btn.textContent = 'Confirm & Place Order';
-                    }
-                });
-                handler.openIframe();
-                return;
+                try {
+                    var handler = PaystackPop.setup({
+                        key: pstkKey,
+                        email: currentCustomer.email,
+                        amount: Math.round(total * 100), // kobo
+                        currency: 'NGN',
+                        channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+                        ref: 'PSTK-' + Date.now(),
+                        metadata: {
+                            custom_fields: [
+                                { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
+                                { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
+                            ]
+                        },
+                        callback: function(response) {
+                            sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
+                        },
+                        onClose: function() {
+                            msgDiv.innerHTML = '<span class="error-msg">Paystack payment window was closed. You can retry or choose another payment method.</span>';
+                            btn.disabled = false;
+                            btn.textContent = 'Confirm & Place Order';
+                        }
+                    });
+                    handler.openIframe();
+                    return;
+                } catch(pstkErr) {
+                    console.error('Paystack popup error:', pstkErr);
+                    msgDiv.innerHTML = '<span class="error-msg">Could not load Paystack gateway popup: ' + pstkErr.message + '</span>';
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm & Place Order';
+                    return;
+                }
             } else {
                 // Paystack gateway key not set yet: Book order as pending so customer does not get false 'paid' status
                 msgDiv.innerHTML = '<span style="color:var(--gold);">Booking order with payment pending (Paystack gateway not configured by store administrator)...</span>';
@@ -1090,10 +1106,36 @@ function renderOrders(ordersList) {
             '<div style="margin-top:0.8rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
                 '<button class="cywila-btn-primary btn-sm" onclick="viewOrderInvoice(\'' + order.orderId + '\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.82rem; background:linear-gradient(135deg, #7C3AED, #EC4899);">📄 View & Print Invoice</button>' +
                 '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Inquire on WhatsApp</a>' +
+                (order.status === 'Received' || order.status === 'Pending' ? 
+                    '<button class="btn-sm btn btn-danger" onclick="customerDeleteOrder(\'' + order.orderId + '\')" style="width:auto; margin:0; padding:0.45rem 0.85rem; font-size:0.8rem;">🗑️ Cancel / Delete</button>' : 
+                    ''
+                ) +
             '</div>' +
         '</div>';
     });
     display.innerHTML = html;
+}
+
+async function customerDeleteOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel and remove order #' + orderId + '?')) return;
+
+    couture_orders = couture_orders.filter(o => o.orderId !== orderId);
+    if (currentCustomer && currentCustomer.id) {
+        localStorage.setItem('cywila_orders_' + currentCustomer.id, JSON.stringify(couture_orders));
+    }
+    renderOrders(couture_orders);
+    loadAccount();
+
+    try {
+        await fetch('/api/orders', {
+            method: 'DELETE',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify({ orderId: orderId })
+        });
+    } catch(e) {}
 }
 
 function viewOrderInvoice(orderId) {

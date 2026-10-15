@@ -137,19 +137,40 @@ export async function sendEmail({ to, subject, html, replyTo }) {
         console.log('[email skipped]', subject, to);
         return { skipped: true };
     }
-    const from = process.env.RESEND_SENDER_EMAIL || 'orders@couturedecywila.com.ng';
-    const res = await fetch('https://api.resend.com/emails', {
+    const customFrom = process.env.RESEND_SENDER_EMAIL || 'orders@couturedecywila.com.ng';
+    
+    // First attempt with configured sender
+    let res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            from: `Couture dé Cywila <${from}>`,
+            from: `Couture dé Cywila <${customFrom}>`,
             to: Array.isArray(to) ? to : [to],
             reply_to: replyTo || process.env.ADMIN_NOTIFICATION_EMAIL || 'greatcywila@gmail.com',
             subject,
             html
         })
     });
-    if (!res.ok) console.log('[resend error]', res.status, await res.text());
+
+    // If custom domain is not yet verified on Resend (e.g. 403 or unverified domain), fallback to onboarding@resend.dev
+    if (!res.ok && res.status >= 400 && customFrom !== 'onboarding@resend.dev') {
+        const errText = await res.text();
+        console.log('[resend primary error, falling back]', res.status, errText);
+        try {
+            res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from: 'Couture dé Cywila <onboarding@resend.dev>',
+                    to: Array.isArray(to) ? to : [to],
+                    reply_to: replyTo || process.env.ADMIN_NOTIFICATION_EMAIL || 'greatcywila@gmail.com',
+                    subject,
+                    html
+                })
+            });
+        } catch(e) {}
+    }
+
     return { status: res.status };
 }
 

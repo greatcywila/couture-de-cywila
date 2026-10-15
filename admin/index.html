@@ -965,6 +965,7 @@ var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
 var couture_customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
 var couture_staff = JSON.parse(localStorage.getItem('couture_staff_v15')) || [];
 var couture_inventory = JSON.parse(localStorage.getItem('couture_inventory_v15')) || [];
+var auditLog = JSON.parse(localStorage.getItem('audit_log_v1')) || [];
 
 // ============ AUTHENTICATION ============
 var currentUser = null;
@@ -1988,28 +1989,61 @@ function loadOrdersTable() {
         html += '<td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + ';">' + order.status + '</span></td>';
         html += '<td>' + (order.expectedDeliveryDate || '-') + '</td>';
         html += '<td>' +
-            '<select onchange="updateOrderStatus(\'' + order.orderId + '\', this.value)" style="padding:4px 8px;background:#1a1a2e;color:#fff;border:1px solid #2d3561;border-radius:4px;font-size:0.8rem;">' +
-                '<option value="Pending"' + (order.status === 'Pending' ? ' selected' : '') + '>Pending</option>' +
-                '<option value="Processing"' + (order.status === 'Processing' ? ' selected' : '') + '>Processing</option>' +
-                '<option value="Completed"' + (order.status === 'Completed' ? ' selected' : '') + '>Completed</option>' +
-                '<option value="Delivered"' + (order.status === 'Delivered' ? ' selected' : '') + '>Delivered</option>' +
-            '</select>' +
+            '<div style="display:flex; gap:6px; align-items:center;">' +
+                '<select onchange="updateOrderStatus(\'' + order.orderId + '\', this.value)" style="padding:4px 8px;background:#1a1a2e;color:#fff;border:1px solid #2d3561;border-radius:4px;font-size:0.8rem;">' +
+                    '<option value="Pending"' + (order.status === 'Pending' ? ' selected' : '') + '>Pending</option>' +
+                    '<option value="Processing"' + (order.status === 'Processing' ? ' selected' : '') + '>Processing</option>' +
+                    '<option value="Completed"' + (order.status === 'Completed' ? ' selected' : '') + '>Completed</option>' +
+                    '<option value="Delivered"' + (order.status === 'Delivered' ? ' selected' : '') + '>Delivered</option>' +
+                '</select>' +
+                '<button class="btn-sm btn btn-danger" onclick="deleteOrder(\'' + order.orderId + '\')" style="padding:4px 8px; font-size:0.8rem; margin:0;" title="Delete Order">🗑️</button>' +
+            '</div>' +
         '</td>';
         html += '</tr>';
     });
     
     if (couture_orders.length === 0) {
-        html = '<tr><td colspan="6" style="text-align: center; color: #999;">No orders</td></tr>';
+        html = '<tr><td colspan="6" style="text-align: center; color: #999;">No orders found</td></tr>';
     }
     
     document.getElementById('ordersTable').innerHTML = html;
 }
 
+async function deleteOrder(orderId) {
+    if (!confirm('Are you sure you want to permanently delete order ' + orderId + '?')) return;
+    
+    couture_orders = couture_orders.filter(o => o.orderId !== orderId);
+    localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+    loadOrdersTable();
+    if (document.getElementById('dashOrders')) {
+        document.getElementById('dashOrders').textContent = couture_orders.length;
+    }
+    renderDashboardCharts(couture_orders);
+    logAudit('DELETE_ORDER', 'Deleted order ' + orderId);
+
+    try {
+        await fetch('/api/orders', {
+            method: 'DELETE',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({ orderId: orderId })
+        });
+        syncOrdersFromCloud();
+    } catch(e) {
+        console.log('Error deleting cloud order:', e);
+    }
+}
+
 // ============ AUDIT LOG ============
 function logAudit(action, details) {
+    if (!Array.isArray(auditLog)) {
+        auditLog = JSON.parse(localStorage.getItem('audit_log_v1') || '[]');
+    }
     var entry = {
         timestamp: new Date().toLocaleString(),
-        user: currentUser.username,
+        user: (currentUser && currentUser.username) ? currentUser.username : 'Admin',
         action: action,
         details: details
     };
@@ -2017,7 +2051,9 @@ function logAudit(action, details) {
     auditLog.unshift(entry);
     if (auditLog.length > 500) auditLog.pop();
     
-    localStorage.setItem('audit_log_v1', JSON.stringify(auditLog));
+    try {
+        localStorage.setItem('audit_log_v1', JSON.stringify(auditLog));
+    } catch(e) {}
 }
 
 function loadAuditLog() {

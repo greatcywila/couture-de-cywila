@@ -172,6 +172,18 @@ export default async (req, context) => {
             return json({ success: true, order });
         }
 
+        // ---------------------------------------------------------- DELETE
+        if (req.method === 'DELETE') {
+            const b = await readBody(req);
+            const url = new URL(req.url);
+            const orderId = b.orderId || url.searchParams.get('orderId');
+            if (!orderId) return json({ error: 'orderId is required' }, 400);
+
+            const filtered = orders.filter(o => o.orderId !== orderId);
+            await writeKey('orders', filtered);
+            return json({ success: true, message: 'Order ' + orderId + ' deleted successfully' });
+        }
+
         return json({ error: 'Method not allowed' }, 405);
     } catch (err) {
         console.error('[orders]', err);
