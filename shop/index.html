@@ -539,7 +539,21 @@ async function loadSettings() {
         var res = await fetch('/api/settings');
         var data = await res.json();
         if (data && data.settings) {
-            businessSettings = data.settings;
+            businessSettings = Object.assign({}, businessSettings, data.settings);
+        }
+    } catch(e) {}
+
+    // Also attempt fetching from payment-config endpoint
+    try {
+        var pRes = await fetch('/api/payment-config');
+        var pData = await pRes.json();
+        if (pData) {
+            if (pData.paystackPublicKey && !businessSettings.paystackPublicKey) {
+                businessSettings.paystackPublicKey = pData.paystackPublicKey;
+            }
+            if (pData.flutterwavePublicKey && !businessSettings.flutterwavePublicKey) {
+                businessSettings.flutterwavePublicKey = pData.flutterwavePublicKey;
+            }
         }
     } catch(e) {}
 }
@@ -564,6 +578,29 @@ async function loadCatalog() {
             ]
         };
     }
+
+    // Merge any locally cached catalog items saved by Admin
+    try {
+        var localLaundry = JSON.parse(localStorage.getItem('couture_laundry_v15') || '[]');
+        if (localLaundry && localLaundry.length) {
+            catalogData.laundry = catalogData.laundry || [];
+            localLaundry.forEach(li => {
+                var idx = catalogData.laundry.findIndex(x => x.id === li.id);
+                if (idx >= 0) catalogData.laundry[idx] = li;
+                else catalogData.laundry.push(li);
+            });
+        }
+        var localOutfits = JSON.parse(localStorage.getItem('couture_outfits_v15') || '[]');
+        if (localOutfits && localOutfits.length) {
+            catalogData.outfits = catalogData.outfits || [];
+            localOutfits.forEach(oi => {
+                var idx = catalogData.outfits.findIndex(x => x.id === oi.id);
+                if (idx >= 0) catalogData.outfits[idx] = oi;
+                else catalogData.outfits.push(oi);
+            });
+        }
+    } catch(e) {}
+
     renderCatalog();
 }
 
@@ -865,7 +902,10 @@ async function placeOrder() {
 
         // ================= FLUTTERWAVE GATEWAY =================
         if (payUpper === 'FLUTTERWAVE') {
-            var flwKey = (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
+            var flwKey = (businessSettings && businessSettings.flutterwavePublicKey) ||
+                         (window.CoutureDB && window.CoutureDB.getFlutterwaveKey && window.CoutureDB.getFlutterwaveKey()) ||
+                         '';
+            
             if (flwKey && typeof FlutterwaveCheckout === 'function') {
                 msgDiv.innerHTML = '<span class="success-msg">Opening secure Flutterwave Checkout...</span>';
                 FlutterwaveCheckout({
@@ -885,34 +925,40 @@ async function placeOrder() {
                         logo: window.location.origin + '/images/logo.png'
                     },
                     callback: function(payment) {
-                        sendOrderToCloud('paid', payment.transaction_id || payment.tx_ref, 'Payment Verified! Order Booked.');
+                        var status = (payment.status || '').toLowerCase();
+                        if (status === 'successful' || status === 'completed') {
+                            sendOrderToCloud('paid', payment.transaction_id || payment.tx_ref, 'Payment Confirmed! Order Booked.');
+                        } else {
+                            sendOrderToCloud('pending', payment.transaction_id || payment.tx_ref, 'Order Booked (Payment Under Verification).');
+                        }
                     },
                     onclose: function() {
-                        msgDiv.innerHTML = '<span class="error-msg">Payment cancelled. You can retry or choose another payment method.</span>';
+                        msgDiv.innerHTML = '<span class="error-msg">Payment was cancelled or closed. You can retry or complete payment later.</span>';
                         btn.disabled = false;
                         btn.textContent = 'Confirm & Place Order';
                     }
                 });
                 return;
             } else {
-                // If live API key is not yet added in settings, simulate instant test checkout
-                msgDiv.innerHTML = '<span class="success-msg">Processing Flutterwave test payment...</span>';
-                setTimeout(() => {
-                    sendOrderToCloud('paid', 'FLW-TEST-' + Date.now(), 'Flutterwave Payment Simulated Successfully!');
-                }, 1200);
+                // Flutterwave gateway key not set yet: Book order as pending so customer does not get false 'paid' status
+                msgDiv.innerHTML = '<span style="color:var(--gold);">Booking order with payment pending (Flutterwave gateway not configured by store administrator)...</span>';
+                await sendOrderToCloud('pending', null, 'Order Booked! Please transfer to store account or pay on pickup.');
                 return;
             }
         }
 
         // ================= PAYSTACK GATEWAY =================
         if (payUpper === 'PAYSTACK') {
-            var pstkKey = (window.CoutureDB && window.CoutureDB.getPaystackKey && window.CoutureDB.getPaystackKey()) || '';
-            if (pstkKey && typeof PaystackPop === 'object') {
+            var pstkKey = (businessSettings && businessSettings.paystackPublicKey) ||
+                          (window.CoutureDB && window.CoutureDB.getPaystackKey && window.CoutureDB.getPaystackKey()) ||
+                          '';
+
+            if (pstkKey && typeof PaystackPop !== 'undefined' && typeof PaystackPop.setup === 'function') {
                 msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
                 var handler = PaystackPop.setup({
                     key: pstkKey,
                     email: currentCustomer.email,
-                    amount: total * 100, // kobo
+                    amount: Math.round(total * 100), // kobo
                     currency: 'NGN',
                     ref: 'PSTK-' + Date.now(),
                     metadata: {
@@ -925,7 +971,7 @@ async function placeOrder() {
                         sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
                     },
                     onClose: function() {
-                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment cancelled.</span>';
+                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment cancelled. You can retry anytime.</span>';
                         btn.disabled = false;
                         btn.textContent = 'Confirm & Place Order';
                     }
@@ -933,11 +979,9 @@ async function placeOrder() {
                 handler.openIframe();
                 return;
             } else {
-                // If live API key is not yet set, simulate instant test checkout
-                msgDiv.innerHTML = '<span class="success-msg">Processing Paystack test payment...</span>';
-                setTimeout(() => {
-                    sendOrderToCloud('paid', 'PSTK-TEST-' + Date.now(), 'Paystack Payment Simulated Successfully!');
-                }, 1200);
+                // Paystack gateway key not set yet: Book order as pending so customer does not get false 'paid' status
+                msgDiv.innerHTML = '<span style="color:var(--gold);">Booking order with payment pending (Paystack gateway not configured by store administrator)...</span>';
+                await sendOrderToCloud('pending', null, 'Order Booked! Please transfer to store account or pay on pickup.');
                 return;
             }
         }

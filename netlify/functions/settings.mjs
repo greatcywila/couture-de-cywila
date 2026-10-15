@@ -38,7 +38,9 @@ export default async (req) => {
                 vatName: b.vatName !== undefined ? String(b.vatName).trim() : 'VAT',
                 bankName: b.bankName !== undefined ? String(b.bankName).trim() : settings.bankName,
                 bankAccountName: b.bankAccountName !== undefined ? String(b.bankAccountName).trim() : settings.bankAccountName,
-                bankAccountNumber: b.bankAccountNumber !== undefined ? String(b.bankAccountNumber).trim() : settings.bankAccountNumber
+                bankAccountNumber: b.bankAccountNumber !== undefined ? String(b.bankAccountNumber).trim() : settings.bankAccountNumber,
+                flutterwavePublicKey: b.flutterwavePublicKey !== undefined ? String(b.flutterwavePublicKey).trim() : (settings.flutterwavePublicKey || ''),
+                paystackPublicKey: b.paystackPublicKey !== undefined ? String(b.paystackPublicKey).trim() : (settings.paystackPublicKey || '')
             };
 
             await writeKey('settings', settings);

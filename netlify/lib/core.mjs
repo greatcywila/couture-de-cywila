@@ -120,7 +120,9 @@ export const DEFAULT_SETTINGS = {
     vatName: 'VAT',
     bankName: '',
     bankAccountName: '',
-    bankAccountNumber: ''
+    bankAccountNumber: '',
+    flutterwavePublicKey: '',
+    paystackPublicKey: ''
 };
 
 export async function getSettings() {
