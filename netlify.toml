@@ -30,6 +30,30 @@
   to = "/.netlify/functions/orders"
   status = 200
 
+# API Route for Cloud Customer Accounts & Auth
+[[redirects]]
+  from = "/api/customers"
+  to = "/.netlify/functions/customers"
+  status = 200
+
+# API Route for Cloud Users & Staff Management
+[[redirects]]
+  from = "/api/users"
+  to = "/.netlify/functions/users"
+  status = 200
+
+# API Route for Cloud Services & Plans Catalog
+[[redirects]]
+  from = "/api/catalog"
+  to = "/.netlify/functions/catalog"
+  status = 200
+
+# API Route for Business Settings (VAT, Bank, WhatsApp)
+[[redirects]]
+  from = "/api/settings"
+  to = "/.netlify/functions/settings"
+  status = 200
+
 # Global Security & Asset Headers
 [[headers]]
   for = "/*"

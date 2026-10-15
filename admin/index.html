@@ -5,27 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal - Couture dé Cywila</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#c5a059">
+    <meta name="theme-color" content="#A855F7">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cywila Admin">
-    <link rel="apple-touch-icon" href="/images/icon-192.svg">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="stylesheet" href="/shared/theme.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="/shared/seed-data.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
-        :root { --primary: #FF6B35; --gold: #D4AF37; }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0B0B16; color: #F3F4F6; }
+        :root { --primary: #A855F7; --gold: #F59E0B; }
         body { padding: 1rem; overflow-x: hidden; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, var(--primary), var(--gold)); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: linear-gradient(135deg, #A855F7, #EC4899); color: white; padding: 1.8rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(168,85,247,0.3); }
         .header h1 { font-size: 2rem; }
         .logout-btn { padding: 0.8rem 1.5rem; background: #ef4444; border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; width: auto; }
         .logout-btn:hover { transform: translateY(-2px); }
-        .login-form { max-width: 500px; margin: 3rem auto; background: #16213e; padding: 2rem; border-radius: 12px; border: 1px solid #2d3561; }
+        .login-form { max-width: 460px; margin: 3rem auto; background: #151528; padding: 2.2rem; border-radius: 14px; border: 1px solid #262646; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
         .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; font-family: inherit; }
+        .form-group label { display: block; color: #9CA3AF; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 0.75rem; background: #0F0F1E; border: 1px solid #262646; border-radius: 6px; color: #fff; font-family: inherit; }
         .form-group input:focus { outline: none; border-color: var(--primary); }
         .error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
         .success-msg { color: #10b981; font-size: 0.9rem; margin-top: 0.5rem; }
@@ -74,16 +76,20 @@
 <div class="container">
     <!-- LOGIN FORM -->
     <div id="loginSection" class="login-form">
-        <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">Admin Login</h2>
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="/images/logo.png" alt="Couture dé Cywila" style="height: 52px; width: auto; object-fit: contain; margin-bottom: 0.5rem;">
+            <h2 style="font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, #A855F7, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Admin Management Suite</h2>
+            <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 4px;">Super Admin, Admin & Manager Portal</p>
+        </div>
         <div class="form-group">
             <label>Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username">
+            <input type="text" id="loginUsername" placeholder="e.g. nkay, admin1, manager1">
         </div>
         <div class="form-group">
             <label>PIN</label>
             <input type="password" id="loginPin" placeholder="Enter PIN">
         </div>
-        <button class="btn" onclick="adminLogin()">Login</button>
+        <button class="btn" onclick="adminLogin()" id="adminLoginBtn">Login</button>
         <div id="loginError" class="error-msg"></div>
     </div>
 
@@ -114,6 +120,7 @@
             <button class="tab-btn" onclick="switchTab('cycles')">🔄 Cycles</button>
             <button class="tab-btn" onclick="switchTab('customers')">👤 Customers</button>
             <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('settings')" style="color: #F59E0B; font-weight: 700;">⚙️ Business Settings</button>
             <button class="tab-btn" onclick="switchTab('audit')">📝 Audit Log</button>
         </div>
 
@@ -147,11 +154,15 @@
             <div class="card" id="createUserCard" style="display: none;">
                 <h3>[+ Create New User]</h3>
                 <div class="form-group">
-                    <label>Username</label>
+                    <label>Username *</label>
                     <input type="text" id="newUsername" placeholder="e.g., ade.tailor">
                 </div>
                 <div class="form-group">
-                    <label>PIN (4-6 digits)</label>
+                    <label>Email Address (Mandatory for Password Recovery & Notifications) *</label>
+                    <input type="email" id="newUserEmail" placeholder="e.g. staff@couturedecywila.com.ng">
+                </div>
+                <div class="form-group">
+                    <label>PIN (4-6 digits) *</label>
                     <input type="password" id="newPin" placeholder="e.g., 5001">
                 </div>
                 <div class="form-group">
@@ -600,6 +611,69 @@
             </div>
         </div>
 
+        <!-- TAB: BUSINESS SETTINGS (VAT, Bank Account & WhatsApp) -->
+        <div id="tab-settings" class="tab-content">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">⚙️ Business & Financial Settings</h2>
+            
+            <div class="card">
+                <h3 style="color: var(--gold); margin-bottom: 0.5rem;">🏦 Bank Account Details (Printed on Invoices)</h3>
+                <p style="color: #9CA3AF; font-size: 0.85rem; margin-bottom: 1.2rem;">These bank details appear automatically on all email invoices and payment receipts sent to clients.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <input type="text" id="settingBankName" placeholder="e.g. Zenith Bank / GTBank">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Number (NUBAN)</label>
+                        <input type="text" id="settingBankAccount" placeholder="e.g. 1012345678">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <input type="text" id="settingAccountName" placeholder="e.g. Couture dé Cywila Ltd">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: #A855F7; margin-bottom: 0.5rem;">🧾 VAT & Tax Configuration</h3>
+                <p style="color: #9CA3AF; font-size: 0.85rem; margin-bottom: 1.2rem;">Control whether 7.5% Value Added Tax (VAT) is added to invoices or if prices are inclusive.</p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>VAT On Invoices</label>
+                        <select id="settingVatEnabled">
+                            <option value="false">Disabled (Prices Inclusive / No Extra Tax)</option>
+                            <option value="true">Enabled (Add 7.5% Standard VAT)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>VAT Percentage (%)</label>
+                        <input type="number" id="settingVatRate" placeholder="7.5" step="0.1" value="7.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: #10B981; margin-bottom: 0.5rem;">💬 WhatsApp Business Contact</h3>
+                <p style="color: #9CA3AF; font-size: 0.85rem; margin-bottom: 1.2rem;">Client notifications and one-tap WhatsApp chat buttons point directly to this business number.</p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Business WhatsApp Number</label>
+                        <input type="text" id="settingWhatsapp" placeholder="+2348000000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Support Email Address</label>
+                        <input type="email" id="settingSupportEmail" placeholder="greatcywila@gmail.com">
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="saveAdminSettings()" id="saveSettingsBtn" style="margin-top: 1rem; width: auto; padding: 0.8rem 1.8rem;">💾 Save Business Settings</button>
+                <div id="saveSettingsMsg" style="margin-top: 0.75rem;"></div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -845,35 +919,60 @@ var users = JSON.parse(localStorage.getItem('app_users_v1')) || [
     { username: 'receptionist1', pin: '4001', role: 'Receptionist', status: 'Active' }
 ];
 
-var auditLog = JSON.parse(localStorage.getItem('audit_log_v1')) || [];
+var adminToken = localStorage.getItem('cywila_admin_token') || null;
 
-function adminLogin() {
+async function adminLogin() {
     var username = document.getElementById('loginUsername').value.trim();
     var pin = document.getElementById('loginPin').value.trim();
     var errorDiv = document.getElementById('loginError');
+    var btn = document.getElementById('adminLoginBtn');
     
     if (!username || !pin) {
         errorDiv.textContent = 'Please enter username and PIN';
         return;
     }
     
-    var user = users.find(u => u.username === username && u.pin === pin && u.status === 'Active');
-    if (!user) {
-        errorDiv.textContent = 'Invalid credentials or account inactive';
-        return;
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+    errorDiv.textContent = '';
+    
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', username: username, pin: pin, portal: 'admin' })
+        });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || 'Invalid credentials or portal access restricted');
+        }
+        
+        currentUser = data.user;
+        adminToken = data.token;
+        localStorage.setItem('cywila_admin_token', adminToken);
+        localStorage.setItem('cywila_admin_profile', JSON.stringify(currentUser));
+        
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('userRole').textContent = 'Logged in as: ' + currentUser.username + ' (' + currentUser.role + ')';
+        
+        loadAllData();
+        setupAccessControl();
+        loadAdminSettings();
+    } catch(err) {
+        errorDiv.textContent = err.message || 'Login failed';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
     }
-    
-    currentUser = user;
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    document.getElementById('userRole').textContent = 'Logged in as: ' + user.role;
-    
-    loadAllData();
-    setupAccessControl();
 }
 
 function adminLogout() {
     currentUser = null;
+    adminToken = null;
+    localStorage.removeItem('cywila_admin_token');
+    localStorage.removeItem('cywila_admin_profile');
     location.reload();
 }
 
@@ -901,6 +1000,7 @@ function switchTab(tabName) {
     if (tabName === 'accounting') { syncOrdersFromCloud(); loadAccounting(); }
     if (tabName === 'notifications') loadNotifications();
     if (tabName === 'loyalty') loadLoyalty();
+    if (tabName === 'settings') loadAdminSettings();
 }
 
 // ============ ACCOUNTING & ANALYTICS MODULE ============
@@ -1069,25 +1169,47 @@ function adminCreateCoupon() {
 function setupAccessControl() {
     var role = currentUser.role;
     
-    // Show/hide create user button
-    document.getElementById('createUserCard').style.display = 
-        (role === 'Super Admin' || role === 'Admin') ? 'block' : 'none';
+    // Show create user button to Super Admin, Admin, and Manager
+    var canCreate = (role === 'Super Admin' || role === 'Admin' || role === 'Manager');
+    document.getElementById('createUserCard').style.display = canCreate ? 'block' : 'none';
+    
+    // Customize role dropdown options based on creator's hierarchy
+    var roleSelect = document.getElementById('newRole');
+    if (roleSelect) {
+        if (role === 'Manager') {
+            roleSelect.innerHTML = '<option value="">Select Role</option>' +
+                '<option value="Receptionist">Receptionist</option>' +
+                '<option value="Staff">Staff</option>' +
+                '<option value="Driver">Driver</option>';
+        } else if (role === 'Admin') {
+            roleSelect.innerHTML = '<option value="">Select Role</option>' +
+                '<option value="Admin">Admin</option>' +
+                '<option value="Manager">Manager</option>' +
+                '<option value="Receptionist">Receptionist</option>' +
+                '<option value="Staff">Staff</option>' +
+                '<option value="Driver">Driver</option>';
+        } else {
+            roleSelect.innerHTML = '<option value="">Select Role</option>' +
+                '<option value="Super Admin">Super Admin</option>' +
+                '<option value="Admin">Admin</option>' +
+                '<option value="Manager">Manager</option>' +
+                '<option value="Receptionist">Receptionist</option>' +
+                '<option value="Staff">Staff</option>' +
+                '<option value="Driver">Driver</option>';
+        }
+    }
     
     // Show/hide staff add card
-    document.getElementById('addStaffCard').style.display = 
-        (role === 'Super Admin' || role === 'Admin') ? 'block' : 'none';
+    document.getElementById('addStaffCard').style.display = canCreate ? 'block' : 'none';
     
     // Show/hide inventory add card
-    document.getElementById('addInventoryCard').style.display = 
-        (role === 'Super Admin') ? 'block' : 'none';
+    document.getElementById('addInventoryCard').style.display = (role === 'Super Admin' || role === 'Admin') ? 'block' : 'none';
     
-    // Show/hide users tab entirely
-    document.querySelector('[onclick="switchTab(\'users\')"]').style.display =
-        (role === 'Super Admin' || role === 'Admin') ? 'inline-block' : 'none';
+    // Show/hide users tab
+    document.querySelector('[onclick="switchTab(\'users\')"]').style.display = canCreate ? 'inline-block' : 'none';
     
     // Show/hide audit log tab
-    document.querySelector('[onclick="switchTab(\'audit\')"]').style.display =
-        (role === 'Super Admin' || role === 'Admin') ? 'inline-block' : 'none';
+    document.querySelector('[onclick="switchTab(\'audit\')"]').style.display = (role === 'Super Admin' || role === 'Admin') ? 'inline-block' : 'none';
     
     var accessInfo = 'Role: <strong>' + role + '</strong><br>';
     accessInfo += 'Status: <strong>Active</strong><br>';
@@ -1095,88 +1217,90 @@ function setupAccessControl() {
     document.getElementById('accessInfo').innerHTML = accessInfo;
 }
 
-// ============ DATA LOADING ============
-var couture_staff = JSON.parse(localStorage.getItem('couture_staff_v15')) || [];
-var couture_inventory = JSON.parse(localStorage.getItem('couture_inventory_v15')) || [];
-var couture_customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
-var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
-var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
-var productionCycles = JSON.parse(localStorage.getItem('production_cycles_tiered_v1')) || {};
-
-function loadAllData() {
-    document.getElementById('dashUsers').textContent = users.length;
-    document.getElementById('dashOrders').textContent = couture_orders.length;
-    document.getElementById('dashCustomers').textContent = couture_customers.length;
-    
-    loadTiers();
-    loadCycles();
-    syncOrdersFromCloud();
-    setInterval(syncOrdersFromCloud, 5000);
-}
-
 // ============ USER MANAGEMENT ============
-function loadUsers() {
+async function loadUsers() {
+    var display = document.getElementById('usersDisplay');
+    display.innerHTML = '<p style="color:#999;">Loading cloud users...</p>';
+    
+    try {
+        var res = await fetch('/api/users', {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        var data = await res.json();
+        if (data && Array.isArray(data.users)) {
+            users = data.users;
+            localStorage.setItem('app_users_v1', JSON.stringify(users));
+        }
+    } catch(e) {}
+    
     var html = '';
     users.forEach(user => {
-        var roleClass = 'role-' + user.role.toLowerCase().replace(' ', '-');
-        html += '<div class="list-item" style="flex-direction: column; align-items: flex-start;">';
-        html += '<div style="display: flex; align-items: center; gap: 1rem; width: 100%;"><strong>' + user.username + '</strong>';
+        var roleClass = 'role-' + (user.role || '').toLowerCase().replace(/\s+/g, '-');
+        html += '<div class="list-item" style="flex-direction: column; align-items: flex-start; background: #151528; border: 1px solid #262646;">';
+        html += '<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">';
+        html += '<div><strong>' + user.username + '</strong> <span style="color:#9CA3AF; font-size:0.85rem; margin-left:6px;">(' + (user.email || 'No email') + ')</span></div>';
         html += '<span class="role-badge ' + roleClass + '">' + user.role + '</span>';
-        html += '<span style="color: #999; font-size: 0.85rem;">Status: ' + user.status + '</span></div>';
-        html += '<div style="margin-top: 0.5rem; width: 100%;">';
+        html += '</div>';
+        html += '<div style="margin-top: 0.6rem; width: 100%; display: flex; justify-content: space-between; align-items: center;">';
+        html += '<span style="color: #999; font-size: 0.85rem;">Status: <strong style="color:#10b981;">' + (user.status || 'Active') + '</strong></span>';
+        html += '<div>';
         if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
             html += '<button class="btn-sm btn btn-secondary" onclick="openEditUserModal(\'' + user.username + '\')">Edit</button>';
             if (currentUser.role === 'Super Admin' && user.role !== 'Super Admin') {
                 html += '<button class="btn-sm btn btn-danger" onclick="deleteUser(\'' + user.username + '\')">Delete</button>';
             }
         }
-        html += '</div></div>';
+        html += '</div></div></div>';
     });
     
-    document.getElementById('usersDisplay').innerHTML = html || '<p style="color: #999;">No users</p>';
+    display.innerHTML = html || '<p style="color: #999;">No users found</p>';
 }
 
-function createUser() {
-    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
-        alert('You do not have permission to create users');
-        return;
-    }
-    
+async function createUser() {
     var username = document.getElementById('newUsername').value.trim();
+    var email = document.getElementById('newUserEmail').value.trim();
     var pin = document.getElementById('newPin').value.trim();
     var role = document.getElementById('newRole').value;
+    var msgDiv = document.getElementById('createUserMsg');
     
-    if (!username || !pin || !role) {
-        document.getElementById('createUserMsg').innerHTML = '<span class="error-msg">Please fill all required fields</span>';
+    if (!username || !email || !pin || !role) {
+        msgDiv.innerHTML = '<span class="error-msg">Username, Email, PIN, and Role are all required</span>';
         return;
     }
     
-    if (users.find(u => u.username === username)) {
-        document.getElementById('createUserMsg').innerHTML = '<span class="error-msg">Username already exists</span>';
-        return;
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Creating cloud user account...</span>';
+    
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({
+                action: 'create',
+                username: username,
+                email: email,
+                pin: pin,
+                role: role
+            })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create user');
+        
+        msgDiv.innerHTML = '<span class="success-msg">✓ User "' + username + '" created successfully!</span>';
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newUserEmail').value = '';
+        document.getElementById('newPin').value = '';
+        document.getElementById('newRole').value = '';
+        
+        setTimeout(() => {
+            msgDiv.innerHTML = '';
+            loadUsers();
+        }, 1200);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error creating user') + '</span>';
     }
-    
-    var newUser = {
-        username: username,
-        pin: pin,
-        role: role,
-        status: 'Active',
-        createdAt: new Date().toISOString()
-    };
-    
-    users.push(newUser);
-    localStorage.setItem('app_users_v1', JSON.stringify(users));
-    
-    logAudit('CREATE_USER', 'User "' + username + '" created with role "' + role + '"');
-    
-    document.getElementById('newUsername').value = '';
-    document.getElementById('newPin').value = '';
-    document.getElementById('newRole').value = '';
-    document.getElementById('newSpecialty').value = '';
-    document.getElementById('newCommission').value = '';
-    
-    document.getElementById('createUserMsg').innerHTML = '<span class="success-msg">User created successfully!</span>';
-    setTimeout(() => loadUsers(), 500);
 }
 
 function openEditUserModal(username) {
@@ -1453,9 +1577,20 @@ function loadCycles() {
 }
 
 // ============ CUSTOMERS & MARKETING EXPORT ============
-function loadCustomersTable() {
+async function loadCustomersTable() {
     var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
     var orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+    
+    try {
+        var res = await fetch('/api/customers', {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        var data = await res.json();
+        if (data && Array.isArray(data.customers)) {
+            customers = data.customers;
+            localStorage.setItem('couture_customers', JSON.stringify(customers));
+        }
+    } catch(e) {}
     
     var custMap = {};
     customers.forEach(c => {
@@ -2339,8 +2474,85 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
 }
 
+// ============ BUSINESS SETTINGS MANAGER ============
+async function loadAdminSettings() {
+    try {
+        var res = await fetch('/api/settings');
+        var data = await res.json();
+        if (data && data.settings) {
+            var s = data.settings;
+            document.getElementById('settingBankName').value = s.bankName || '';
+            document.getElementById('settingBankAccount').value = s.bankAccount || '';
+            document.getElementById('settingAccountName').value = s.accountName || '';
+            document.getElementById('settingVatEnabled').value = s.vatEnabled ? 'true' : 'false';
+            document.getElementById('settingVatRate').value = s.vatRate !== undefined ? s.vatRate : 7.5;
+            document.getElementById('settingWhatsapp').value = s.whatsapp || '';
+            document.getElementById('settingSupportEmail').value = s.supportEmail || '';
+        }
+    } catch(err) {
+        console.log('Error loading settings:', err);
+    }
+}
+
+async function saveAdminSettings() {
+    var msgDiv = document.getElementById('saveSettingsMsg');
+    var btn = document.getElementById('saveSettingsBtn');
+    
+    var payload = {
+        bankName: document.getElementById('settingBankName').value.trim(),
+        bankAccount: document.getElementById('settingBankAccount').value.trim(),
+        accountName: document.getElementById('settingAccountName').value.trim(),
+        vatEnabled: document.getElementById('settingVatEnabled').value === 'true',
+        vatRate: parseFloat(document.getElementById('settingVatRate').value) || 7.5,
+        whatsapp: document.getElementById('settingWhatsapp').value.trim(),
+        supportEmail: document.getElementById('settingSupportEmail').value.trim()
+    };
+    
+    btn.disabled = true;
+    btn.textContent = 'Saving Settings...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Updating central cloud store...</span>';
+    
+    try {
+        var res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify(payload)
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save settings');
+        
+        msgDiv.innerHTML = '<span class="success-msg">✓ Settings saved! Updated bank details & VAT active on future invoices.</span>';
+        setTimeout(() => msgDiv.innerHTML = '', 3000);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error saving settings') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Business Settings';
+    }
+}
+
+// Auto-check stored admin session on boot
+function autoCheckAdminSession() {
+    var cached = localStorage.getItem('cywila_admin_profile');
+    if (adminToken && cached) {
+        try {
+            currentUser = JSON.parse(cached);
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('userRole').textContent = 'Logged in as: ' + currentUser.username + ' (' + currentUser.role + ')';
+            loadAllData();
+            setupAccessControl();
+            loadAdminSettings();
+        } catch(e) {}
+    }
+}
+
 // ============ INITIALIZATION ============
 window.onload = function() {
+    autoCheckAdminSession();
     localStorage.setItem('app_users_v1', JSON.stringify(users));
     if (window.CoutureDB && typeof window.CoutureDB.init === 'function') {
         window.CoutureDB.init();

@@ -5,237 +5,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Couture dé Cywila - Customer Portal</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#C8A96A">
+    <meta name="theme-color" content="#A855F7">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cywila Shop">
-    <link rel="apple-touch-icon" href="/images/icon-192.svg">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="stylesheet" href="/shared/theme.css">
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="/shared/seed-data.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; }
-        :root { --primary: #FF6B35; --gold: #D4AF37; }
         body { padding: 1rem; }
         .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, var(--primary), var(--gold)); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 2rem; }
-        .logout-btn { padding: 0.8rem 1.5rem; background: #ef4444; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; width: auto; }
-        .logout-btn:hover { transform: translateY(-2px); }
-        .login-form { max-width: 500px; margin: 3rem auto; background: #16213e; padding: 2rem; border-radius: 12px; border: 1px solid #2d3561; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; font-family: inherit; }
-        .form-group input:focus { outline: none; border-color: var(--primary); }
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; border-bottom: 2px solid #2d3561; padding-bottom: 1rem; flex-wrap: wrap; }
-        .tab-btn { padding: 0.8rem 1.2rem; background: transparent; border: none; color: #666; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
-        .tab-btn:hover { color: var(--primary); }
-        .tab-btn.active { color: white; border-bottom-color: var(--primary); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .card { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .card h3 { color: var(--primary); margin-bottom: 1rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        .service-item { background: #1a1a2e; border: 1px solid #2d3561; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s; }
-        .service-item:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .service-item h4 { color: var(--primary); margin-bottom: 0.5rem; }
-        .service-item p { color: #999; font-size: 0.9rem; margin-bottom: 0.5rem; }
-        .service-price { color: var(--gold); font-weight: 600; font-size: 1.2rem; }
-        .btn { padding: 0.8rem 1.2rem; background: linear-gradient(135deg, var(--primary), var(--gold)); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 1rem; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto; margin: 0.2rem; margin-top: 0; }
-        .btn-danger { background: #ef4444; }
-        .btn-success { background: #10b981; }
-        .cart-item { background: #1a1a2e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .cart-summary { background: #1a1a2e; padding: 1rem; border-radius: 8px; border-left: 3px solid var(--primary); margin-bottom: 1rem; }
-        .order-item { background: #1a1a2e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; border-left: 3px solid var(--primary); }
-        .order-item p { color: #999; font-size: 0.9rem; margin: 0.25rem 0; }
-        .tier-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem; }
-        .tier-express { background: #ef4444; color: white; }
-        .tier-premium { background: #d946ef; color: white; }
-        .tier-standard { background: #06b6d4; color: white; }
-        .tier-basic { background: #6b7280; color: white; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: #16213e; border: 1px solid #2d3561; border-radius: 12px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-content h3 { color: var(--primary); margin-bottom: 1rem; }
-        .close-modal { float: right; font-size: 2rem; font-weight: bold; color: #999; cursor: pointer; }
-        .close-modal:hover { color: white; }
-        .error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
-        .success-msg { color: #10b981; font-size: 0.9rem; margin-top: 0.5rem; }
-        .loyalty-points { background: rgba(212,175,55,0.1); border-left: 3px solid var(--gold); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
-        .loyalty-points strong { color: var(--gold); }
+        .auth-card {
+            max-width: 460px;
+            margin: 3rem auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.2rem;
+            box-shadow: var(--shadow-card);
+        }
+        .auth-toggle {
+            display: flex;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            gap: 4px;
+        }
+        .auth-toggle button {
+            flex: 1;
+            padding: 0.65rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .auth-toggle button.active {
+            background: var(--gradient-primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+        .service-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .service-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.2);
+        }
+        .service-item h4 { color: #ffffff; margin-bottom: 0.4rem; font-size: 1.05rem; }
+        .service-item p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 0.5rem; }
+        .service-price { color: var(--gold); font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .order-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <a href="https://couturedecywila.com.ng" style="color: var(--gold); text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Return to Main Website</a>
-        <span style="color: #666; font-size: 0.85rem;">Couture dé Cywila Booking Portal</span>
+    <div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <a href="https://couturedecywila.com.ng" style="color: var(--gold); text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            ← Return to Main Website
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="syncIndicator" style="font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 600;">🟢 Cloud Connected</span>
+            <span style="color: var(--text-subtle); font-size: 0.85rem;">Booking Portal</span>
+        </div>
     </div>
-    <!-- LOGIN SECTION -->
-    <div id="loginSection" class="login-form">
-        <h2 style="color: var(--primary); margin-bottom: 1.5rem; text-align: center;">🛍️ Customer Portal</h2>
-        <div style="margin-bottom: 1rem;">
-            <button class="btn" onclick="showLoginTab('login')" id="loginTabBtn" style="background: transparent; color: var(--primary); border: 2px solid var(--primary); margin-top: 0;">Login</button>
-            <button class="btn" onclick="showLoginTab('signup')" id="signupTabBtn" style="background: transparent; color: #999; border: 2px solid #999; margin-top: 0; margin-left: 0.5rem;">Sign Up</button>
+
+    <!-- AUTHENTICATION SECTION (Centered card with transparent logo) -->
+    <div id="loginSection" class="auth-card">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="/images/logo.png" alt="Couture dé Cywila" style="height: 55px; width: auto; object-fit: contain; margin-bottom: 0.5rem;">
+            <h2 style="font-size: 1.4rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Customer Portal</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Sign in to book luxury laundry, tailoring & manage orders</p>
         </div>
 
-        <!-- LOGIN TAB -->
+        <div class="auth-toggle">
+            <button id="toggleLoginBtn" class="active" onclick="showAuthTab('login')">Sign In</button>
+            <button id="toggleSignupBtn" onclick="showAuthTab('signup')">Create Account</button>
+        </div>
+
+        <!-- LOGIN FORM -->
         <div id="loginTab">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="your@email.com">
+                <label>Email Address *</label>
+                <input type="email" id="loginEmail" placeholder="e.g. client@example.com" class="cywila-input" required>
             </div>
             <div class="form-group" style="margin-bottom: 0.5rem;">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="Password">
+                <label>Password *</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" class="cywila-input" required>
             </div>
-            <div style="text-align: right; margin-bottom: 1rem;">
+            <div style="text-align: right; margin-bottom: 1.2rem;">
                 <a href="javascript:void(0)" onclick="openForgotPwdModal()" style="color: var(--gold); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Forgot Password?</a>
             </div>
-            <button class="btn" onclick="customerLogin()">Login</button>
+            <button class="cywila-btn-primary" onclick="customerLogin()" id="loginSubmitBtn">Sign In</button>
             <div id="loginError"></div>
         </div>
 
-        <!-- SIGNUP TAB -->
+        <!-- SIGNUP FORM (EMAIL IS MANDATORY) -->
         <div id="signupTab" style="display: none;">
             <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="signupName" placeholder="Your name">
+                <label>Full Name *</label>
+                <input type="text" id="signupName" placeholder="e.g. Chief Adeyemi" class="cywila-input" required>
             </div>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="signupEmail" placeholder="your@email.com">
+                <label>Email Address (Mandatory for Invoices & Cloud Access) *</label>
+                <input type="email" id="signupEmail" placeholder="client@example.com" class="cywila-input" required>
             </div>
             <div class="form-group">
-                <label>Phone</label>
-                <input type="tel" id="signupPhone" placeholder="+234...">
+                <label>Phone Number (WhatsApp) *</label>
+                <input type="tel" id="signupPhone" placeholder="+234..." class="cywila-input" required>
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="signupPassword" placeholder="Password">
+                <label>Password *</label>
+                <input type="password" id="signupPassword" placeholder="Create a secure password" class="cywila-input" required>
             </div>
             <div class="form-group">
                 <label>Birthdate (Optional)</label>
-                <input type="date" id="signupBirthdate">
+                <input type="date" id="signupBirthdate" class="cywila-input">
             </div>
-            <button class="btn" onclick="customerSignup()">Create Account</button>
+            <button class="cywila-btn-primary" onclick="customerSignup()" id="signupSubmitBtn">Create Account</button>
             <div id="signupError"></div>
         </div>
     </div>
 
-    <!-- CUSTOMER PORTAL -->
+    <!-- MAIN CUSTOMER PORTAL -->
     <div id="customerPortal" style="display: none;">
-        <div class="header">
-            <div>
-                <h1>👜 Couture dé Cywila</h1>
-                <p id="customerGreeting" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+        <div class="cywila-brand-header">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="/images/logo.png" alt="Couture dé Cywila" class="logo">
+                <div>
+                    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Couture dé Cywila</h1>
+                    <p id="customerGreeting" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;"></p>
+                </div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <button id="pwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background:#C8A96A; color:#000; font-weight:700; width:auto; margin:0;">📲 Install App</button>
-                <button class="logout-btn" onclick="customerLogout()">Logout</button>
+                <button id="pwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background: var(--gradient-gold); color: #000; font-weight: 700; width: auto; margin: 0;">📲 Install App</button>
+                <button class="btn-sm btn btn-danger" onclick="customerLogout()" style="width: auto; margin: 0;">Sign Out</button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('shop')">🛍️ Shop</button>
-            <button class="tab-btn" onclick="switchTab('cart')">🛒 Cart</button>
-            <button class="tab-btn" onclick="switchTab('orders')">📦 My Orders</button>
-            <button class="tab-btn" onclick="switchTab('account')">👤 Account</button>
+            <button class="tab-btn active" onclick="switchCustomerTab('shop')">🛍️ Services & Plans</button>
+            <button class="tab-btn" onclick="switchCustomerTab('cart')">🛒 Cart (<span id="cartCountBadge">0</span>)</button>
+            <button class="tab-btn" onclick="switchCustomerTab('orders')">📦 Order History</button>
+            <button class="tab-btn" onclick="switchCustomerTab('account')">👤 My Account</button>
         </div>
 
-        <!-- TAB 1: SHOP -->
+        <!-- TAB 1: SHOP CATALOG -->
         <div id="tab-shop" class="tab-content active">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🛍️ Shop</h2>
-
-            <div class="card">
-                <h3>Laundry Services</h3>
+            <div class="cywila-card">
+                <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.2rem;">🧺 Laundry Services</h3>
                 <div class="grid" id="laundryGrid"></div>
             </div>
 
-            <div class="card">
-                <h3>Tailoring Services</h3>
+            <div class="cywila-card">
+                <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.2rem;">✂️ Bespoke Tailoring Services</h3>
                 <div class="grid" id="tailoringGrid"></div>
             </div>
 
-            <div class="card">
-                <h3>🧺 Laundry Subscription Plans</h3>
+            <div class="cywila-card">
+                <h3 style="color: #60A5FA; margin-bottom: 1rem; font-size: 1.2rem;">🧺 Laundry Subscription Plans</h3>
                 <div class="grid" id="subscriptionGrid"></div>
             </div>
 
-            <div class="card">
-                <h3>✂️ Tailoring & Bespoke Retainer Plans</h3>
+            <div class="cywila-card">
+                <h3 style="color: #C084FC; margin-bottom: 1rem; font-size: 1.2rem;">👑 Tailoring & Bespoke Retainer Plans</h3>
                 <div class="grid" id="tailoringPlansGrid"></div>
             </div>
         </div>
 
         <!-- TAB 2: CART -->
         <div id="tab-cart" class="tab-content">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">🛒 Cart</h2>
-
-            <div class="card">
-                <h3>Items in Cart</h3>
+            <div class="cywila-card">
+                <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.2rem;">🛒 Items in Your Cart</h3>
                 <div id="cartItems"></div>
             </div>
 
-            <div class="card">
-                <h3>Apply Coupon Code</h3>
-                <div class="form-group">
-                    <label>Coupon Code (Optional)</label>
-                    <input type="text" id="couponCode" placeholder="Enter coupon code">
-                    <button class="btn-sm btn btn-success" onclick="applyCoupon()">Apply</button>
+            <div class="cywila-card">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem;">Apply Coupon Code</h3>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="couponCode" placeholder="Enter promo code (e.g. CYWILA10)" class="cywila-input" style="text-transform: uppercase;">
+                    <button class="btn-sm btn btn-success" onclick="applyCoupon()" style="width: auto; padding: 0.8rem 1.4rem; margin: 0;">Apply</button>
                 </div>
                 <div id="couponMsg"></div>
             </div>
 
-            <div class="card">
-                <h3>Order Summary</h3>
-                <div class="cart-summary">
-                    <p>Subtotal: <strong id="subtotal">₦0</strong></p>
-                    <p>Discount: <strong id="discount" style="color: var(--gold);">₦0</strong></p>
-                    <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2d3561;">
-                        Total: <strong style="font-size: 1.3rem; color: var(--gold);" id="cartTotal">₦0</strong>
+            <div class="cywila-card">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem;">Order Total</h3>
+                <div style="background: var(--bg-input); padding: 1.2rem; border-radius: var(--radius-sm); border-left: 3px solid var(--primary); margin-bottom: 1rem;">
+                    <p style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 6px;">Subtotal: <strong id="subtotal" style="color: #fff;">₦0</strong></p>
+                    <p style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 6px;">Discount: <strong id="discount" style="color: var(--gold);">₦0</strong></p>
+                    <p style="display: flex; justify-content: space-between; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); font-size: 1.2rem;">
+                        <span>Estimated Total:</span>
+                        <strong style="color: var(--gold);" id="cartTotal">₦0</strong>
                     </p>
                 </div>
-                <button class="btn btn-success" onclick="proceedToCheckout()">Proceed to Checkout</button>
+                <button class="cywila-btn-primary" onclick="proceedToCheckout()">Proceed to Checkout</button>
             </div>
         </div>
 
         <!-- TAB 3: ORDERS -->
         <div id="tab-orders" class="tab-content">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">📦 My Orders</h2>
-            <div class="card">
-                <h3>Order History</h3>
+            <div class="cywila-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                    <h3 style="color: var(--primary); margin: 0; font-size: 1.2rem;">📦 My Orders & Tracking</h3>
+                    <button class="btn-sm btn" onclick="loadOrders()" style="width: auto; background: var(--bg-input); border: 1px solid var(--border-color);">🔄 Refresh</button>
+                </div>
                 <div id="ordersDisplay"></div>
             </div>
         </div>
 
         <!-- TAB 4: ACCOUNT -->
         <div id="tab-account" class="tab-content">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👤 Account</h2>
-
-            <div class="loyalty-points">
-                <p>💎 Loyalty Points: <strong id="loyaltyPoints">0</strong></p>
-                <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">Earn points with every purchase. Redeem for discounts!</p>
+            <div class="cywila-card" style="border-left: 4px solid var(--gold); background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(236,72,153,0.08) 100%);">
+                <p style="font-size: 1.1rem;">💎 Loyalty Points: <strong id="loyaltyPoints" style="color: var(--gold); font-size: 1.4rem;">0</strong></p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">Earn points on every laundry or bespoke tailoring booking to redeem future discounts.</p>
             </div>
 
-            <div class="card">
-                <h3>My Information</h3>
-                <p><strong>Name:</strong> <span id="accountName"></span></p>
-                <p><strong>Email:</strong> <span id="accountEmail"></span></p>
-                <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
-                <p><strong>Member Since:</strong> <span id="accountJoined"></span></p>
-                <button class="btn" onclick="editAccount()">Edit Profile</button>
+            <div class="cywila-card">
+                <h3 style="margin-bottom: 1rem;">Profile Details</h3>
+                <p style="margin-bottom: 0.4rem;"><strong>Name:</strong> <span id="accountName" style="color: var(--text-muted);"></span></p>
+                <p style="margin-bottom: 0.4rem;"><strong>Email:</strong> <span id="accountEmail" style="color: var(--text-muted);"></span></p>
+                <p style="margin-bottom: 0.4rem;"><strong>Phone:</strong> <span id="accountPhone" style="color: var(--text-muted);"></span></p>
+                <p style="margin-bottom: 1rem;"><strong>Member Since:</strong> <span id="accountJoined" style="color: var(--text-muted);"></span></p>
+                <button class="cywila-btn-primary" onclick="editAccount()" style="width: auto;">Update Phone Number</button>
             </div>
 
-            <div class="card">
-                <h3>Account Statistics</h3>
-                <p>Total Orders: <strong id="totalOrders">0</strong></p>
-                <p>Total Spent: <strong id="totalSpent">₦0</strong></p>
-                <p>Favorite Tier: <strong id="favoriteTier">—</strong></p>
+            <div class="cywila-card">
+                <h3 style="margin-bottom: 1rem;">Booking History Summary</h3>
+                <p style="margin-bottom: 0.4rem;">Total Orders: <strong id="totalOrders" style="color: #fff;">0</strong></p>
+                <p style="margin-bottom: 0.4rem;">Lifetime Spend: <strong id="totalSpent" style="color: var(--gold);">₦0</strong></p>
+                <p>Most Used Tier: <strong id="favoriteTier" style="color: var(--primary);">—</strong></p>
             </div>
         </div>
     </div>
@@ -245,13 +268,13 @@
 <div id="tierModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('tierModal')">&times;</span>
-        <h3>Select Service Tier</h3>
-        <p style="color: #999; margin-bottom: 1rem;">Choose how quickly you need your order completed:</p>
+        <h3 style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; font-size: 1.3rem;">Select Service Turnaround Tier</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.2rem; font-size: 0.9rem;">Choose how quickly you need your garments delivered:</p>
 
         <div id="tierOptions"></div>
 
-        <button class="btn btn-success" onclick="confirmTier()">Confirm Tier & Continue</button>
-        <button class="btn btn-danger" onclick="closeModal('tierModal')">Cancel</button>
+        <button class="cywila-btn-primary" onclick="confirmTier()" style="margin-top: 1rem;">Confirm Tier & Continue</button>
+        <button class="btn btn-danger" onclick="closeModal('tierModal')" style="margin-top: 0.5rem;">Cancel</button>
     </div>
 </div>
 
@@ -259,42 +282,46 @@
 <div id="checkoutModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('checkoutModal')">&times;</span>
-        <h3>Complete Your Order</h3>
+        <h3 style="color: var(--gold); margin-bottom: 0.5rem; font-size: 1.3rem;">Complete Your Order</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Your invoice will be automatically emailed to you upon placement.</p>
 
         <div class="form-group">
-            <label>Delivery Address</label>
-            <textarea id="deliveryAddress" placeholder="Full address" style="height: 80px;"></textarea>
+            <label>Delivery Address *</label>
+            <textarea id="deliveryAddress" placeholder="Enter full street address or suite details" class="cywila-input" style="height: 75px;" required></textarea>
         </div>
 
         <div class="form-group">
-            <label>Payment Method</label>
-            <select id="paymentMethod">
+            <label>Payment Method *</label>
+            <select id="paymentMethod" class="cywila-select" required>
                 <option value="">Select payment method</option>
-                <option value="COD">Cash on Delivery</option>
-                <option value="PAYSTACK">Paystack</option>
-                <option value="FLUTTERWAVE">Flutterwave</option>
+                <option value="COD">Cash on Delivery / Showroom Collection</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="PAYSTACK">Paystack (Online Card/Transfer)</option>
+                <option value="FLUTTERWAVE">Flutterwave (Online Card/Transfer)</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>
-                <input type="checkbox" id="agreeTerms"> I agree to terms and conditions
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff;">
+                <input type="checkbox" id="agreeTerms" checked style="width: auto;">
+                <span>I agree to Couture dé Cywila terms and care conditions</span>
             </label>
         </div>
 
-        <div class="cart-summary">
-            <p>Subtotal: <strong id="checkoutSubtotal">₦0</strong></p>
-            <p>Tier Multiplier: <strong id="tierMultiplier">1.0x</strong></p>
-            <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2d3561;">
-                Total: <strong style="font-size: 1.3rem; color: var(--gold);" id="checkoutTotal">₦0</strong>
+        <div style="background: var(--bg-input); padding: 1.2rem; border-radius: var(--radius-sm); border-left: 3px solid var(--primary); margin-bottom: 1rem;">
+            <p style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 4px;">Subtotal: <strong id="checkoutSubtotal" style="color: #fff;">₦0</strong></p>
+            <p style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 4px;">Tier Multiplier: <strong id="tierMultiplier" style="color: var(--primary);">1.0x</strong></p>
+            <p style="display: flex; justify-content: space-between; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border-color); font-size: 1.25rem;">
+                <span>Grand Total:</span>
+                <strong style="color: var(--gold);" id="checkoutTotal">₦0</strong>
             </p>
-            <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
-                Expected Delivery: <strong id="expectedDelivery">—</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                Estimated Delivery: <strong id="expectedDelivery" style="color: #fff;">—</strong>
             </p>
         </div>
 
-        <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
-        <button class="btn btn-danger" onclick="closeModal('checkoutModal')">Cancel</button>
+        <button class="cywila-btn-primary" onclick="placeOrder()" id="placeOrderBtn">Confirm & Place Order</button>
+        <button class="btn btn-danger" onclick="closeModal('checkoutModal')" style="margin-top: 0.5rem;">Cancel</button>
         <div id="checkoutMsg"></div>
     </div>
 </div>
@@ -304,176 +331,321 @@
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('forgotPwdModal')">&times;</span>
         <h3 style="color: var(--gold); margin-bottom: 0.5rem;">🔒 Password Recovery</h3>
-        <p style="color: #999; font-size: 0.85rem; margin-bottom: 1.5rem;">Enter your registered email address to receive a secure 6-digit recovery code.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Enter your registered email address to receive a secure 6-digit recovery code via email.</p>
 
-        <!-- STEP 1: REQUEST CODE -->
         <div id="forgotStep1">
             <div class="form-group">
                 <label>Registered Email Address</label>
-                <input type="email" id="recoveryEmail" placeholder="your@email.com">
+                <input type="email" id="recoveryEmail" placeholder="client@example.com" class="cywila-input">
             </div>
-            <button class="btn btn-success" onclick="sendPasswordRecoveryCode()">Send Recovery Code</button>
+            <button class="cywila-btn-primary" onclick="sendPasswordRecoveryCode()" id="sendCodeBtn">Send Recovery Code</button>
             <div id="recoveryStep1Msg" style="margin-top: 0.5rem;"></div>
         </div>
 
-        <!-- STEP 2: VERIFY CODE & SET NEW PASSWORD -->
         <div id="forgotStep2" style="display: none;">
             <div class="form-group">
                 <label>6-Digit Verification Code</label>
-                <input type="text" id="recoveryCodeInput" placeholder="e.g. 582914" maxlength="6" style="letter-spacing: 4px; font-weight: bold; font-size: 1.2rem; text-align: center;">
+                <input type="text" id="recoveryCodeInput" placeholder="e.g. 582914" maxlength="6" class="cywila-input" style="letter-spacing: 4px; font-weight: bold; font-size: 1.2rem; text-align: center;">
             </div>
             <div class="form-group">
                 <label>New Password</label>
-                <input type="password" id="recoveryNewPwd" placeholder="Enter new password">
+                <input type="password" id="recoveryNewPwd" placeholder="Enter new password" class="cywila-input">
             </div>
             <div class="form-group">
                 <label>Confirm New Password</label>
-                <input type="password" id="recoveryConfirmPwd" placeholder="Re-enter new password">
+                <input type="password" id="recoveryConfirmPwd" placeholder="Re-enter new password" class="cywila-input">
             </div>
-            <button class="btn btn-success" onclick="completePasswordReset()">Reset & Save Password</button>
+            <button class="cywila-btn-primary" onclick="completePasswordReset()" id="saveNewPwdBtn">Reset & Save Password</button>
             <div id="recoveryStep2Msg" style="margin-top: 0.5rem;"></div>
         </div>
     </div>
 </div>
 
 <script>
-var couturePaymentConfig = { flutterwavePublicKey: '', paystackPublicKey: '' };
-fetch('/api/config')
-    .then(function(r) { return r.json(); })
-    .then(function(data) { if (data) couturePaymentConfig = data; })
-    .catch(function() {});
-
-var customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+// ============ STATE & STORAGE ============
+var customerToken = localStorage.getItem('cywila_customer_token') || null;
 var currentCustomer = null;
-var cart = [];
-var couture_laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
-var couture_outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
-var couture_laundry_plans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
-var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
-var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
-var coupon_codes = JSON.parse(localStorage.getItem('coupon_codes_v1')) || [];
-var selectedTier = null;
+var cart = JSON.parse(localStorage.getItem('cywila_customer_cart') || '[]');
+var couture_orders = [];
+var catalogData = { laundry: [], outfits: [], laundryPlans: [], tailoringPlans: [] };
+var serviceTiers = {
+    EXPRESS: { displayName: 'Express Turnaround', cycleLengthDays: 2, multiplier: 2.0, priority: 1 },
+    PREMIUM: { displayName: 'Premium Care', cycleLengthDays: 4, multiplier: 1.5, priority: 2 },
+    STANDARD: { displayName: 'Standard Care', cycleLengthDays: 7, multiplier: 1.0, priority: 3 },
+    BASIC: { displayName: 'Basic Economy', cycleLengthDays: 10, multiplier: 0.8, priority: 4 }
+};
 var appliedCoupon = null;
+var selectedTier = null;
+var businessSettings = { whatsapp: '+2348000000000' };
 
-function showLoginTab(tab) {
+function showAuthTab(tab) {
     if (tab === 'login') {
         document.getElementById('loginTab').style.display = 'block';
         document.getElementById('signupTab').style.display = 'none';
-        document.getElementById('loginTabBtn').style.borderColor = 'var(--primary)';
-        document.getElementById('loginTabBtn').style.color = 'var(--primary)';
-        document.getElementById('signupTabBtn').style.borderColor = '#999';
-        document.getElementById('signupTabBtn').style.color = '#999';
+        document.getElementById('toggleLoginBtn').classList.add('active');
+        document.getElementById('toggleSignupBtn').classList.remove('active');
     } else {
         document.getElementById('loginTab').style.display = 'none';
         document.getElementById('signupTab').style.display = 'block';
-        document.getElementById('loginTabBtn').style.borderColor = '#999';
-        document.getElementById('loginTabBtn').style.color = '#999';
-        document.getElementById('signupTabBtn').style.borderColor = 'var(--primary)';
-        document.getElementById('signupTabBtn').style.color = 'var(--primary)';
+        document.getElementById('toggleLoginBtn').classList.remove('active');
+        document.getElementById('toggleSignupBtn').classList.add('active');
     }
 }
 
-function customerLogin() {
+// ============ CLOUD AUTHENTICATION ============
+async function customerLogin() {
     var email = document.getElementById('loginEmail').value.trim();
     var password = document.getElementById('loginPassword').value.trim();
+    var errEl = document.getElementById('loginError');
+    var btn = document.getElementById('loginSubmitBtn');
+    
     if (!email || !password) {
-        document.getElementById('loginError').innerHTML = '<span class="error-msg">Please enter credentials</span>';
+        errEl.innerHTML = '<span class="error-msg">Please enter both email and password</span>';
         return;
     }
-    var customer = customers.find(c => c.email === email && c.password === password);
-    if (!customer) {
-        document.getElementById('loginError').innerHTML = '<span class="error-msg">Invalid credentials</span>';
-        return;
+    
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+    errEl.innerHTML = '';
+    
+    try {
+        var res = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', email: email, password: password })
+        });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || 'Invalid credentials');
+        }
+        
+        customerToken = data.token;
+        currentCustomer = data.customer;
+        localStorage.setItem('cywila_customer_token', customerToken);
+        localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
+        
+        initCustomerDashboard();
+    } catch (err) {
+        errEl.innerHTML = '<span class="error-msg">' + (err.message || 'Login failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
     }
-    currentCustomer = customer;
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('customerPortal').style.display = 'block';
-    document.getElementById('customerGreeting').textContent = 'Welcome back, ' + customer.name + '!';
-    loadShop();
-    loadOrders();
-    loadAccount();
 }
 
-function customerSignup() {
+async function customerSignup() {
     var name = document.getElementById('signupName').value.trim();
     var email = document.getElementById('signupEmail').value.trim();
     var phone = document.getElementById('signupPhone').value.trim();
     var password = document.getElementById('signupPassword').value.trim();
     var birthdate = document.getElementById('signupBirthdate').value;
-    if (!name || !email || !password) {
-        document.getElementById('signupError').innerHTML = '<span class="error-msg">Fill all required fields</span>';
+    var errEl = document.getElementById('signupError');
+    var btn = document.getElementById('signupSubmitBtn');
+    
+    if (!name || !email || !phone || !password) {
+        errEl.innerHTML = '<span class="error-msg">Full Name, Email, Phone, and Password are all required</span>';
         return;
     }
-    if (customers.find(c => c.email === email)) {
-        document.getElementById('signupError').innerHTML = '<span class="error-msg">Email already registered</span>';
-        return;
+    
+    btn.disabled = true;
+    btn.textContent = 'Creating Account...';
+    errEl.innerHTML = '';
+    
+    try {
+        var res = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'signup',
+                name: name,
+                email: email,
+                phone: phone,
+                password: password,
+                birthdate: birthdate
+            })
+        });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to register account');
+        }
+        
+        customerToken = data.token;
+        currentCustomer = data.customer;
+        localStorage.setItem('cywila_customer_token', customerToken);
+        localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
+        
+        initCustomerDashboard();
+    } catch (err) {
+        errEl.innerHTML = '<span class="error-msg">' + (err.message || 'Signup failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
     }
-    var customer = {id:'CUST'+Date.now(),name:name,email:email,phone:phone,password:password,birthdate:birthdate,loyaltyPoints:0,lifetimeSpending:0,createdAt:new Date().toISOString()};
-    customers.push(customer);
-    localStorage.setItem('couture_customers', JSON.stringify(customers));
-    currentCustomer = customer;
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('customerPortal').style.display = 'block';
-    document.getElementById('customerGreeting').textContent = 'Welcome, ' + customer.name + '!';
-    loadShop();
-    loadOrders();
-    loadAccount();
 }
 
 function customerLogout() {
+    customerToken = null;
     currentCustomer = null;
-    cart = [];
-    appliedCoupon = null;
+    localStorage.removeItem('cywila_customer_token');
+    localStorage.removeItem('cywila_customer_profile');
     location.reload();
 }
 
-function loadShop() {
-    couture_laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
-    couture_outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
-    couture_laundry_plans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
-    var couture_tailoring_plans = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
-
-    var html = '';
-    couture_laundry.forEach(s => {
-        html += '<div class="service-item"><h4>' + s.name + '</h4><p>Professional service</p><p class="service-price">₦' + Number(s.price).toLocaleString() + '/item</p><button class="btn-sm btn" onclick="addToCart(\'' + s.id + '\',\'laundry\',' + s.price + ',\'' + s.name + '\')">+ Add to Cart</button></div>';
-    });
-    document.getElementById('laundryGrid').innerHTML = html || '<p style="color: #999;">No laundry services</p>';
-    
-    html = '';
-    couture_outfits.forEach(o => {
-        html += '<div class="service-item"><h4>' + o.name + '</h4><p>Custom tailoring</p><p class="service-price">₦' + Number(o.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + o.id + '\',\'tailoring\',' + o.price + ',\'' + o.name + '\')">+ Add to Cart</button></div>';
-    });
-    document.getElementById('tailoringGrid').innerHTML = html || '<p style="color: #999;">No tailoring services</p>';
-    
-    html = '';
-    couture_laundry_plans.forEach(p => {
-        html += '<div class="service-item"><h4>' + p.name + '</h4><p>' + p.items + ' items, ' + p.frequency + '</p><p class="service-price">₦' + Number(p.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + p.id + '\',\'subscription\',' + p.price + ',\'' + p.name + '\')">+ Add Plan</button></div>';
-    });
-    document.getElementById('subscriptionGrid').innerHTML = html || '<p style="color: #999;">No laundry plans</p>';
-
-    html = '';
-    if (couture_tailoring_plans.length === 0) {
-        couture_tailoring_plans = [
-            { id: 'TPLN-401', name: 'Quarterly Bespoke Wardrobe Retainer', items: 3, frequency: 'Quarterly', price: 180000 },
-            { id: 'TPLN-402', name: 'Executive Annual Wardrobe Refresh', items: 10, frequency: 'Annual', price: 550000 }
-        ];
-        localStorage.setItem('couture_tailoring_plans', JSON.stringify(couture_tailoring_plans));
+async function autoCheckSession() {
+    if (!customerToken) return;
+    try {
+        var res = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'me', token: customerToken })
+        });
+        var data = await res.json();
+        if (res.ok && data.customer) {
+            currentCustomer = data.customer;
+            localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
+            initCustomerDashboard();
+        } else {
+            customerLogout();
+        }
+    } catch(e) {
+        // Fallback to cached profile if offline
+        var cached = localStorage.getItem('cywila_customer_profile');
+        if (cached) {
+            try {
+                currentCustomer = JSON.parse(cached);
+                initCustomerDashboard();
+            } catch(e2) {}
+        }
     }
-    couture_tailoring_plans.forEach(p => {
-        html += '<div class="service-item"><h4>' + p.name + '</h4><p>' + p.items + ' garments, ' + p.frequency + '</p><p class="service-price">₦' + Number(p.price).toLocaleString() + '</p><button class="btn-sm btn" onclick="addToCart(\'' + p.id + '\',\'tailoring_plan\',' + p.price + ',\'' + p.name + '\')">+ Add Plan</button></div>';
-    });
-    var tailGrid = document.getElementById('tailoringPlansGrid');
-    if (tailGrid) tailGrid.innerHTML = html || '<p style="color: #999;">No tailoring retainer plans</p>';
 }
 
+function initCustomerDashboard() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('customerPortal').style.display = 'block';
+    document.getElementById('customerGreeting').textContent = 'Welcome back, ' + (currentCustomer.name || 'Valued Client');
+    
+    loadCatalog();
+    loadOrders();
+    loadAccount();
+    updateCart();
+    loadSettings();
+}
+
+// ============ BUSINESS SETTINGS ============
+async function loadSettings() {
+    try {
+        var res = await fetch('/api/settings');
+        var data = await res.json();
+        if (data && data.settings) {
+            businessSettings = data.settings;
+        }
+    } catch(e) {}
+}
+
+// ============ LIVE CATALOG ============
+async function loadCatalog() {
+    try {
+        var res = await fetch('/api/catalog');
+        var data = await res.json();
+        if (data && data.catalog) {
+            catalogData = data.catalog;
+        }
+    } catch(e) {
+        // Fallback to seed data
+        catalogData = {
+            laundry: (window.seed_laundry_services || []),
+            outfits: (window.seed_tailoring_outfits || []),
+            laundryPlans: (window.seed_subscription_plans || []),
+            tailoringPlans: [
+                { id: 'TPLN-401', name: 'Quarterly Bespoke Wardrobe Retainer', items: 3, frequency: 'Quarterly', price: 180000 },
+                { id: 'TPLN-402', name: 'Executive Annual Wardrobe Refresh', items: 10, frequency: 'Annual', price: 550000 }
+            ]
+        };
+    }
+    renderCatalog();
+}
+
+function renderCatalog() {
+    // Laundry
+    var html = '';
+    (catalogData.laundry || []).forEach(s => {
+        html += '<div class="service-item">' +
+            '<div>' +
+                '<h4>' + s.name + '</h4>' +
+                '<p>Delicate wash, steam press & luxury packaging</p>' +
+                '<div class="service-price">₦' + Number(s.price).toLocaleString() + ' <span style="font-size:0.8rem;color:var(--text-muted);">/ item</span></div>' +
+            '</div>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + s.id + '\', \'laundry\', ' + s.price + ', \'' + escapeHtml(s.name) + '\')">+ Add to Cart</button>' +
+        '</div>';
+    });
+    document.getElementById('laundryGrid').innerHTML = html || '<p style="color:var(--text-muted);">No laundry items available</p>';
+
+    // Tailoring
+    html = '';
+    (catalogData.outfits || []).forEach(o => {
+        html += '<div class="service-item">' +
+            '<div>' +
+                '<h4>' + o.name + '</h4>' +
+                '<p>Bespoke tailoring, perfect fit guaranteed</p>' +
+                '<div class="service-price">₦' + Number(o.price).toLocaleString() + '</div>' +
+            '</div>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + o.id + '\', \'tailoring\', ' + o.price + ', \'' + escapeHtml(o.name) + '\')">+ Add to Cart</button>' +
+        '</div>';
+    });
+    document.getElementById('tailoringGrid').innerHTML = html || '<p style="color:var(--text-muted);">No tailoring items available</p>';
+
+    // Laundry Plans
+    html = '';
+    (catalogData.laundryPlans || []).forEach(p => {
+        html += '<div class="service-item">' +
+            '<div>' +
+                '<h4>' + p.name + '</h4>' +
+                '<p>' + p.items + ' garments allowance • ' + p.frequency + '</p>' +
+                '<div class="service-price">₦' + Number(p.price).toLocaleString() + '</div>' +
+            '</div>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + p.id + '\', \'subscription\', ' + p.price + ', \'' + escapeHtml(p.name) + '\')">+ Subscribe</button>' +
+        '</div>';
+    });
+    document.getElementById('subscriptionGrid').innerHTML = html || '<p style="color:var(--text-muted);">No laundry plans</p>';
+
+    // Tailoring Plans
+    html = '';
+    (catalogData.tailoringPlans || []).forEach(p => {
+        html += '<div class="service-item">' +
+            '<div>' +
+                '<h4>' + p.name + '</h4>' +
+                '<p>' + p.items + ' bespoke garments • ' + p.frequency + '</p>' +
+                '<div class="service-price">₦' + Number(p.price).toLocaleString() + '</div>' +
+            '</div>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + p.id + '\', \'tailoring_plan\', ' + p.price + ', \'' + escapeHtml(p.name) + '\')">+ Subscribe</button>' +
+        '</div>';
+    });
+    document.getElementById('tailoringPlansGrid').innerHTML = html || '<p style="color:var(--text-muted);">No retainer plans</p>';
+}
+
+function escapeHtml(str) {
+    return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ============ CART LOGIC ============
 function addToCart(id, type, price, name) {
     var existing = cart.find(i => i.id === id);
     if (existing) {
         existing.quantity += 1;
     } else {
-        cart.push({ id: id, type: type, price: Number(price), name: name, quantity: 1, addedAt: new Date().toISOString() });
+        cart.push({ id: id, type: type, price: Number(price), name: name, quantity: 1 });
     }
+    localStorage.setItem('cywila_customer_cart', JSON.stringify(cart));
     updateCart();
+    
+    // Quick notification pill
+    var badge = document.getElementById('cartCountBadge');
+    if (badge) {
+        badge.style.transform = 'scale(1.4)';
+        setTimeout(() => badge.style.transform = 'scale(1)', 200);
+    }
 }
 
 function changeCartQty(index, delta) {
@@ -482,46 +654,317 @@ function changeCartQty(index, delta) {
         if (cart[index].quantity <= 0) {
             cart.splice(index, 1);
         }
+        localStorage.setItem('cywila_customer_cart', JSON.stringify(cart));
+        updateCart();
     }
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    localStorage.setItem('cywila_customer_cart', JSON.stringify(cart));
     updateCart();
 }
 
 function updateCart() {
     var html = '';
     var subtotal = 0;
+    var totalItems = 0;
+    
     cart.forEach((item, i) => {
         var lineTotal = item.price * item.quantity;
         subtotal += lineTotal;
-        html += '<div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; background:#16213e; padding:1rem; margin-bottom:0.75rem; border-radius:8px; border-left:3px solid var(--primary);">' +
+        totalItems += item.quantity;
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:1rem; margin-bottom:0.75rem; border-radius:var(--radius-sm); border-left:3px solid var(--primary); flex-wrap:wrap; gap:10px;">' +
             '<div>' +
-                '<strong>' + item.name + '</strong>' +
-                '<p style="color:#C8A96A; font-size:0.9rem; margin-top:4px;">₦' + item.price.toLocaleString() + ' each</p>' +
-                '<p style="color:#fff; font-weight:600; margin-top:2px;">Line Total: ₦' + lineTotal.toLocaleString() + '</p>' +
+                '<strong style="color:#fff; font-size:1rem;">' + item.name + '</strong>' +
+                '<p style="color:var(--gold); font-size:0.85rem; margin-top:2px;">₦' + item.price.toLocaleString() + ' each</p>' +
+                '<p style="color:var(--text-muted); font-size:0.85rem;">Line Total: <strong style="color:#fff;">₦' + lineTotal.toLocaleString() + '</strong></p>' +
             '</div>' +
             '<div style="display:flex; align-items:center; gap:0.5rem;">' +
-                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', -1)" style="width:34px; height:34px; padding:0; font-size:1.2rem; font-weight:bold; background:#2d3561; border-radius:6px; cursor:pointer;">-</button>' +
-                '<span style="font-weight:700; font-size:1.1rem; min-width:24px; text-align:center;">' + item.quantity + '</span>' +
-                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', 1)" style="width:34px; height:34px; padding:0; font-size:1.2rem; font-weight:bold; background:#2d3561; border-radius:6px; cursor:pointer;">+</button>' +
+                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', -1)" style="width:32px; height:32px; padding:0; background:#262646;">-</button>' +
+                '<span style="font-weight:700; min-width:24px; text-align:center;">' + item.quantity + '</span>' +
+                '<button class="btn-sm btn" onclick="changeCartQty(' + i + ', 1)" style="width:32px; height:32px; padding:0; background:#262646;">+</button>' +
                 '<button class="btn-sm btn btn-danger" onclick="removeFromCart(' + i + ')" style="margin-left:0.5rem;">Remove</button>' +
             '</div>' +
         '</div>';
     });
-    document.getElementById('cartItems').innerHTML = html || '<p style="color:#999;">Cart is currently empty</p>';
+    
+    document.getElementById('cartItems').innerHTML = html || '<p style="color:var(--text-muted); padding:1rem 0;">Your cart is currently empty. Browse services to add items.</p>';
+    document.getElementById('cartCountBadge').textContent = totalItems;
     document.getElementById('subtotal').textContent = '₦' + subtotal.toLocaleString();
-    var disc = appliedCoupon ? (subtotal * (appliedCoupon.discount || appliedCoupon.discountPercent || 0) / 100) : 0;
-    var discEl = document.getElementById('discount');
-    if (discEl) discEl.textContent = '₦' + Math.floor(disc).toLocaleString();
-    var totEl = document.getElementById('cartTotal');
-    if (totEl) totEl.textContent = '₦' + Math.floor(subtotal - disc).toLocaleString();
+    
+    var disc = appliedCoupon ? (subtotal * (appliedCoupon.discount || 0) / 100) : 0;
+    document.getElementById('discount').textContent = '₦' + Math.floor(disc).toLocaleString();
+    document.getElementById('cartTotal').textContent = '₦' + Math.floor(subtotal - disc).toLocaleString();
 }
 
-function removeFromCart(index) {
-    cart.splice(index, 1);
+function applyCoupon() {
+    var code = document.getElementById('couponCode').value.toUpperCase().trim();
+    var msgDiv = document.getElementById('couponMsg');
+    if (!code) {
+        msgDiv.innerHTML = '<span class="error-msg">Enter coupon code</span>';
+        return;
+    }
+    if (code === 'CYWILA10' || code === 'WELCOME10') {
+        appliedCoupon = { code: code, discount: 10 };
+        msgDiv.innerHTML = '<span class="success-msg">✓ 10% Discount Applied!</span>';
+    } else if (code === 'CYWILA20') {
+        appliedCoupon = { code: code, discount: 20 };
+        msgDiv.innerHTML = '<span class="success-msg">✓ 20% Discount Applied!</span>';
+    } else {
+        msgDiv.innerHTML = '<span class="error-msg">Invalid or expired coupon code</span>';
+        return;
+    }
     updateCart();
 }
 
+// ============ CHECKOUT & ORDERS ============
+function proceedToCheckout() {
+    if (cart.length === 0) {
+        alert('Your cart is empty. Please add items before checking out.');
+        return;
+    }
+    
+    var html = '';
+    ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].forEach(tk => {
+        var t = serviceTiers[tk];
+        html += '<div style="background:var(--bg-input); padding:1rem; margin-bottom:0.75rem; border:2px solid transparent; border-radius:var(--radius-sm); cursor:pointer;" onclick="selectTierOption(\'' + tk + '\')">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                '<h4 style="color:#fff; margin:0;">' + t.displayName + '</h4>' +
+                '<span class="tier-badge tier-' + tk.toLowerCase() + '">' + t.multiplier + 'x</span>' +
+            '</div>' +
+            '<p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Turnaround: ' + t.cycleLengthDays + ' days</p>' +
+        '</div>';
+    });
+    document.getElementById('tierOptions').innerHTML = html;
+    document.getElementById('tierModal').classList.add('active');
+}
+
+function selectTierOption(tk) {
+    selectedTier = tk;
+    document.querySelectorAll('#tierOptions > div').forEach(e => e.style.borderColor = 'transparent');
+    event.currentTarget.style.borderColor = 'var(--primary)';
+}
+
+function confirmTier() {
+    if (!selectedTier) {
+        alert('Please choose a turnaround tier');
+        return;
+    }
+    closeModal('tierModal');
+    
+    var sub = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    var disc = appliedCoupon ? (sub * (appliedCoupon.discount || 0) / 100) : 0;
+    var baseAfterDisc = sub - disc;
+    var mult = serviceTiers[selectedTier].multiplier;
+    var total = Math.floor(baseAfterDisc * mult);
+    var t = serviceTiers[selectedTier];
+    var dd = new Date();
+    dd.setDate(dd.getDate() + t.cycleLengthDays);
+    
+    document.getElementById('checkoutSubtotal').textContent = '₦' + sub.toLocaleString();
+    document.getElementById('tierMultiplier').textContent = mult + 'x (' + t.displayName + ')';
+    document.getElementById('checkoutTotal').textContent = '₦' + total.toLocaleString();
+    document.getElementById('expectedDelivery').textContent = dd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    document.getElementById('checkoutMsg').innerHTML = '';
+    document.getElementById('checkoutModal').classList.add('active');
+}
+
+async function placeOrder() {
+    var addr = document.getElementById('deliveryAddress').value.trim();
+    var pay = document.getElementById('paymentMethod').value;
+    var agree = document.getElementById('agreeTerms').checked;
+    var msgDiv = document.getElementById('checkoutMsg');
+    var btn = document.getElementById('placeOrderBtn');
+    
+    if (!addr || !pay || !agree) {
+        msgDiv.innerHTML = '<span class="error-msg">Please provide delivery address, payment method, and accept terms.</span>';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = 'Saving Booking & Generating Invoice...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Contacting central cloud server...</span>';
+    
+    var sub = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    var disc = appliedCoupon ? (sub * (appliedCoupon.discount || 0) / 100) : 0;
+    var baseAfterDisc = sub - disc;
+    var mult = serviceTiers[selectedTier].multiplier;
+    var total = Math.floor(baseAfterDisc * mult);
+    var t = serviceTiers[selectedTier];
+    var dd = new Date();
+    dd.setDate(dd.getDate() + t.cycleLengthDays);
+    
+    var orderPayload = {
+        items: cart,
+        subtotal: sub,
+        total: total,
+        tierId: selectedTier,
+        tierName: t.displayName,
+        tierMultiplier: mult,
+        couponApplied: appliedCoupon ? appliedCoupon.code : null,
+        deliveryAddress: addr,
+        paymentMethod: pay,
+        paymentStatus: pay === 'COD' ? 'pending' : 'pending',
+        expectedDeliveryDate: dd.toISOString().split('T')[0]
+    };
+    
+    try {
+        var res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify(orderPayload)
+        });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to place order');
+        }
+        
+        var placedOrder = data.order;
+        
+        // Clear local cart
+        cart = [];
+        localStorage.removeItem('cywila_customer_cart');
+        appliedCoupon = null;
+        selectedTier = null;
+        updateCart();
+        
+        // Success state with WhatsApp one-tap button
+        var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
+        var waMsg = encodeURIComponent(
+            "Hello Couture dé Cywila! I just placed Order #" + placedOrder.orderId + 
+            " for ₦" + placedOrder.total.toLocaleString() + 
+            " (" + placedOrder.tierName + "). Name: " + currentCustomer.name
+        );
+        var waUrl = "https://wa.me/" + businessPhone.replace('+', '') + "?text=" + waMsg;
+        
+        msgDiv.innerHTML = '<div style="margin-top:1rem; padding:1rem; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:8px;">' +
+            '<p style="color:#10b981; font-weight:700; margin-bottom:8px;">🎉 Order Placed Successfully!</p>' +
+            '<p style="font-size:0.85rem; color:#fff; margin-bottom:12px;">Invoice has been sent to <strong>' + currentCustomer.email + '</strong>. Order ID: <strong>' + placedOrder.orderId + '</strong></p>' +
+            '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Send Order Summary on WhatsApp</a>' +
+        '</div>';
+        
+        setTimeout(() => {
+            closeModal('checkoutModal');
+            loadOrders();
+            loadAccount();
+            switchCustomerTab('orders');
+        }, 3500);
+        
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error booking order') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Place Order';
+    }
+}
+
+// ============ ORDERS DISPLAY & TRACKING ============
+async function loadOrders() {
+    var display = document.getElementById('ordersDisplay');
+    display.innerHTML = '<p style="color:var(--text-muted);">Fetching cloud orders...</p>';
+    
+    try {
+        var res = await fetch('/api/orders', {
+            headers: { 'Authorization': 'Bearer ' + customerToken }
+        });
+        var data = await res.json();
+        
+        if (data && Array.isArray(data.orders)) {
+            couture_orders = data.orders;
+            renderOrders(couture_orders);
+        } else {
+            display.innerHTML = '<p style="color:var(--text-muted);">No orders placed yet.</p>';
+        }
+    } catch(e) {
+        display.innerHTML = '<p style="color:var(--text-muted);">Could not load orders from central server. Please check your internet connection.</p>';
+    }
+}
+
+function renderOrders(ordersList) {
+    var display = document.getElementById('ordersDisplay');
+    if (!ordersList || ordersList.length === 0) {
+        display.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">You have no active or previous orders yet. Browse our catalog to place your first booking!</p>';
+        return;
+    }
+    
+    var html = '';
+    ordersList.forEach(order => {
+        var statusBadgeClass = 'status-' + (order.status || 'received').toLowerCase();
+        var waMsg = encodeURIComponent("Hello Couture dé Cywila! Checking on status of my Order #" + order.orderId + " (" + (order.tierName || 'STANDARD') + ").");
+        var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
+        var waUrl = "https://wa.me/" + businessPhone.replace('+', '') + "?text=" + waMsg;
+        
+        html += '<div class="order-card">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">' +
+                '<div>' +
+                    '<strong style="font-size:1.1rem; color:#fff;">' + order.orderId + '</strong>' +
+                    '<span class="tier-badge tier-' + (order.tierId || 'STANDARD').toLowerCase() + '" style="margin-left:8px;">' + (order.tierName || 'STANDARD') + '</span>' +
+                '</div>' +
+                '<span class="status-badge ' + statusBadgeClass + '">' + (order.status || 'Received') + '</span>' +
+            '</div>' +
+            
+            '<div style="margin-top:0.75rem; color:var(--text-muted); font-size:0.9rem;">' +
+                '<p>Total Amount: <strong style="color:var(--gold);">₦' + Number(order.total || 0).toLocaleString() + '</strong> (' + (order.paymentStatus || 'pending').toUpperCase() + ')</p>' +
+                '<p>Delivery Expected: <strong style="color:#fff;">' + (order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'Pending') + '</strong></p>' +
+                '<p>Address: <span style="color:#fff;">' + (order.deliveryAddress || 'Showroom Collection') + '</span></p>' +
+            '</div>' +
+
+            '<div style="margin-top:0.8rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Inquire on WhatsApp</a>' +
+            '</div>' +
+        '</div>';
+    });
+    display.innerHTML = html;
+}
+
+// ============ ACCOUNT DETAILS ============
+function loadAccount() {
+    if (!currentCustomer) return;
+    document.getElementById('accountName').textContent = currentCustomer.name || '—';
+    document.getElementById('accountEmail').textContent = currentCustomer.email || '—';
+    document.getElementById('accountPhone').textContent = currentCustomer.phone || '—';
+    document.getElementById('accountJoined').textContent = currentCustomer.createdAt ? new Date(currentCustomer.createdAt).toLocaleDateString() : '—';
+    document.getElementById('loyaltyPoints').textContent = currentCustomer.loyaltyPoints || 0;
+    
+    document.getElementById('totalOrders').textContent = couture_orders.length;
+    var spent = couture_orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    document.getElementById('totalSpent').textContent = '₦' + spent.toLocaleString();
+}
+
+async function editAccount() {
+    var newPhone = prompt('Update Phone Number:', currentCustomer.phone || '');
+    if (!newPhone || newPhone === currentCustomer.phone) return;
+    
+    try {
+        var res = await fetch('/api/customers', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify({ phone: newPhone })
+        });
+        var data = await res.json();
+        if (res.ok && data.customer) {
+            currentCustomer = data.customer;
+            localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
+            loadAccount();
+            alert('Phone number updated successfully in cloud database!');
+        } else {
+            alert('Could not update profile: ' + (data.error || 'Server error'));
+        }
+    } catch(err) {
+        alert('Offline: ' + err.message);
+    }
+}
+
 // ============ PASSWORD RECOVERY ============
-var activeRecoveryData = null;
+var activeRecoveryEmail = null;
 
 function openForgotPwdModal() {
     document.getElementById('forgotStep1').style.display = 'block';
@@ -531,399 +974,103 @@ function openForgotPwdModal() {
     document.getElementById('forgotPwdModal').classList.add('active');
 }
 
-function sendPasswordRecoveryCode() {
-    var email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
+async function sendPasswordRecoveryCode() {
+    var email = document.getElementById('recoveryEmail').value.trim();
     var msgDiv = document.getElementById('recoveryStep1Msg');
+    var btn = document.getElementById('sendCodeBtn');
+    
     if (!email) {
-        msgDiv.innerHTML = '<span class="error-msg">Please enter your email address</span>';
+        msgDiv.innerHTML = '<span class="error-msg">Enter your registered email address</span>';
         return;
     }
-
-    var customer = customers.find(c => (c.email || '').toLowerCase() === email);
-    if (!customer) {
-        msgDiv.innerHTML = '<span class="error-msg">No customer account found with this email</span>';
-        return;
-    }
-
-    var code = Math.floor(100000 + Math.random() * 900000).toString();
-    activeRecoveryData = {
-        email: email,
-        code: code,
-        expires: Date.now() + (15 * 60 * 1000)
-    };
-
-    msgDiv.innerHTML = '<span style="color:#C8A96A;">Sending secure recovery code via Resend...</span>';
-
-    fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type: 'password_reset',
-            email: email,
-            recipientName: customer.name,
-            resetCode: code,
-            role: 'Customer'
-        })
-    }).then(function(res) { return res.json(); }).then(function(data) {
-        msgDiv.innerHTML = '<span class="success-msg">Code sent! Check your inbox.</span>';
-        setTimeout(function() {
+    
+    btn.disabled = true;
+    btn.textContent = 'Sending Code...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Generating secure 6-digit recovery code...</span>';
+    
+    try {
+        var res = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'forgot', email: email })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Account not found');
+        
+        activeRecoveryEmail = email;
+        msgDiv.innerHTML = '<span class="success-msg">✓ Code dispatched! Please check your email inbox.</span>';
+        setTimeout(() => {
             document.getElementById('forgotStep1').style.display = 'none';
             document.getElementById('forgotStep2').style.display = 'block';
         }, 1200);
-    }).catch(function(err) {
-        msgDiv.innerHTML = '<span class="success-msg">Code generated: ' + code + '</span>';
-        setTimeout(function() {
-            document.getElementById('forgotStep1').style.display = 'none';
-            document.getElementById('forgotStep2').style.display = 'block';
-            document.getElementById('recoveryCodeInput').value = code;
-        }, 1500);
-    });
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error sending code') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Recovery Code';
+    }
 }
 
-function completePasswordReset() {
+async function completePasswordReset() {
     var code = document.getElementById('recoveryCodeInput').value.trim();
     var newPwd = document.getElementById('recoveryNewPwd').value.trim();
     var confirmPwd = document.getElementById('recoveryConfirmPwd').value.trim();
     var msgDiv = document.getElementById('recoveryStep2Msg');
-
+    var btn = document.getElementById('saveNewPwdBtn');
+    
     if (!code || !newPwd) {
-        msgDiv.innerHTML = '<span class="error-msg">Please enter code and new password</span>';
+        msgDiv.innerHTML = '<span class="error-msg">Enter verification code and new password</span>';
         return;
     }
-
     if (newPwd !== confirmPwd) {
         msgDiv.innerHTML = '<span class="error-msg">Passwords do not match</span>';
         return;
     }
-
-    if (!activeRecoveryData || activeRecoveryData.code !== code) {
-        msgDiv.innerHTML = '<span class="error-msg">Invalid verification code</span>';
-        return;
-    }
-
-    if (Date.now() > activeRecoveryData.expires) {
-        msgDiv.innerHTML = '<span class="error-msg">Code expired. Please request a new one.</span>';
-        return;
-    }
-
-    var customer = customers.find(c => (c.email || '').toLowerCase() === activeRecoveryData.email);
-    if (customer) {
-        customer.password = newPwd;
-        localStorage.setItem('couture_customers', JSON.stringify(customers));
-        msgDiv.innerHTML = '<span class="success-msg">Password updated successfully! Redirecting...</span>';
-        setTimeout(function() {
-            closeModal('forgotPwdModal');
-            document.getElementById('loginEmail').value = customer.email;
-            document.getElementById('loginPassword').value = newPwd;
-            customerLogin();
-        }, 1500);
-    }
-}
-
-function applyCoupon() {
-    var code = document.getElementById('couponCode').value.toUpperCase().trim();
-    if (!code) {
-        document.getElementById('couponMsg').innerHTML = '<span class="error-msg">Enter code</span>';
-        return;
-    }
-    var coupon = coupon_codes.find(c => c.code === code && c.active);
-    if (!coupon) {
-        document.getElementById('couponMsg').innerHTML = '<span class="error-msg">Invalid coupon</span>';
-        return;
-    }
-    appliedCoupon = coupon;
-    document.getElementById('couponMsg').innerHTML = '<span class="success-msg">'+coupon.discountPercent+'% discount!</span>';
-    updateCart();
-}
-
-function proceedToCheckout() {
-    if (cart.length === 0) {
-        alert('Cart empty');
-        return;
-    }
-    var html = '';
-    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tk => {
-        if (!serviceTiers[tk]) return;
-        var t = serviceTiers[tk];
-        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:1rem;border:2px solid transparent;border-radius:8px;cursor:pointer;" onclick="selectTier(\''+tk+'\')"><h4 style="color:var(--primary);margin-bottom:0.5rem;">'+t.displayName+'</h4><p style="color:#999;font-size:0.9rem;">'+t.cycleLengthDays+' days</p><p style="color:var(--gold);font-weight:600;">'+t.multiplier+'x</p></div>';
-    });
-    document.getElementById('tierOptions').innerHTML = html;
-    document.getElementById('tierModal').classList.add('active');
-}
-
-function selectTier(tk) {
-    selectedTier = tk;
-    document.querySelectorAll('#tierOptions > div').forEach(e => e.style.borderColor = 'transparent');
-    event.target.closest('div').style.borderColor = 'var(--primary)';
-}
-
-function confirmTier() {
-    if (!selectedTier) {
-        alert('Select tier');
-        return;
-    }
-    document.getElementById('tierModal').classList.remove('active');
-    var sub = cart.reduce((s,i) => s+(i.price*i.quantity),0);
-    var mult = serviceTiers[selectedTier].multiplier;
-    var total = Math.floor(sub * mult);
-    var t = serviceTiers[selectedTier];
-    var dd = new Date();
-    dd.setDate(dd.getDate() + t.cycleLengthDays);
-    document.getElementById('checkoutSubtotal').textContent = '₦' + sub;
-    document.getElementById('tierMultiplier').textContent = mult + 'x';
-    document.getElementById('checkoutTotal').textContent = '₦' + total;
-    document.getElementById('expectedDelivery').textContent = dd.toLocaleDateString();
-    document.getElementById('checkoutModal').classList.add('active');
-}
-
-// ===== FLUTTERWAVE PAYMENT (NEW) =====
-function processFlutterwavePayment(order) {
-    var transactionId = 'TXN-' + Date.now();
-    var paymentData = {
-        id: transactionId,
-        amount: order.total,
-        customerId: currentCustomer.id,
-        customerEmail: currentCustomer.email,
-        customerPhone: currentCustomer.phone,
-        timestamp: new Date().toISOString(),
-        status: 'success',
-        reference: 'FLW' + Date.now()
-    };
-    var transactions = JSON.parse(localStorage.getItem('payment_transactions_v1') || '[]');
-    transactions.push(paymentData);
-    localStorage.setItem('payment_transactions_v1', JSON.stringify(transactions));
-    order.paymentStatus = 'paid';
-    order.paymentTransactionId = transactionId;
-    return order;
-}
-
-function placeOrder() {
-    var addr = document.getElementById('deliveryAddress').value.trim();
-    var pay = document.getElementById('paymentMethod').value;
-    var agree = document.getElementById('agreeTerms').checked;
-    if (!addr || !pay || !agree) {
-        document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Fill all fields</span>';
-        return;
-    }
-    var sub = cart.reduce((s,i) => s+(i.price*i.quantity),0);
-    var mult = serviceTiers[selectedTier].multiplier;
-    var total = Math.floor(sub * mult);
-    var t = serviceTiers[selectedTier];
-    var dd = new Date();
-    dd.setDate(dd.getDate() + t.cycleLengthDays);
-    var order = {orderId:'ORD-'+Date.now(),customerId:currentCustomer.id,items:cart,subtotal:sub,total:total,tierId:selectedTier,tierName:t.displayName,tierMultiplier:mult,couponApplied:appliedCoupon?appliedCoupon.code:null,deliveryAddress:addr,paymentMethod:pay,expectedDeliveryDate:dd.toISOString().split('T')[0],status:'Received',createdAt:new Date().toISOString()};
     
-    var payUpper = (pay || '').toUpperCase();
+    btn.disabled = true;
+    btn.textContent = 'Updating Password...';
     
-    // Finalize order helper
-    function finalizeOrder(finalOrder, successNote) {
-        couture_orders.push(finalOrder);
-        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-        currentCustomer.loyaltyPoints += Math.floor(total/1000);
-        currentCustomer.lifetimeSpending += total;
-        localStorage.setItem('couture_customers', JSON.stringify(customers));
-        
-        // Auto-log notification
-        var notifLog = JSON.parse(localStorage.getItem('whatsapp_sent_log_v1') || '[]');
-        notifLog.unshift({
-            id: 'NOTIF-' + Date.now(),
-            phone: currentCustomer.phone,
-            type: 'order_received',
-            message: 'Hello ' + currentCustomer.name + '! Your order ' + finalOrder.orderId + ' has been received. Tier: ' + finalOrder.tierName + '. Total: ₦' + finalOrder.total,
-            orderId: finalOrder.orderId,
-            timestamp: new Date().toISOString(),
-            status: 'sent'
-        });
-        localStorage.setItem('whatsapp_sent_log_v1', JSON.stringify(notifLog));
-
-        // Persist Order to Universal Cloud Store for Realtime Sync
-        fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalOrder)
-        }).then(function(res) { return res.json(); })
-          .then(function(data) {
-              if (data && data.orders) {
-                  couture_orders = data.orders;
-                  localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-              }
-          }).catch(function(err) { console.log('Orders API offline:', err); });
-
-        // Trigger Automated Email Notification via Resend Serverless API
-        fetch('/api/send-email', {
+    try {
+        var res = await fetch('/api/customers', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                orderId: finalOrder.orderId,
-                customerName: currentCustomer.name,
-                customerEmail: currentCustomer.email,
-                customerPhone: currentCustomer.phone,
-                items: finalOrder.items,
-                tierName: finalOrder.tierName,
-                total: finalOrder.total,
-                deliveryAddress: finalOrder.deliveryAddress,
-                expectedDeliveryDate: finalOrder.expectedDeliveryDate
+                action: 'reset',
+                email: activeRecoveryEmail,
+                code: code,
+                newPassword: newPwd
             })
-        }).catch(function(err) { console.log('Email notify skipped/offline:', err); });
-
-        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">' + successNote + '</span>';
-        setTimeout(() => {
-            document.getElementById('checkoutModal').classList.remove('active');
-            cart = [];
-            appliedCoupon = null;
-            selectedTier = null;
-            updateCart();
-            loadOrders();
-            loadAccount();
-            switchTab('orders');
-        }, 1800);
-    }
-
-    // Process Flutterwave payment
-    if (payUpper === 'FLUTTERWAVE') {
-        var flwKey = couturePaymentConfig.flutterwavePublicKey || (window.CoutureDB && window.CoutureDB.getFlutterwaveKey()) || '';
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Invalid or expired code');
         
-        if (flwKey && typeof FlutterwaveCheckout === 'function') {
-            document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Opening secure Flutterwave Checkout...</span>';
-            FlutterwaveCheckout({
-                public_key: flwKey,
-                tx_ref: 'CYW-' + Date.now(),
-                amount: total,
-                currency: 'NGN',
-                payment_options: 'card,ussd,banktransfer',
-                customer: {
-                    email: currentCustomer.email,
-                    phone_number: currentCustomer.phone,
-                    name: currentCustomer.name
-                },
-                customizations: {
-                    title: 'Couture dé Cywila',
-                    description: 'Order ' + order.orderId,
-                    logo: 'https://checkout.flutterwave.com/assets/img/logo.png'
-                },
-                callback: function(payment) {
-                    order.paymentStatus = 'paid';
-                    order.paymentTransactionId = payment.transaction_id || payment.tx_ref;
-                    finalizeOrder(order, 'Payment verified! Order ' + order.orderId + ' placed successfully.');
-                },
-                onclose: function() {
-                    document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Payment cancelled. You can try again or select Cash on Delivery.</span>';
-                }
-            });
-            return;
-        }
-
-        // Mock mode when live key is not yet configured
-        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Processing Flutterwave payment (Mock/Test Mode)...</span>';
+        msgDiv.innerHTML = '<span class="success-msg">✓ Password updated successfully! Redirecting...</span>';
         setTimeout(() => {
-            order = processFlutterwavePayment(order);
-            finalizeOrder(order, 'Order ' + order.orderId + ' placed! Payment simulated successfully.');
-        }, 1200);
-        return;
+            closeModal('forgotPwdModal');
+            document.getElementById('loginEmail').value = activeRecoveryEmail;
+            document.getElementById('loginPassword').value = newPwd;
+            customerLogin();
+        }, 1500);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Reset failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reset & Save Password';
     }
-
-    // Process Paystack payment
-    if (payUpper === 'PAYSTACK') {
-        var pstkKey = couturePaymentConfig.paystackPublicKey || '';
-        
-        if (pstkKey && typeof PaystackPop === 'object') {
-            document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
-            var handler = PaystackPop.setup({
-                key: pstkKey,
-                email: currentCustomer.email,
-                amount: total * 100, // Paystack amount is in kobo
-                currency: 'NGN',
-                ref: 'PSTK-' + Date.now(),
-                metadata: {
-                    custom_fields: [
-                        { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
-                        { display_name: "Order ID", variable_name: "order_id", value: order.orderId }
-                    ]
-                },
-                callback: function(response) {
-                    order.paymentStatus = 'paid';
-                    order.paymentTransactionId = response.reference;
-                    finalizeOrder(order, 'Paystack payment verified! Order ' + order.orderId + ' placed.');
-                },
-                onClose: function() {
-                    document.getElementById('checkoutMsg').innerHTML = '<span class="error-msg">Paystack payment window closed.</span>';
-                }
-            });
-            handler.openIframe();
-            return;
-        }
-
-        // Mock mode when key not configured
-        document.getElementById('checkoutMsg').innerHTML = '<span class="success-msg">Processing Paystack payment (Test Mode)...</span>';
-        setTimeout(() => {
-            order.paymentStatus = 'paid';
-            order.paymentTransactionId = 'PSTK-' + Date.now();
-            finalizeOrder(order, 'Order ' + order.orderId + ' placed! Payment confirmed.');
-        }, 1200);
-        return;
-    }
-    
-    // Cash on Delivery (COD) payment
-    order.paymentStatus = 'pending';
-    finalizeOrder(order, 'Order ' + order.orderId + ' placed successfully! Confirmation pending.');
 }
 
-function loadOrders() {
-    renderOrders();
-    fetch('/api/orders').then(function(r) { return r.json(); }).then(function(data) {
-        if (data && Array.isArray(data.orders)) {
-            couture_orders = data.orders;
-            localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-            renderOrders();
-        }
-    }).catch(function(e) { /* offline mode */ });
-}
-
-function renderOrders() {
-    var html = '';
-    var myOrders = couture_orders.filter(o => o.customerId === currentCustomer.id);
-    myOrders.forEach(o => {
-        html += '<div class="order-item"><strong>'+o.orderId+'</strong><span class="tier-badge tier-'+o.tierId.toLowerCase()+'">'+o.tierName+'</span><p>₦'+(o.total || 0).toLocaleString()+' | '+o.status+'</p><p>Delivery: '+new Date(o.expectedDeliveryDate).toLocaleDateString()+'</p></div>';
-    });
-    document.getElementById('ordersDisplay').innerHTML = html || '<p style="color:#999;">No orders</p>';
-}
-
-function loadAccount() {
-    document.getElementById('accountName').textContent = currentCustomer.name;
-    document.getElementById('accountEmail').textContent = currentCustomer.email;
-    document.getElementById('accountPhone').textContent = currentCustomer.phone || '—';
-    document.getElementById('accountJoined').textContent = new Date(currentCustomer.createdAt).toLocaleDateString();
-    document.getElementById('loyaltyPoints').textContent = currentCustomer.loyaltyPoints;
-    var myOrders = couture_orders.filter(o => o.customerId === currentCustomer.id);
-    document.getElementById('totalOrders').textContent = myOrders.length;
-    document.getElementById('totalSpent').textContent = '₦' + currentCustomer.lifetimeSpending;
-    var fav = '—';
-    if (myOrders.length > 0) {
-        var tc = {};
-        myOrders.forEach(o => {tc[o.tierId] = (tc[o.tierId]||0)+1;});
-        fav = serviceTiers[Object.keys(tc).sort((a,b)=>tc[b]-tc[a])[0]] ? serviceTiers[Object.keys(tc).sort((a,b)=>tc[b]-tc[a])[0]].displayName : '—';
-    }
-    document.getElementById('favoriteTier').textContent = fav;
-}
-
-function editAccount() {
-    var newPhone = prompt('Phone:', currentCustomer.phone || '');
-    if (newPhone === null) return;
-    currentCustomer.phone = newPhone;
-    localStorage.setItem('couture_customers', JSON.stringify(customers));
-    loadAccount();
-    alert('Updated!');
-}
-
-function switchTab(tabName) {
+// ============ TABS & MODALS ============
+function switchCustomerTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('active');
-    event.target.classList.add('active');
+    var target = document.getElementById('tab-' + tabName);
+    if (target) target.classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    var el = document.getElementById(modalId);
+    if (el) el.classList.remove('active');
 }
 
 // ============ PWA INSTALL & SERVICE WORKER ============
@@ -953,6 +1100,11 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+// Boot check
+window.addEventListener('DOMContentLoaded', () => {
+    autoCheckSession();
+});
 </script>
 
 </body>

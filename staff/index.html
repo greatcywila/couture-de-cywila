@@ -5,152 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Portal - Couture dé Cywila</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#C8A96A">
+    <meta name="theme-color" content="#A855F7">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cywila Staff">
-    <link rel="apple-touch-icon" href="/images/icon-192.svg">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="stylesheet" href="/shared/theme.css">
     <script src="/shared/seed-data.js"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#e0e0e0;padding:1rem}:root{--primary:#FF6B35;--gold:#D4AF37}.container{max-width:1200px;margin:0 auto}.header{background:linear-gradient(135deg,var(--primary),var(--gold));color:white;padding:2rem;border-radius:12px;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center}.logout-btn{padding:0.8rem 1.5rem;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;width:auto}.login-form{max-width:500px;margin:3rem auto;background:#16213e;padding:2rem;border-radius:12px}.form-group{margin-bottom:1rem}.form-group label{display:block;color:#999;font-size:0.85rem;margin-bottom:0.5rem;font-weight:600}.form-group input,.form-group select{width:100%;padding:0.75rem;background:#1a1a2e;border:1px solid #2d3561;border-radius:6px;color:#fff;font-family:inherit}.form-group input:focus{outline:0;border-color:var(--primary)}.tabs{display:flex;gap:0.5rem;margin-bottom:2rem;overflow-x:auto;border-bottom:2px solid #2d3561;padding-bottom:1rem;flex-wrap:wrap}.tab-btn{padding:0.8rem 1.2rem;background:0;border:0;color:#666;cursor:pointer;font-weight:600;border-bottom:3px solid transparent}.tab-btn:hover{color:var(--primary)}.tab-btn.active{color:white;border-bottom-color:var(--primary)}.tab-content{display:none}.tab-content.active{display:block}.card{background:#16213e;border:1px solid #2d3561;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}.card h3{color:var(--primary);margin-bottom:1rem}.btn{padding:0.8rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--gold));border:0;color:white;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:1rem}.btn:hover{transform:translateY(-2px)}.btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem;width:auto;margin:0.2rem 0.2rem 0 0}.btn-success{background:#10b981}.task-item{background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px;border-left:3px solid var(--primary)}.task-item.tier-EXPRESS{border-left-color:#ef4444}.task-item.tier-PREMIUM{border-left-color:#d946ef}.task-item.tier-STANDARD{border-left-color:#06b6d4}.task-item.tier-BASIC{border-left-color:#6b7280}.task-item p{color:#999;font-size:0.9rem;margin:0.25rem 0}.tier-badge{display:inline-block;padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;font-weight:600}.tier-EXPRESS{background:#ef4444;color:white}.tier-PREMIUM{background:#d946ef;color:white}.tier-STANDARD{background:#06b6d4;color:white}.tier-BASIC{background:#6b7280;color:white}.stat-box{background:rgba(255,107,53,0.1);border-left:4px solid var(--primary);padding:1rem;margin-bottom:1rem;border-radius:6px}.stat-box strong{color:white;font-size:1.3rem}.error-msg{color:#ef4444;font-size:0.9rem;margin-top:0.5rem}.success-msg{color:#10b981;font-size:0.9rem;margin-top:0.5rem}
+        body { padding: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .auth-card {
+            max-width: 440px;
+            margin: 3.5rem auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.2rem;
+            box-shadow: var(--shadow-card);
+        }
+        .task-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.15rem;
+            margin-bottom: 0.9rem;
+            border-left: 4px solid var(--primary);
+        }
+        .task-card.tier-EXPRESS { border-left-color: #ef4444; }
+        .task-card.tier-PREMIUM { border-left-color: #d946ef; }
+        .task-card.tier-STANDARD { border-left-color: #06b6d4; }
+        .task-card.tier-BASIC { border-left-color: #6b7280; }
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: var(--radius-sm);
+        }
+        .stat-box strong { color: #fff; font-size: 1.4rem; display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div id="loginSection" class="login-form">
-        <h2 style="color:var(--primary);margin-bottom:1.5rem;text-align:center;">👨‍💼 Staff Portal</h2>
+    <!-- STAFF LOGIN SECTION (Centered card with transparent logo) -->
+    <div id="loginSection" class="auth-card">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="/images/logo.png" alt="Couture dé Cywila" style="height: 52px; width: auto; object-fit: contain; margin-bottom: 0.5rem;">
+            <h2 style="font-size: 1.35rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Staff & Front Desk Portal</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Receptionists, Tailors & Managers Workspace</p>
+        </div>
+
         <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="staffUsername" placeholder="Enter username (e.g. staff1, manager1, nkay)">
+            <label>Username *</label>
+            <input type="text" id="staffUsername" placeholder="e.g. receptionist1, staff1, manager1" class="cywila-input" required>
         </div>
-        <div class="form-group" style="margin-bottom:0.5rem;">
-            <label>PIN</label>
-            <input type="password" id="staffPin" placeholder="Enter PIN">
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label>Security PIN *</label>
+            <input type="password" id="staffPin" placeholder="Enter PIN (e.g. 4001, 5001)" class="cywila-input" required>
         </div>
-        <div style="text-align:right; margin-bottom:1rem;">
-            <a href="javascript:void(0)" onclick="openStaffForgotPinModal()" style="color:var(--gold); font-size:0.85rem; text-decoration:none; font-weight:600;">Forgot PIN?</a>
+        <div style="text-align: right; margin-bottom: 1.2rem;">
+            <a href="javascript:void(0)" onclick="openStaffForgotPinModal()" style="color: var(--gold); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Forgot PIN?</a>
         </div>
-        <button class="btn" onclick="staffLogin()">Login</button>
-        <div id="loginError"></div>
+        <button class="cywila-btn-primary" onclick="staffLogin()" id="staffLoginBtn">Sign In to Workspace</button>
+        <div id="loginError" style="margin-top: 0.8rem;"></div>
     </div>
 
-    <div id="staffPortal" style="display:none">
-        <div class="header">
-            <div>
-                <h1>👨‍💼 Staff Portal</h1>
-                <p id="staffGreeting" style="font-size:0.9rem;margin-top:0.5rem;"></p>
-                <div style="margin-top: 6px;">
-                    <span id="staffSyncBadge" style="font-size:0.75rem;padding:3px 10px;border-radius:12px;background:rgba(16,185,129,0.2);color:#10b981;border:1px solid #10b981;font-weight:600;">🟢 Live Sync: Connected</span>
+    <!-- MAIN STAFF PORTAL -->
+    <div id="staffPortal" style="display: none;">
+        <div class="cywila-brand-header">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="/images/logo.png" alt="Couture dé Cywila" class="logo">
+                <div>
+                    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Staff Workspace</h1>
+                    <p id="staffGreeting" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;"></p>
+                    <div style="margin-top: 4px;">
+                        <span id="staffSyncBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 600;">🟢 Live Cloud Sync</span>
+                    </div>
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <button id="staffPwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background:#C8A96A; color:#000; font-weight:700; width:auto; margin:0;">📲 Install App</button>
-                <button class="logout-btn" onclick="staffLogout()">Logout</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="staffPwaInstallBtn" class="btn-sm btn" onclick="triggerPwaInstall()" style="display:none; background: var(--gradient-gold); color: #000; font-weight: 700; width: auto; margin: 0;">📲 Install App</button>
+                <button class="btn-sm btn btn-danger" onclick="staffLogout()" style="width: auto; margin: 0;">Logout</button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tasks')">📋 My Tasks</button>
-            <button class="tab-btn" onclick="switchTab('earnings')">💰 Earnings</button>
-            <button class="tab-btn" onclick="switchTab('performance')">📊 Performance</button>
-            <button class="tab-btn" onclick="openWalkInModal()" style="color:#10b981; font-weight:700;">➕ New Walk-In Order</button>
+            <button class="tab-btn active" onclick="switchStaffTab('tasks')">📋 Production Queue</button>
+            <button class="tab-btn" onclick="openWalkInModal()" style="color: #34D399; font-weight: 700; background: rgba(16,185,129,0.1); border-radius: 6px;">➕ Front-Desk Walk-In (POS)</button>
+            <button class="tab-btn" id="earningsTabBtn" onclick="switchStaffTab('earnings')">💰 My Earnings</button>
+            <button class="tab-btn" id="performanceTabBtn" onclick="switchStaffTab('performance')">📊 Performance</button>
+        </div>
+
+        <!-- RECEPTIONIST BANNER -->
+        <div id="receptionistBanner" style="display:none; background: linear-gradient(135deg, rgba(236,72,153,0.15) 0%, rgba(168,85,247,0.15) 100%); border: 1px solid var(--primary-end); padding: 1rem 1.2rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <strong style="color: #fff; font-size: 1rem;">🛎️ Reception Desk Mode</strong>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">Take walk-in client bookings with instant invoice generation without needing full admin suite access.</p>
+            </div>
+            <button class="cywila-btn-primary btn-sm" onclick="openWalkInModal()" style="width: auto; background: var(--gradient-primary);">➕ Open Walk-In POS Form</button>
         </div>
 
         <!-- TASKS TAB -->
         <div id="tab-tasks" class="tab-content active">
-            <h2 style="color:var(--primary);margin-bottom:1.5rem;">📋 My Tasks</h2>
-            <div class="card">
-                <h3>Tasks by Priority (Tier-Based)</h3>
-                <p style="color:#999;margin-bottom:1rem;">🔴 EXPRESS orders are highest priority • 💎 PREMIUM next • 🎨 STANDARD normal • 📦 BASIC lowest</p>
+            <div class="cywila-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 style="color: var(--primary); margin: 0; font-size: 1.2rem;">Live Orders & Queue</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">🔴 EXPRESS highest priority • 💎 PREMIUM next • 🎨 STANDARD • 📦 BASIC</p>
+                    </div>
+                    <button class="btn-sm btn" onclick="syncOrdersFromCloud()" style="width: auto; background: var(--bg-input); border: 1px solid var(--border-color);">🔄 Refresh Queue</button>
+                </div>
                 <div id="tasksDisplay"></div>
             </div>
         </div>
 
         <!-- EARNINGS TAB -->
         <div id="tab-earnings" class="tab-content">
-            <h2 style="color:var(--primary);margin-bottom:1.5rem;">💰 My Earnings</h2>
-            <div class="stat-box">
-                <p style="color:#999;">Total Earnings (This Month)</p>
-                <strong id="totalEarnings">₦0</strong>
+            <h2 style="color: var(--primary); margin-bottom: 1.2rem; font-size: 1.3rem;">💰 My Earnings & Commission</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="stat-box">
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Total Earnings</p>
+                    <strong id="totalEarnings" style="color: var(--gold);">₦0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Assigned Commission Rate</p>
+                    <strong id="commissionRate" style="color: var(--primary);">0%</strong>
+                </div>
             </div>
-            <div class="stat-box">
-                <p style="color:#999;">Commission Rate</p>
-                <strong id="commissionRate">0%</strong>
-            </div>
-            <div class="card">
-                <h3>Earnings Breakdown</h3>
+            <div class="cywila-card">
+                <h3 style="margin-bottom: 1rem;">Earnings Breakdown</h3>
                 <div id="earningsDisplay"></div>
             </div>
         </div>
 
         <!-- PERFORMANCE TAB -->
         <div id="tab-performance" class="tab-content">
-            <h2 style="color:var(--primary);margin-bottom:1.5rem;">📊 My Performance</h2>
-            <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
+            <h2 style="color: var(--primary); margin-bottom: 1.2rem; font-size: 1.3rem;">📊 Performance & Turnaround</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                 <div class="stat-box">
-                    <p style="color:#999;">Tasks Completed</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Tasks Completed</p>
                     <strong id="completedTasks">0</strong>
                 </div>
                 <div class="stat-box">
-                    <p style="color:#999;">Completion Rate</p>
-                    <strong id="completionRate">0%</strong>
-                </div>
-                <div class="stat-box">
-                    <p style="color:#999;">Avg Time per Task</p>
-                    <strong id="avgTime">—</strong>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Completion Rate</p>
+                    <strong id="completionRate" style="color: #10b981;">0%</strong>
                 </div>
             </div>
-            <div class="card">
-                <h3>Tier-Based Performance</h3>
+            <div class="cywila-card">
+                <h3 style="margin-bottom: 1rem;">Tier Completion Metrics</h3>
                 <div id="performanceDisplay"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- WALK-IN ORDER MODAL (POS) -->
-<div id="walkInModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y:auto; padding:20px;">
-    <div style="background:#16213e; max-width:650px; margin:30px auto; padding:25px; border-radius:12px; border:1px solid #2d3561;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #2d3561; padding-bottom:10px; margin-bottom:15px;">
-            <h3 style="color:var(--gold); margin:0;">➕ Front-Desk Walk-In Order (POS)</h3>
-            <span style="font-size:24px; cursor:pointer; color:#999;" onclick="closeModal('walkInModal')">&times;</span>
-        </div>
+<!-- FRONT-DESK WALK-IN ORDER MODAL (POS) -->
+<div id="walkInModal" class="modal">
+    <div class="modal-content" style="max-width: 680px;">
+        <span class="close-modal" onclick="closeModal('walkInModal')">&times;</span>
+        <h3 style="color: var(--gold); margin-bottom: 0.3rem; font-size: 1.3rem;">➕ Front-Desk Walk-In Order (POS)</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Book in-person client orders. Automated email invoice with bank details dispatched immediately.</p>
         
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="form-group">
                 <label>Client Full Name *</label>
-                <input type="text" id="walkInClientName" placeholder="e.g. Chief Adeyemi">
+                <input type="text" id="walkInClientName" placeholder="e.g. Chief Adeyemi" class="cywila-input" required>
             </div>
             <div class="form-group">
                 <label>Client Phone *</label>
-                <input type="tel" id="walkInClientPhone" placeholder="+234...">
+                <input type="tel" id="walkInClientPhone" placeholder="+234..." class="cywila-input" required>
             </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:12px;">
-            <label>Client Email (For Automated Receipt / Marketing List)</label>
-            <input type="email" id="walkInClientEmail" placeholder="client@example.com">
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>Client Email (Required for Automated Invoices & Marketing List) *</label>
+            <input type="email" id="walkInClientEmail" placeholder="client@example.com" class="cywila-input" required>
         </div>
 
-        <div style="background:#1a1a2e; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #2d3561;">
-            <label style="font-weight:600; color:var(--primary); margin-bottom:8px; display:block;">Select Service / Garment</label>
-            <div style="display:grid; grid-template-columns:2fr 1fr auto; gap:8px; align-items:center;">
-                <select id="walkInServiceSelect" style="padding:8px; background:#16213e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
-                </select>
-                <input type="number" id="walkInServiceQty" value="1" min="1" style="padding:8px; background:#16213e; border:1px solid #2d3561; border-radius:6px; color:#fff; text-align:center;">
-                <button class="btn btn-sm" onclick="addWalkInItem()" style="width:auto; margin:0; padding:8px 14px; background:var(--primary);">+ Add</button>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 15px; border: 1px solid var(--border-color);">
+            <label style="font-weight: 600; color: var(--primary); margin-bottom: 8px; display: block; font-size: 0.9rem;">Select Garment / Service</label>
+            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; align-items: center;">
+                <select id="walkInServiceSelect" class="cywila-select" style="padding: 0.65rem;"></select>
+                <input type="number" id="walkInServiceQty" value="1" min="1" class="cywila-input" style="padding: 0.65rem; text-align: center;">
+                <button class="cywila-btn-primary btn-sm" onclick="addWalkInItem()" style="width: auto; margin: 0; padding: 0.75rem 1rem;">+ Add</button>
             </div>
 
             <!-- Selected Items Table -->
-            <div id="walkInItemsList" style="margin-top:12px; max-height:160px; overflow-y:auto;">
-                <p style="color:#888; font-size:0.85rem; margin:0;">No items added yet</p>
+            <div id="walkInItemsList" style="margin-top: 12px; max-height: 160px; overflow-y: auto;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">No items added yet</p>
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="form-group">
                 <label>Turnaround Tier</label>
-                <select id="walkInTier" onchange="calcWalkInTotal()" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                <select id="walkInTier" onchange="calcWalkInTotal()" class="cywila-select">
                     <option value="EXPRESS">EXPRESS (2 Days - 2.0x)</option>
                     <option value="PREMIUM">PREMIUM (4 Days - 1.5x)</option>
                     <option value="STANDARD" selected>STANDARD (7 Days - 1.0x)</option>
@@ -159,23 +212,23 @@
             </div>
             <div class="form-group">
                 <label>Fulfillment Method</label>
-                <select id="walkInFulfillment" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
+                <select id="walkInFulfillment" class="cywila-select">
                     <option value="Showroom Pickup">Showroom Pickup</option>
                     <option value="Home/Office Delivery">Home/Office Delivery</option>
                 </select>
             </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:12px;">
-            <label>Delivery / Pickup Address Note</label>
-            <input type="text" id="walkInAddress" placeholder="Showroom Counter or client delivery address" value="Showroom Pickup">
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>Delivery / Pickup Fitting Note</label>
+            <input type="text" id="walkInAddress" placeholder="Showroom Counter or client delivery address" value="Showroom Pickup" class="cywila-input">
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
             <div class="form-group">
                 <label>Payment Method</label>
-                <select id="walkInPayMethod" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
-                    <option value="CASH">Cash</option>
+                <select id="walkInPayMethod" class="cywila-select">
+                    <option value="CASH">Cash at Desk</option>
                     <option value="POS">POS Terminal Card</option>
                     <option value="BANK TRANSFER">Bank Transfer</option>
                     <option value="UNPAID">Pay on Collection (Unpaid)</option>
@@ -183,196 +236,319 @@
             </div>
             <div class="form-group">
                 <label>Payment Status</label>
-                <select id="walkInPayStatus" style="padding:8px; background:#1a1a2e; border:1px solid #2d3561; border-radius:6px; color:#fff;">
-                    <option value="paid">Paid</option>
+                <select id="walkInPayStatus" class="cywila-select">
+                    <option value="paid">Paid in Full</option>
                     <option value="pending">Pending</option>
                 </select>
             </div>
         </div>
 
-        <div style="background:#1a1a2e; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-            <span style="color:#aaa;">Order Total:</span>
-            <strong id="walkInTotalDisplay" style="font-size:1.4rem; color:var(--gold);">₦0</strong>
+        <div style="background: var(--bg-input); padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--gold);">
+            <span style="color: var(--text-muted); font-weight: 600;">Order Total:</span>
+            <strong id="walkInTotalDisplay" style="font-size: 1.4rem; color: var(--gold);">₦0</strong>
         </div>
 
-        <button class="btn btn-success" onclick="submitWalkInOrder()" style="padding:10px; font-size:1rem; font-weight:700;">✅ Create Walk-In Booking</button>
-        <div id="walkInMsg" style="margin-top:8px;"></div>
+        <button class="cywila-btn-primary" onclick="submitWalkInOrder()" id="walkInSubmitBtn" style="padding: 10px; font-size: 1rem; font-weight: 700;">✅ Create Walk-In Booking</button>
+        <div id="walkInMsg" style="margin-top: 8px;"></div>
     </div>
 </div>
 
-<!-- STAFF FORGOT PIN MODAL -->
-<div id="staffForgotPinModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y:auto; padding:20px;">
-    <div style="background:#16213e; max-width:480px; margin:50px auto; padding:25px; border-radius:12px; border:1px solid #2d3561;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #2d3561; padding-bottom:10px; margin-bottom:15px;">
-            <h3 style="color:var(--gold); margin:0;">🔒 Staff PIN Recovery</h3>
-            <span style="font-size:24px; cursor:pointer; color:#999;" onclick="closeModal('staffForgotPinModal')">&times;</span>
-        </div>
+<!-- STAFF PIN RECOVERY MODAL -->
+<div id="staffForgotPinModal" class="modal">
+    <div class="modal-content" style="max-width: 480px;">
+        <span class="close-modal" onclick="closeModal('staffForgotPinModal')">&times;</span>
+        <h3 style="color: var(--gold); margin-bottom: 0.3rem;">🔒 Staff PIN Recovery</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Enter your staff username to receive a security recovery code via email.</p>
         
         <div id="staffResetStep1">
-            <p style="color:#aaa; font-size:0.9rem; margin-bottom:12px;">Enter your staff username to receive a recovery code.</p>
             <div class="form-group">
                 <label>Staff Username</label>
-                <input type="text" id="staffRecoveryInput" placeholder="e.g. staff1 or manager1">
+                <input type="text" id="staffRecoveryInput" placeholder="e.g. staff1, receptionist1, manager1" class="cywila-input">
             </div>
-            <button class="btn btn-success" onclick="sendStaffResetCode()">Send Recovery Code</button>
-            <div id="staffResetStep1Msg" style="margin-top:8px;"></div>
+            <button class="cywila-btn-primary" onclick="sendStaffResetCode()" id="staffSendCodeBtn">Send Recovery Code</button>
+            <div id="staffResetStep1Msg" style="margin-top: 8px;"></div>
         </div>
 
-        <div id="staffResetStep2" style="display:none;">
+        <div id="staffResetStep2" style="display: none;">
             <div class="form-group">
-                <label>6-Digit Code</label>
-                <input type="text" id="staffResetCode" placeholder="e.g. 582914" maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center;">
+                <label>6-Digit Security Code</label>
+                <input type="text" id="staffResetCode" placeholder="e.g. 582914" maxlength="6" class="cywila-input" style="letter-spacing: 4px; font-size: 1.2rem; text-align: center;">
             </div>
             <div class="form-group">
                 <label>New PIN (4-6 digits)</label>
-                <input type="password" id="staffNewPin" placeholder="e.g. 5001" maxlength="6">
+                <input type="password" id="staffNewPin" placeholder="e.g. 5001" maxlength="6" class="cywila-input">
             </div>
-            <button class="btn btn-success" onclick="completeStaffPinReset()">Update PIN</button>
-            <div id="staffResetStep2Msg" style="margin-top:8px;"></div>
+            <button class="cywila-btn-primary" onclick="completeStaffPinReset()" id="staffSavePinBtn">Update PIN</button>
+            <div id="staffResetStep2Msg" style="margin-top: 8px;"></div>
         </div>
     </div>
 </div>
 
 <script>
-var staffUsers = JSON.parse(localStorage.getItem('app_users_v1')) || [];
+var staffToken = localStorage.getItem('cywila_staff_token') || null;
 var currentStaff = null;
-var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
-var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {};
+var couture_orders = [];
+var catalogData = { laundry: [], outfits: [] };
+var serviceTiers = {
+    EXPRESS: { displayName: 'Express Turnaround', cycleLengthDays: 2, multiplier: 2.0, priority: 1 },
+    PREMIUM: { displayName: 'Premium Care', cycleLengthDays: 4, multiplier: 1.5, priority: 2 },
+    STANDARD: { displayName: 'Standard Care', cycleLengthDays: 7, multiplier: 1.0, priority: 3 },
+    BASIC: { displayName: 'Basic Economy', cycleLengthDays: 10, multiplier: 0.8, priority: 4 }
+};
+var syncInterval = null;
 
-function staffLogin(){
+// ============ CLOUD AUTHENTICATION ============
+async function staffLogin() {
     var username = document.getElementById('staffUsername').value.trim();
     var pin = document.getElementById('staffPin').value.trim();
-    if(!username||!pin){
-        document.getElementById('loginError').innerHTML = '<span class="error-msg">Enter username and PIN</span>';
-        return;
-    }
-    var user = staffUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.pin === pin && u.status === 'Active');
-    if(!user){
-        document.getElementById('loginError').innerHTML = '<span class="error-msg">Invalid credentials</span>';
-        return;
-    }
-    currentStaff = user;
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('staffPortal').style.display = 'block';
-    document.getElementById('staffGreeting').textContent = 'Welcome back, ' + user.username + '! ('+user.role+')';
-    syncOrdersFromCloud();
-    setInterval(syncOrdersFromCloud, 5000);
-}
+    var errEl = document.getElementById('loginError');
+    var btn = document.getElementById('staffLoginBtn');
 
-function syncOrdersFromCloud(){
-    fetch('/api/orders')
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-            if(data && Array.isArray(data.orders)){
-                couture_orders = data.orders;
-                localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-                loadTasks();
-                loadEarnings();
-                loadPerformance();
-                var badge = document.getElementById('staffSyncBadge');
-                if(badge){
-                    badge.textContent = '🟢 Live Sync: Connected (' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ')';
-                    badge.style.color = '#10b981';
-                }
-            }
-        })
-        .catch(function(err){
-            var badge = document.getElementById('staffSyncBadge');
-            if(badge){
-                badge.textContent = '🟡 Local Mode (Offline)';
-                badge.style.color = '#f59e0b';
-            }
+    if (!username || !pin) {
+        errEl.innerHTML = '<span class="error-msg">Enter username and PIN</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+    errEl.innerHTML = '';
+
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', username: username, pin: pin, portal: 'staff' })
         });
+        var data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || 'Invalid credentials');
+        }
+
+        staffToken = data.token;
+        currentStaff = data.user;
+        localStorage.setItem('cywila_staff_token', staffToken);
+        localStorage.setItem('cywila_staff_profile', JSON.stringify(currentStaff));
+
+        initStaffPortal();
+    } catch(err) {
+        errEl.innerHTML = '<span class="error-msg">' + (err.message || 'Login failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Workspace';
+    }
 }
 
-function staffLogout(){
+function staffLogout() {
+    staffToken = null;
     currentStaff = null;
+    localStorage.removeItem('cywila_staff_token');
+    localStorage.removeItem('cywila_staff_profile');
+    if (syncInterval) clearInterval(syncInterval);
     location.reload();
 }
 
-function loadTasks(){
+function autoCheckStaffSession() {
+    var cached = localStorage.getItem('cywila_staff_profile');
+    if (staffToken && cached) {
+        try {
+            currentStaff = JSON.parse(cached);
+            initStaffPortal();
+        } catch(e) {}
+    }
+}
+
+function initStaffPortal() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('staffPortal').style.display = 'block';
+    document.getElementById('staffGreeting').textContent = 'Signed in as ' + currentStaff.username + ' (' + currentStaff.role + ')';
+
+    // Show Receptionist Banner if Receptionist
+    if (currentStaff.role === 'Receptionist') {
+        var rBanner = document.getElementById('receptionistBanner');
+        if (rBanner) rBanner.style.display = 'flex';
+    }
+
+    loadStaffCatalog();
+    syncOrdersFromCloud();
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(syncOrdersFromCloud, 6000);
+}
+
+// ============ CATALOG FOR POS ============
+async function loadStaffCatalog() {
+    try {
+        var res = await fetch('/api/catalog');
+        var data = await res.json();
+        if (data && data.catalog) {
+            catalogData = data.catalog;
+        }
+    } catch(e) {
+        catalogData = {
+            laundry: (window.seed_laundry_services || []),
+            outfits: (window.seed_tailoring_outfits || [])
+        };
+    }
+}
+
+// ============ ORDERS QUEUE SYNC ============
+async function syncOrdersFromCloud() {
+    var badge = document.getElementById('staffSyncBadge');
+    try {
+        var res = await fetch('/api/orders', {
+            headers: staffToken ? { 'Authorization': 'Bearer ' + staffToken } : {}
+        });
+        var data = await res.json();
+
+        if (data && Array.isArray(data.orders)) {
+            couture_orders = data.orders;
+            localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+            renderTasks();
+            renderEarnings();
+            renderPerformance();
+
+            if (badge) {
+                badge.textContent = '🟢 Live Cloud: ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                badge.style.color = '#10b981';
+            }
+        }
+    } catch(err) {
+        if (badge) {
+            badge.textContent = '🟡 Local Mode (Offline)';
+            badge.style.color = '#f59e0b';
+        }
+    }
+}
+
+function renderTasks() {
+    var container = document.getElementById('tasksDisplay');
+    if (!couture_orders || couture_orders.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">No active orders in queue.</p>';
+        return;
+    }
+
     var html = '';
-    var tiers = ['EXPRESS','PREMIUM','STANDARD','BASIC'];
+    var tiers = ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'];
     tiers.forEach(tierKey => {
-        var tierOrders = couture_orders.filter(o => o.tierId === tierKey && o.status !== 'Delivered');
-        if(tierOrders.length === 0) return;
-        html += '<h4 style="color:var(--primary);margin:1.5rem 0 0.5rem;font-weight:600">'+serviceTiers[tierKey].displayName+' Orders ('+tierOrders.length+')</h4>';
+        var tierOrders = couture_orders.filter(o => (o.tierId || 'STANDARD') === tierKey && o.status !== 'Delivered');
+        if (tierOrders.length === 0) return;
+
+        html += '<h4 style="color:var(--primary); margin:1.2rem 0 0.5rem; font-weight:700;">' + 
+                (serviceTiers[tierKey] ? serviceTiers[tierKey].displayName : tierKey) + 
+                ' (' + tierOrders.length + ')</h4>';
+
         tierOrders.forEach(order => {
-            var isDone = order.status === 'Completed';
-            html += '<div class="task-item tier-'+tierKey+'"><div><strong>'+order.orderId+'</strong> <span class="tier-badge tier-'+tierKey+'">'+order.tierName+'</span></div><p>Customer: '+(order.customerName||order.customerId)+'</p><p>Status: <strong style="color:'+(isDone?'#10b981':'#f59e0b')+'">'+order.status+'</strong></p><p>Delivery: '+new Date(order.expectedDeliveryDate).toLocaleDateString()+'</p>'+(!isDone ? '<button class="btn-sm btn btn-success" onclick="completeTask(\''+order.orderId+'\')">Mark Complete</button>' : '<span style="color:#10b981;font-weight:600;font-size:0.85rem;">✓ Completed</span>')+'</div>';
+            var isCompleted = order.status === 'Completed';
+            var statusColor = isCompleted ? '#10b981' : (order.status === 'Processing' ? '#60a5fa' : '#f59e0b');
+
+            // WhatsApp link for staff to notify client
+            var clientPhone = (order.customerPhone || '').replace(/[^0-9+]/g, '');
+            var waBtn = '';
+            if (clientPhone) {
+                var waMsg = encodeURIComponent("Hello " + (order.customerName || 'Client') + "! This is Couture dé Cywila updating you that your Order #" + order.orderId + " is currently: " + order.status + ".");
+                var waUrl = "https://wa.me/" + clientPhone.replace('+', '') + "?text=" + waMsg;
+                waBtn = '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Notify Client on WhatsApp</a>';
+            }
+
+            html += '<div class="task-card tier-' + tierKey + '">' +
+                '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">' +
+                    '<div>' +
+                        '<strong style="color:#fff; font-size:1.05rem;">' + order.orderId + '</strong>' +
+                        '<span class="tier-badge tier-' + tierKey.toLowerCase() + '" style="margin-left:8px;">' + (order.tierName || tierKey) + '</span>' +
+                    '</div>' +
+                    '<span style="padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:700; background:' + statusColor + '22; color:' + statusColor + '; border:1px solid ' + statusColor + ';">' + order.status + '</span>' +
+                '</div>' +
+
+                '<div style="margin-top:0.6rem; color:var(--text-muted); font-size:0.88rem;">' +
+                    '<p>Client: <strong style="color:#fff;">' + (order.customerName || order.customerId) + '</strong> (' + (order.customerPhone || 'No phone') + ')</p>' +
+                    '<p>Amount: <strong style="color:var(--gold);">₦' + Number(order.total || 0).toLocaleString() + '</strong></p>' +
+                    '<p>Target Delivery: <strong style="color:#fff;">' + (order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'Pending') + '</strong></p>' +
+                '</div>' +
+
+                '<div style="margin-top:0.75rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                    (!isCompleted ? 
+                        '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Completed\')" style="width:auto; margin:0; background:#10b981;">✓ Mark Complete</button>' : 
+                        '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Delivered\')" style="width:auto; margin:0; background:var(--primary);">📦 Mark Delivered</button>'
+                    ) +
+                    waBtn +
+                '</div>' +
+            '</div>';
         });
     });
-    document.getElementById('tasksDisplay').innerHTML = html || '<p style="color:#999;">No tasks assigned</p>';
+
+    container.innerHTML = html || '<p style="color:var(--text-muted);">All tasks in queue completed!</p>';
 }
 
-function completeTask(orderId){
-    var order = couture_orders.find(o => o.orderId === orderId);
-    if(!order) return;
-    order.status = 'Completed';
-    localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-    loadTasks();
-    loadEarnings();
-    loadPerformance();
-
-    // Persist to Central Cloud Store
-    fetch('/api/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            orderId: orderId,
-            status: 'Completed',
-            assignedTo: currentStaff.username
-        })
-    }).then(function(){
-        syncOrdersFromCloud();
-    }).catch(function(e){ console.log('Offline complete:', e); });
-
-    alert('Task #' + orderId + ' marked as Complete!');
+async function advanceOrderStatus(orderId, newStatus) {
+    try {
+        var res = await fetch('/api/orders', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + staffToken
+            },
+            body: JSON.stringify({
+                orderId: orderId,
+                status: newStatus,
+                assignedTo: currentStaff ? currentStaff.username : 'Staff Desk'
+            })
+        });
+        if (res.ok) {
+            syncOrdersFromCloud();
+        } else {
+            alert('Could not update status on central server');
+        }
+    } catch(err) {
+        alert('Offline: ' + err.message);
+    }
 }
 
-function loadEarnings(){
-    var commissionRate = 10;
-    document.getElementById('commissionRate').textContent = commissionRate + '%';
-    var completedOrders = couture_orders.filter(o => o.status === 'Completed');
-    var totalEarnings = completedOrders.reduce((sum,o) => sum + Math.floor(o.total * commissionRate / 100), 0);
-    document.getElementById('totalEarnings').textContent = '₦' + totalEarnings;
-    
+function renderEarnings() {
+    var rate = currentStaff && currentStaff.commission ? currentStaff.commission : 10;
+    document.getElementById('commissionRate').textContent = rate + '%';
+
+    var completed = couture_orders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
+    var totalEarned = completed.reduce((sum, o) => sum + Math.floor((Number(o.total) || 0) * rate / 100), 0);
+    document.getElementById('totalEarnings').textContent = '₦' + totalEarned.toLocaleString();
+
     var html = '';
-    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tierKey => {
-        var tierCompleted = completedOrders.filter(o => o.tierId === tierKey);
-        var tierEarnings = tierCompleted.reduce((sum,o) => sum + Math.floor(o.total * commissionRate / 100), 0);
-        if(tierCompleted.length === 0) return;
-        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px"><strong>'+serviceTiers[tierKey].displayName+'</strong><p style="color:#999;font-size:0.9rem">'+tierCompleted.length+' orders completed</p><p style="color:var(--gold);font-weight:600">Earnings: ₦'+tierEarnings+'</p></div>';
+    ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].forEach(tk => {
+        var tierComp = completed.filter(o => (o.tierId || 'STANDARD') === tk);
+        if (tierComp.length === 0) return;
+        var tierEarned = tierComp.reduce((sum, o) => sum + Math.floor((Number(o.total) || 0) * rate / 100), 0);
+        html += '<div style="background:var(--bg-input); padding:0.9rem; border-radius:6px; margin-bottom:0.6rem; display:flex; justify-content:space-between; align-items:center;">' +
+            '<div>' +
+                '<strong>' + (serviceTiers[tk] ? serviceTiers[tk].displayName : tk) + '</strong>' +
+                '<p style="color:var(--text-muted); font-size:0.85rem;">' + tierComp.length + ' orders completed</p>' +
+            '</div>' +
+            '<strong style="color:var(--gold);">₦' + tierEarned.toLocaleString() + '</strong>' +
+        '</div>';
     });
-    document.getElementById('earningsDisplay').innerHTML = html || '<p style="color:#999;">No earnings yet</p>';
+    document.getElementById('earningsDisplay').innerHTML = html || '<p style="color:var(--text-muted);">No completed tasks yet</p>';
 }
 
-function loadPerformance(){
-    var completedOrders = couture_orders.filter(o => o.status === 'Completed');
-    var allOrders = couture_orders.length;
-    var completionRate = allOrders > 0 ? Math.floor(completedOrders.length / allOrders * 100) : 0;
-    
-    document.getElementById('completedTasks').textContent = completedOrders.length;
-    document.getElementById('completionRate').textContent = completionRate + '%';
-    
+function renderPerformance() {
+    var completed = couture_orders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
+    var total = couture_orders.length;
+    var pct = total > 0 ? Math.floor(completed.length / total * 100) : 0;
+
+    document.getElementById('completedTasks').textContent = completed.length;
+    document.getElementById('completionRate').textContent = pct + '%';
+
     var html = '';
-    ['EXPRESS','PREMIUM','STANDARD','BASIC'].forEach(tierKey => {
-        var tierAll = couture_orders.filter(o => o.tierId === tierKey);
-        var tierCompleted = tierAll.filter(o => o.status === 'Completed');
-        var tierRate = tierAll.length > 0 ? Math.floor(tierCompleted.length / tierAll.length * 100) : 0;
-        html += '<div style="background:#1a1a2e;padding:1rem;margin-bottom:0.75rem;border-radius:8px"><strong>'+serviceTiers[tierKey].displayName+':</strong> '+tierRate+'% complete ('+tierCompleted.length+'/'+tierAll.length+')</div>';
+    ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].forEach(tk => {
+        var tierAll = couture_orders.filter(o => (o.tierId || 'STANDARD') === tk);
+        var tierComp = tierAll.filter(o => o.status === 'Completed' || o.status === 'Delivered');
+        var rate = tierAll.length > 0 ? Math.floor(tierComp.length / tierAll.length * 100) : 0;
+        html += '<div style="background:var(--bg-input); padding:0.8rem; border-radius:6px; margin-bottom:0.5rem; display:flex; justify-content:space-between;">' +
+            '<span>' + (serviceTiers[tk] ? serviceTiers[tk].displayName : tk) + '</span>' +
+            '<strong style="color:#10b981;">' + rate + '% (' + tierComp.length + '/' + tierAll.length + ')</strong>' +
+        '</div>';
     });
-    document.getElementById('performanceDisplay').innerHTML = html || '<p style="color:#999;">No data</p>';
+    document.getElementById('performanceDisplay').innerHTML = html || '<p style="color:var(--text-muted);">No performance data</p>';
 }
 
-function switchTab(tabName){
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-'+tabName).classList.add('active');
-    event.target.classList.add('active');
-}
-
-// ============ WALK-IN ORDER LOGIC (POS) ============
+// ============ WALK-IN POS LOGIC ============
 var walkInCart = [];
 
 function openWalkInModal() {
@@ -381,27 +557,21 @@ function openWalkInModal() {
     document.getElementById('walkInClientPhone').value = '';
     document.getElementById('walkInClientEmail').value = '';
     document.getElementById('walkInMsg').innerHTML = '';
-    renderWalkInItems();
     populateWalkInServices();
+    renderWalkInItems();
     calcWalkInTotal();
-    document.getElementById('walkInModal').style.display = 'block';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    document.getElementById('walkInModal').classList.add('active');
 }
 
 function populateWalkInServices() {
-    var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
-    var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
     var select = document.getElementById('walkInServiceSelect');
-    var html = '<optgroup label="🧺 Laundry & Care Services">';
-    laundry.forEach(s => {
-        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
+    var html = '<optgroup label="🧺 Laundry Services">';
+    (catalogData.laundry || []).forEach(s => {
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + escapeHtml(s.name) + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
     });
-    html += '</optgroup><optgroup label="✂️ Bespoke Tailoring Services">';
-    outfits.forEach(o => {
-        html += '<option value="' + o.id + '" data-price="' + o.price + '" data-name="' + o.name + '" data-type="tailoring">' + o.name + ' (₦' + Number(o.price).toLocaleString() + ')</option>';
+    html += '</optgroup><optgroup label="✂️ Tailoring Services">';
+    (catalogData.outfits || []).forEach(o => {
+        html += '<option value="' + o.id + '" data-price="' + o.price + '" data-name="' + escapeHtml(o.name) + '" data-type="tailoring">' + o.name + ' (₦' + Number(o.price).toLocaleString() + ')</option>';
     });
     html += '</optgroup>';
     select.innerHTML = html;
@@ -437,17 +607,17 @@ function removeWalkInItem(index) {
 function renderWalkInItems() {
     var container = document.getElementById('walkInItemsList');
     if (walkInCart.length === 0) {
-        container.innerHTML = '<p style="color:#888; font-size:0.85rem; margin:0;">No items added yet</p>';
+        container.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No items added yet</p>';
         return;
     }
     var html = '<table style="width:100%; font-size:0.85rem; border-collapse:collapse;">';
     walkInCart.forEach((item, idx) => {
         var lineTotal = item.price * item.quantity;
-        html += '<tr style="border-bottom:1px solid #2d3561;">' +
-            '<td style="padding:4px 0;">' + item.name + '</td>' +
-            '<td style="padding:4px 6px; text-align:center;">x' + item.quantity + '</td>' +
-            '<td style="padding:4px 6px; text-align:right; font-weight:600; color:var(--gold);">₦' + lineTotal.toLocaleString() + '</td>' +
-            '<td style="padding:4px 0; text-align:right;"><button class="btn-sm btn btn-danger" onclick="removeWalkInItem(' + idx + ')" style="padding:2px 6px; font-size:0.75rem;">&times;</button></td>' +
+        html += '<tr style="border-bottom:1px solid var(--border-color);">' +
+            '<td style="padding:6px 0; color:#fff;">' + item.name + '</td>' +
+            '<td style="padding:6px; text-align:center;">x' + item.quantity + '</td>' +
+            '<td style="padding:6px; text-align:right; font-weight:600; color:var(--gold);">₦' + lineTotal.toLocaleString() + '</td>' +
+            '<td style="padding:6px 0; text-align:right;"><button class="btn-sm btn btn-danger" onclick="removeWalkInItem(' + idx + ')" style="padding:2px 8px; font-size:0.75rem;">&times;</button></td>' +
         '</tr>';
     });
     html += '</table>';
@@ -463,14 +633,19 @@ function calcWalkInTotal() {
     return { subtotal, total, mult };
 }
 
-function submitWalkInOrder() {
+async function submitWalkInOrder() {
     var clientName = document.getElementById('walkInClientName').value.trim();
     var clientPhone = document.getElementById('walkInClientPhone').value.trim();
     var clientEmail = document.getElementById('walkInClientEmail').value.trim();
     var msgDiv = document.getElementById('walkInMsg');
+    var btn = document.getElementById('walkInSubmitBtn');
 
     if (!clientName || !clientPhone) {
         msgDiv.innerHTML = '<span class="error-msg">Client Name and Phone are required</span>';
+        return;
+    }
+    if (!clientEmail) {
+        msgDiv.innerHTML = '<span class="error-msg">Client Email is required for invoice dispatch and customer records</span>';
         return;
     }
     if (walkInCart.length === 0) {
@@ -489,9 +664,11 @@ function submitWalkInOrder() {
     var expDate = new Date();
     expDate.setDate(expDate.getDate() + days);
 
-    var orderId = 'ORD-' + Date.now().toString().slice(-6);
-    var newOrder = {
-        orderId: orderId,
+    btn.disabled = true;
+    btn.textContent = 'Saving Booking & Sending Invoice...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Submitting to cloud database...</span>';
+
+    var payload = {
         customerId: 'WALK-IN',
         customerName: clientName,
         customerPhone: clientPhone,
@@ -503,119 +680,155 @@ function submitWalkInOrder() {
         tierName: serviceTiers[tierKey] ? serviceTiers[tierKey].displayName : tierKey,
         tierMultiplier: totals.mult,
         deliveryAddress: address,
+        fulfillmentMethod: fulfillment,
         paymentMethod: payMethod,
         paymentStatus: payStatus,
         status: 'Pending',
-        assignedTo: currentStaff ? currentStaff.username : 'Staff Desk',
-        createdAt: new Date().toISOString(),
+        assignedTo: currentStaff ? currentStaff.username : 'Reception Desk',
         expectedDeliveryDate: expDate.toISOString().split('T')[0]
     };
 
-    msgDiv.innerHTML = '<span style="color:var(--gold);">Creating and saving booking to cloud...</span>';
+    try {
+        var res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + staffToken
+            },
+            body: JSON.stringify(payload)
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create booking');
 
-    fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder)
-    }).then(function(res) { return res.json(); }).then(function(data) {
-        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' created successfully!</span>';
-        setTimeout(function() {
+        var waMsg = encodeURIComponent("Hello " + clientName + "! Your walk-in order " + data.order.orderId + " has been booked with Couture dé Cywila. Total: ₦" + data.order.total.toLocaleString() + " (" + data.order.tierName + "). An invoice has been emailed to " + clientEmail + ".");
+        var waUrl = "https://wa.me/" + clientPhone.replace(/[^0-9]/g, '') + "?text=" + waMsg;
+
+        msgDiv.innerHTML = '<div style="margin-top:0.75rem; padding:0.8rem; background:rgba(16,185,129,0.15); border:1px solid #10b981; border-radius:6px;">' +
+            '<p style="color:#10b981; font-weight:700; margin-bottom:6px;">✓ Booking #' + data.order.orderId + ' Created!</p>' +
+            '<p style="font-size:0.85rem; color:#fff; margin-bottom:8px;">Invoice dispatched to ' + clientEmail + '.</p>' +
+            '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Send Receipt on WhatsApp to Client</a>' +
+        '</div>';
+
+        setTimeout(() => {
             closeModal('walkInModal');
             syncOrdersFromCloud();
-        }, 1200);
-    }).catch(function(err) {
-        couture_orders.unshift(newOrder);
-        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
-        msgDiv.innerHTML = '<span class="success-msg">Booking #' + orderId + ' saved locally!</span>';
-        setTimeout(function() {
-            closeModal('walkInModal');
-            loadTasks();
-            loadEarnings();
-        }, 1200);
-    });
+        }, 3200);
+
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error creating order') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Create Walk-In Booking';
+    }
 }
 
 // ============ STAFF PIN RECOVERY ============
-var activeStaffResetData = null;
+var activeStaffUsername = null;
 
 function openStaffForgotPinModal() {
     document.getElementById('staffResetStep1').style.display = 'block';
     document.getElementById('staffResetStep2').style.display = 'none';
     document.getElementById('staffResetStep1Msg').innerHTML = '';
     document.getElementById('staffResetStep2Msg').innerHTML = '';
-    document.getElementById('staffForgotPinModal').style.display = 'block';
+    document.getElementById('staffForgotPinModal').classList.add('active');
 }
 
-function sendStaffResetCode() {
-    var input = document.getElementById('staffRecoveryInput').value.trim().toLowerCase();
+async function sendStaffResetCode() {
+    var username = document.getElementById('staffRecoveryInput').value.trim();
     var msgDiv = document.getElementById('staffResetStep1Msg');
-    if (!input) {
+    var btn = document.getElementById('staffSendCodeBtn');
+
+    if (!username) {
         msgDiv.innerHTML = '<span class="error-msg">Enter username</span>';
         return;
     }
-    var staff = staffUsers.find(u => u.username.toLowerCase() === input);
-    if (!staff) {
-        msgDiv.innerHTML = '<span class="error-msg">Staff account not found</span>';
-        return;
+
+    btn.disabled = true;
+    btn.textContent = 'Sending Code...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Dispatched to registered admin email...</span>';
+
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'forgot', username: username })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'User not found');
+
+        activeStaffUsername = username;
+        msgDiv.innerHTML = '<span class="success-msg">✓ Code sent to registered address!</span>';
+        setTimeout(() => {
+            document.getElementById('staffResetStep1').style.display = 'none';
+            document.getElementById('staffResetStep2').style.display = 'block';
+        }, 1200);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Could not send code') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Recovery Code';
     }
-
-    var code = Math.floor(100000 + Math.random() * 900000).toString();
-    activeStaffResetData = { username: staff.username, code: code, expires: Date.now() + 900000 };
-
-    msgDiv.innerHTML = '<span style="color:#C8A96A;">Sending security code...</span>';
-
-    fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type: 'password_reset',
-            email: 'greatcywila@gmail.com',
-            recipientName: staff.username,
-            resetCode: code,
-            role: 'Staff'
-        })
-    }).then(function() {
-        msgDiv.innerHTML = '<span class="success-msg">Code dispatched to registered admin/staff email</span>';
-        setTimeout(function() {
-            document.getElementById('staffResetStep1').style.display = 'none';
-            document.getElementById('staffResetStep2').style.display = 'block';
-        }, 1200);
-    }).catch(function() {
-        msgDiv.innerHTML = '<span class="success-msg">Security Code: ' + code + '</span>';
-        setTimeout(function() {
-            document.getElementById('staffResetStep1').style.display = 'none';
-            document.getElementById('staffResetStep2').style.display = 'block';
-            document.getElementById('staffResetCode').value = code;
-        }, 1200);
-    });
 }
 
-function completeStaffPinReset() {
+async function completeStaffPinReset() {
     var code = document.getElementById('staffResetCode').value.trim();
     var newPin = document.getElementById('staffNewPin').value.trim();
     var msgDiv = document.getElementById('staffResetStep2Msg');
+    var btn = document.getElementById('staffSavePinBtn');
 
     if (!code || !newPin) {
-        msgDiv.innerHTML = '<span class="error-msg">Enter code and new PIN</span>';
-        return;
-    }
-    if (!activeStaffResetData || activeStaffResetData.code !== code) {
-        msgDiv.innerHTML = '<span class="error-msg">Invalid recovery code</span>';
+        msgDiv.innerHTML = '<span class="error-msg">Enter verification code and new PIN</span>';
         return;
     }
 
-    var staff = staffUsers.find(u => u.username === activeStaffResetData.username);
-    if (staff) {
-        staff.pin = newPin;
-        localStorage.setItem('app_users_v1', JSON.stringify(staffUsers));
-        msgDiv.innerHTML = '<span class="success-msg">PIN updated! Redirecting to login...</span>';
-        setTimeout(function() {
+    btn.disabled = true;
+    btn.textContent = 'Updating PIN...';
+
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'reset',
+                username: activeStaffUsername,
+                code: code,
+                newPin: newPin
+            })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Invalid code');
+
+        msgDiv.innerHTML = '<span class="success-msg">✓ PIN updated! Redirecting to login...</span>';
+        setTimeout(() => {
             closeModal('staffForgotPinModal');
-            document.getElementById('staffUsername').value = staff.username;
+            document.getElementById('staffUsername').value = activeStaffUsername;
             document.getElementById('staffPin').value = newPin;
             staffLogin();
         }, 1500);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Reset failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update PIN';
     }
+}
+
+// ============ TABS & MODALS ============
+function switchStaffTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    var target = document.getElementById('tab-' + tabName);
+    if (target) target.classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
+}
+
+function closeModal(modalId) {
+    var el = document.getElementById(modalId);
+    if (el) el.classList.remove('active');
+}
+
+function escapeHtml(str) {
+    return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // ============ PWA INSTALL & SERVICE WORKER ============
@@ -645,6 +858,11 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+    autoCheckStaffSession();
+});
 </script>
+
 </body>
 </html>

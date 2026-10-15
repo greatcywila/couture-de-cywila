@@ -22,12 +22,12 @@
   <meta name="twitter:description" content="Luxury bespoke tailoring and couture" />
   
   <!-- Favicon & PWA App Icons -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23C8A96A' width='100' height='100'/%3E%3Ctext x='50' y='65' font-size='60' font-family='serif' fill='%23000' text-anchor='middle' font-weight='bold'%3EC%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
   <link rel="manifest" href="/manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Cywila" />
-  <link rel="apple-touch-icon" href="/images/icon-192.svg" />
+  <link rel="apple-touch-icon" href="/images/icon-192.png" />
   
   <!-- Title -->
   <title>Couture dé Cywila | Luxury Bespoke Tailoring & Couture</title>
@@ -35,10 +35,11 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/theme.css">
 
   <!-- Structured Data / Schema.org -->
   <script type="application/ld+json">
@@ -47,7 +48,7 @@
     "@type": "LocalBusiness",
     "name": "Couture dé Cywila",
     "description": "Luxury bespoke tailoring and couture services",
-    "url": "https://couture-de-cywila.netlify.app",
+    "url": "https://couturedecywila.com.ng",
     "telephone": "+2348155559954",
     "sameAs": [
       "https://instagram.com/couture_de_cywila",
@@ -79,40 +80,42 @@
 <body>
 
   <!-- TOP NAVIGATION BAR -->
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="/" class="nav-brand">Couture dé Cywila</a>
-      <div class="nav-menu">
-        <a href="#about" class="nav-link">About</a>
-        <a href="#services" class="nav-link">Services</a>
-        <a href="#process" class="nav-link">Process</a>
-        <a href="https://book.couturedecywila.com.ng" class="nav-btn nav-btn-shop">Book Services</a>
+  <nav class="top-nav" style="background: rgba(11, 11, 22, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #262646;">
+    <div class="nav-container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0.8rem 1.5rem;">
+      <a href="/" class="nav-brand" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <img src="/images/logo.png" alt="Couture dé Cywila" style="height: 44px; width: auto; object-fit: contain;">
+      </a>
+      <div class="nav-menu" style="display: flex; align-items: center; gap: 1.5rem;">
+        <a href="#about" class="nav-link" style="color: #9CA3AF; text-decoration: none; font-weight: 500;">About</a>
+        <a href="#services" class="nav-link" style="color: #9CA3AF; text-decoration: none; font-weight: 500;">Services</a>
+        <a href="#process" class="nav-link" style="color: #9CA3AF; text-decoration: none; font-weight: 500;">Process</a>
+        <a href="https://book.couturedecywila.com.ng" class="nav-btn cywila-btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Book Services</a>
       </div>
     </div>
   </nav>
 
   <!-- HERO SECTION -->
-  <section class="hero" style="padding-top: 140px;">
+  <section class="hero" style="padding-top: 140px; background: linear-gradient(180deg, #0B0B16 0%, #151528 100%);">
     <div class="hero-content">
-      <p class="hero-tag">Couture • Structure • Presence</p>
+      <p class="hero-tag" style="color: #EC4899; font-weight: 600; letter-spacing: 2px;">Couture • Structure • Presence</p>
 
-      <h1>
+      <h1 style="color: #ffffff;">
         Seen. <br>
         Not Introduced.
       </h1>
 
-      <p class="hero-text">
+      <p class="hero-text" style="color: #9CA3AF;">
         Structured pieces. Clean finishing. 
         A standard that speaks before you do.
       </p>
 
       <div class="hero-buttons">
-        <a href="https://book.couturedecywila.com.ng" class="btn-primary" style="background: linear-gradient(135deg, #FF6B35, #C8A96A);">
-          Book Services & Laundry
+        <a href="https://book.couturedecywila.com.ng" class="cywila-btn-primary" style="padding: 1rem 2rem; font-size: 1.05rem;">
+          Book Bespoke & Laundry
         </a>
 
-        <a href="https://wa.me/2348155559954" class="btn-secondary">
-          Private Fitting via WhatsApp
+        <a href="https://wa.me/2348155559954" class="btn-secondary" style="border: 1px solid #A855F7; color: #fff; border-radius: 8px; padding: 1rem 1.8rem; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+          <span>💬 WhatsApp Consultation</span>
         </a>
       </div>
     </div>
@@ -122,9 +125,10 @@
   <section class="about">
     <div class="about-image" id="aboutImage">
       <img 
-        src="/images/about.jpg" 
-        alt="Couture dé Cywila - Tailoring Detail"
-        onerror="this.src='/images/about.svg'"
+        src="/images/hero-attire.jpg" 
+        alt="Couture dé Cywila - Royal Bespoke Attire"
+        style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: cover;"
+        onerror="this.src='/images/logo.png'"
       />
     </div>
 

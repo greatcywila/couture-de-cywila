@@ -1,0 +1,279 @@
+/* ===================================================================
+   Couture dé Cywila — Master Luxury Theme (Purple & Pink Gradients)
+   Consistent dark luxury palette matching brand phone mockup
+   =================================================================== */
+
+:root {
+    --bg-main: #0B0B16;
+    --bg-card: #151528;
+    --bg-card-hover: #1C1C35;
+    --bg-input: #0F0F1E;
+    --border-color: #262646;
+    --border-focus: #A855F7;
+    
+    /* Primary Luxury Gradients (Purple to Pink) */
+    --primary: #A855F7;
+    --primary-end: #EC4899;
+    --gradient-primary: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+    --gradient-hover: linear-gradient(135deg, #9333EA 0%, #DB2777 100%);
+    
+    /* Gold Accent */
+    --gold: #F59E0B;
+    --gold-light: #FDE68A;
+    --gradient-gold: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    
+    /* Status Colors */
+    --success: #10B981;
+    --danger: #EF4444;
+    --info: #06B6D4;
+    --warning: #F59E0B;
+    
+    /* Typography */
+    --text-main: #F3F4F6;
+    --text-muted: #9CA3AF;
+    --text-subtle: #6B7280;
+    
+    /* Radii & Shadows */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+    --shadow-glow: 0 4px 20px -2px rgba(168, 85, 247, 0.35);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Glass Card */
+.cywila-card, .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 1.5rem;
+}
+
+/* Form Controls */
+.cywila-input, .cywila-select, .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cywila-input:focus, .cywila-select:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
+}
+
+.form-group {
+    margin-bottom: 1.1rem;
+}
+.form-group label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.45rem;
+    font-weight: 600;
+}
+
+/* Primary Button with Purple/Pink Gradient */
+.cywila-btn-primary, .btn {
+    background: var(--gradient-primary);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: var(--shadow-glow);
+    text-decoration: none;
+    font-family: inherit;
+    width: 100%;
+}
+.cywila-btn-primary:hover, .btn:hover {
+    background: var(--gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px -2px rgba(236, 72, 153, 0.45);
+}
+
+.btn-sm {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.82rem;
+    width: auto;
+    margin: 0.2rem;
+}
+.btn-danger {
+    background: #ef4444 !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3) !important;
+}
+.btn-danger:hover {
+    background: #dc2626 !important;
+}
+.btn-success {
+    background: #10b981 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+}
+.btn-success:hover {
+    background: #059669 !important;
+}
+.btn-secondary {
+    background: #4f46e5 !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    padding: 0.8rem 1.2rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.tab-btn:hover {
+    color: var(--primary);
+}
+.tab-btn.active {
+    color: #ffffff;
+    border-bottom-color: var(--primary-end);
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 6px 6px 0 0;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Status Badges */
+.tier-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.tier-express, .tier-EXPRESS { background: #ef4444; color: white; }
+.tier-premium, .tier-PREMIUM { background: #d946ef; color: white; }
+.tier-standard, .tier-STANDARD { background: #06b6d4; color: white; }
+.tier-basic, .tier-BASIC { background: #6b7280; color: white; }
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-received { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
+.status-processing { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; }
+.status-completed { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+.status-delivered { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+
+/* WhatsApp Buttons */
+.whatsapp-btn {
+    background: #25D366;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+    transition: transform 0.2s;
+}
+.whatsapp-btn:hover {
+    transform: translateY(-1px);
+    background: #20BA5A;
+}
+
+/* Header Brand Bar */
+.cywila-brand-header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+}
+.cywila-brand-header img.logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+}
+.modal.active, .modal[style*="display: block"] {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    max-width: 620px;
+    width: 92%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+.close-modal {
+    float: right;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+}
+.close-modal:hover { color: #ffffff; }
+
+.error-msg { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
+.success-msg { color: #10b981; font-size: 0.9rem; margin-top: 0.5rem; }
