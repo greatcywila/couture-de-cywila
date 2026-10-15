@@ -165,8 +165,8 @@
         <div id="tab-users" class="tab-content">
             <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👥 User Management</h2>
             
-            <div class="card" id="createUserCard" style="display: none;">
-                <h3>[+ Create New User]</h3>
+            <div class="card" id="createUserCard">
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Create New System User</h3>
                 <div class="form-group">
                     <label>Username *</label>
                     <input type="text" id="newUsername" placeholder="e.g., ade.tailor">
@@ -212,27 +212,39 @@
         <!-- TAB 3: STAFF MANAGEMENT -->
         <div id="tab-staff" class="tab-content">
             <h2 style="color: var(--primary); margin-bottom: 1.5rem;">👨‍💼 Staff Management</h2>
-            <div class="card" id="addStaffCard" style="display: none;">
-                <h3>[+ Add Staff Member]</h3>
-                <div class="form-group">
-                    <label>Staff Username</label>
-                    <input type="text" id="staffUsername" placeholder="e.g., ade.tailor">
+            <div class="card" id="addStaffCard">
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Add New Staff Member</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Staff Username *</label>
+                        <input type="text" id="staffUsername" placeholder="e.g. emeka.tailor">
+                    </div>
+                    <div class="form-group">
+                        <label>Staff Email (Required for login & PIN reset) *</label>
+                        <input type="email" id="staffEmail" placeholder="e.g. emeka@couturedecywila.com.ng">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <select id="staffRole">
-                        <option value="">Select Role</option>
-                        <option value="Tailor">Tailor</option>
-                        <option value="Washer">Washer</option>
-                        <option value="Driver">Driver</option>
-                        <option value="Manager">Manager</option>
-                    </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>PIN (4-6 digits) *</label>
+                        <input type="password" id="staffPin" placeholder="e.g. 5001">
+                    </div>
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="staffRole">
+                            <option value="Staff">Staff (Tailor / Washer)</option>
+                            <option value="Receptionist">Receptionist (Front-Desk POS)</option>
+                            <option value="Driver">Driver (Logistics)</option>
+                            <option value="Manager">Manager</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Commission % (if applicable)</label>
+                        <input type="number" id="staffCommission" placeholder="e.g. 10" min="0" max="100">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Commission %</label>
-                    <input type="number" id="staffCommission" placeholder="10" min="0" max="100">
-                </div>
-                <button class="btn" onclick="addStaffMember()">Add Staff</button>
+                <button class="btn btn-success" onclick="createStaffMember()" id="addStaffBtn" style="margin-top: 0.5rem;">✅ Create Staff Account</button>
+                <div id="addStaffMsg" style="margin-top: 0.5rem;"></div>
             </div>
 
             <div class="card">
@@ -240,14 +252,15 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
                             <th>Role</th>
                             <th>Commission</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="staffTable">
-                        <tr><td colspan="4" style="text-align: center; color: #999;">No staff members</td></tr>
+                        <tr><td colspan="5" style="text-align: center; color: #999;">No staff members</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -924,6 +937,19 @@
 </div>
 
 <script>
+// ============ STATE & GLOBAL CONFIG ============
+var serviceTiers = JSON.parse(localStorage.getItem('service_tiers_v1')) || {
+    EXPRESS: { displayName: 'EXPRESS', cycleLengthDays: 2, multiplier: 2.0, priority: 1 },
+    PREMIUM: { displayName: 'PREMIUM', cycleLengthDays: 4, multiplier: 1.5, priority: 2 },
+    STANDARD: { displayName: 'STANDARD', cycleLengthDays: 7, multiplier: 1.0, priority: 3 },
+    BASIC: { displayName: 'BASIC', cycleLengthDays: 10, multiplier: 0.8, priority: 4 }
+};
+var productionCycles = JSON.parse(localStorage.getItem('production_cycles_v1')) || {};
+var couture_orders = JSON.parse(localStorage.getItem('couture_orders')) || [];
+var couture_customers = JSON.parse(localStorage.getItem('couture_customers')) || [];
+var couture_staff = JSON.parse(localStorage.getItem('couture_staff_v15')) || [];
+var couture_inventory = JSON.parse(localStorage.getItem('couture_inventory_v15')) || [];
+
 // ============ AUTHENTICATION ============
 var currentUser = null;
 var users = JSON.parse(localStorage.getItem('app_users_v1')) || [
@@ -1001,8 +1027,8 @@ function switchTab(tabName) {
     var activeBtn = document.querySelector('[onclick="switchTab(\'' + tabName + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
     
-    if (tabName === 'users') loadUsers();
-    if (tabName === 'staff') loadStaff();
+    if (tabName === 'users') { setupAccessControl(); loadUsers(); }
+    if (tabName === 'staff') { setupAccessControl(); loadStaff(); }
     if (tabName === 'inventory') loadInventory();
     if (tabName === 'audit') loadAuditLog();
     if (tabName === 'orders') { syncOrdersFromCloud(); loadOrdersTable(); }
@@ -1466,57 +1492,112 @@ function deleteUser(username) {
 }
 
 // ============ STAFF MANAGEMENT ============
-function loadStaff() {
-    var html = '<tr>';
-    couture_staff.forEach(staff => {
+async function loadStaff() {
+    var tbody = document.getElementById('staffTable');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Loading staff...</td></tr>';
+    
+    // Fetch latest users from cloud if token is available
+    if (adminToken) {
+        try {
+            var res = await fetch('/api/users', {
+                headers: { 'Authorization': 'Bearer ' + adminToken }
+            });
+            var data = await res.json();
+            if (data && Array.isArray(data.users)) {
+                users = data.users;
+                localStorage.setItem('app_users_v1', JSON.stringify(users));
+            }
+        } catch(e) {}
+    }
+    
+    // Filter staff-level roles: Staff, Receptionist, Driver, Manager
+    var staffUsers = users.filter(u => ['Staff', 'Receptionist', 'Driver', 'Manager'].includes(u.role));
+    var commissions = JSON.parse(localStorage.getItem('staff_commissions_v1') || '{}');
+    
+    if (staffUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No staff members found. Add your first staff above.</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    staffUsers.forEach(staff => {
+        var comm = commissions[staff.username] !== undefined ? commissions[staff.username] : (staff.role === 'Receptionist' ? 0 : 10);
         html += '<tr>';
-        html += '<td>' + staff.name + '</td>';
-        html += '<td>' + staff.role + '</td>';
-        html += '<td>' + staff.commissionPercent + '%</td>';
+        html += '<td><strong>' + staff.username + '</strong></td>';
+        html += '<td style="color: #9CA3AF; font-size: 0.85rem;">' + (staff.email || '—') + '</td>';
+        html += '<td><span class="role-badge role-' + staff.role.toLowerCase() + '">' + staff.role + '</span></td>';
+        html += '<td style="color: var(--gold); font-weight: 600;">' + comm + '%</td>';
         html += '<td>';
-        if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
-            html += '<button class="btn-sm btn btn-secondary" onclick="editStaff(\'' + staff.id + '\')">Edit</button>';
-            html += '<button class="btn-sm btn btn-danger" onclick="deleteStaff(\'' + staff.id + '\')">Delete</button>';
+        if (currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+            html += '<button class="btn-sm btn btn-secondary" onclick="openEditUserModal(\'' + staff.username + '\')">Edit</button>';
+            if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
+                html += '<button class="btn-sm btn btn-danger" onclick="deleteUser(\'' + staff.username + '\')">Delete</button>';
+            }
         }
         html += '</td>';
         html += '</tr>';
     });
-    
-    if (couture_staff.length === 0) {
-        html = '<tr><td colspan="4" style="text-align: center; color: #999;">No staff members</td></tr>';
-    }
-    
-    document.getElementById('staffTable').innerHTML = html;
+    tbody.innerHTML = html;
 }
 
-function addStaffMember() {
+async function createStaffMember() {
     var username = document.getElementById('staffUsername').value.trim();
+    var email = document.getElementById('staffEmail').value.trim();
+    var pin = document.getElementById('staffPin').value.trim();
     var role = document.getElementById('staffRole').value;
     var commission = parseInt(document.getElementById('staffCommission').value) || 0;
+    var msgDiv = document.getElementById('addStaffMsg');
+    var btn = document.getElementById('addStaffBtn');
     
-    if (!username || !role) {
-        alert('Please fill all fields');
+    if (!username || !email || !pin || !role) {
+        msgDiv.innerHTML = '<span class="error-msg">Staff Username, Email, PIN, and Role are all required</span>';
         return;
     }
     
-    var staff = {
-        id: 'STAFF' + Date.now(),
-        name: username,
-        role: role,
-        commissionPercent: commission,
-        createdAt: new Date().toISOString()
-    };
+    btn.disabled = true;
+    btn.textContent = 'Creating Staff Account...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Registering staff in cloud database...</span>';
     
-    couture_staff.push(staff);
-    localStorage.setItem('couture_staff_v15', JSON.stringify(couture_staff));
-    
-    logAudit('ADD_STAFF', 'Staff "' + username + '" added with role "' + role + '"');
-    
-    document.getElementById('staffUsername').value = '';
-    document.getElementById('staffRole').value = '';
-    document.getElementById('staffCommission').value = '';
-    
-    loadStaff();
+    try {
+        var res = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({
+                action: 'create',
+                username: username,
+                email: email,
+                pin: pin,
+                role: role
+            })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create staff member');
+        
+        // Save commission mapping
+        var commissions = JSON.parse(localStorage.getItem('staff_commissions_v1') || '{}');
+        commissions[username] = commission;
+        localStorage.setItem('staff_commissions_v1', JSON.stringify(commissions));
+        
+        msgDiv.innerHTML = '<span class="success-msg">✓ Staff account "' + username + '" (' + role + ') created successfully!</span>';
+        document.getElementById('staffUsername').value = '';
+        document.getElementById('staffEmail').value = '';
+        document.getElementById('staffPin').value = '';
+        document.getElementById('staffCommission').value = '';
+        
+        setTimeout(() => {
+            msgDiv.innerHTML = '';
+            loadStaff();
+            loadUsers();
+        }, 1200);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Error creating staff') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Create Staff Account';
+    }
 }
 
 function editStaff(id) {
@@ -2412,7 +2493,11 @@ function openWalkInOrderModal() {
     populateAdminWalkInServices();
     renderAdminWalkInItems();
     calcAdminWalkInTotal();
-    document.getElementById('walkInOrderModal').classList.add('active');
+    var modal = document.getElementById('walkInOrderModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
 }
 
 function populateAdminWalkInServices() {
@@ -2569,7 +2654,11 @@ function submitAdminWalkInOrder() {
 
 // ============ MODAL CONTROL ============
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    var el = document.getElementById(modalId);
+    if (el) {
+        el.classList.remove('active');
+        el.style.display = 'none';
+    }
 }
 
 // ============ BUSINESS SETTINGS MANAGER ============

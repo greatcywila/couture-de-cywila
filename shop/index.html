@@ -786,7 +786,8 @@ async function placeOrder() {
     btn.textContent = 'Saving Booking & Generating Invoice...';
     msgDiv.innerHTML = '<span style="color:var(--gold);">Contacting central cloud server...</span>';
     
-    var sub = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    try {
+        var sub = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
     var disc = appliedCoupon ? (sub * (appliedCoupon.discount || 0) / 100) : 0;
     var baseAfterDisc = sub - disc;
     var mult = serviceTiers[selectedTier].multiplier;
@@ -1190,9 +1191,29 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Boot check
+// Boot check & enter key listeners
 window.addEventListener('DOMContentLoaded', () => {
     autoCheckSession();
+    
+    // Allow pressing Enter to submit login
+    ['loginEmail', 'loginPassword'].forEach(id => {
+        var input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') customerLogin();
+            });
+        }
+    });
+
+    // Allow pressing Enter to submit signup
+    ['signupName', 'signupEmail', 'signupPhone', 'signupPassword'].forEach(id => {
+        var input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') customerSignup();
+            });
+        }
+    });
 });
 </script>
 
