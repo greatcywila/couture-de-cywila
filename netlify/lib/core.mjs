@@ -90,14 +90,27 @@ export function randomCode() {
 }
 
 // ---------------------------------------------------------------- roles
-export const ROLE_RANK = { 'Super Admin': 5, 'Admin': 4, 'Manager': 3, 'Receptionist': 2, 'Staff': 1, 'Driver': 1 };
+export const ROLE_RANK = { 
+    'Super Admin': 5, 
+    'Admin': 4, 
+    'Manager': 3, 
+    'Receptionist': 2, 
+    'Tailor': 1, 
+    'Washer': 1, 
+    'Ironer': 1, 
+    'Driver': 1,
+    'Driver/Rider': 1,
+    'Staff': 1 
+};
 export const ADMIN_PORTAL_ROLES = ['Super Admin', 'Admin', 'Manager'];
+export const STAFF_PORTAL_ROLES = ['Receptionist', 'Tailor', 'Washer', 'Ironer', 'Driver', 'Driver/Rider', 'Staff', 'Manager', 'Admin'];
 
 /** Which roles may a given role create/edit? */
 export function canManageRole(actorRole, targetRole) {
     if (actorRole === 'Super Admin') return true;
     if (actorRole === 'Admin') return targetRole !== 'Super Admin';
-    if (actorRole === 'Manager') return ['Staff', 'Receptionist', 'Driver'].includes(targetRole);
+    if (actorRole === 'Manager') return ['Staff', 'Receptionist', 'Tailor', 'Washer', 'Ironer', 'Driver', 'Driver/Rider'].includes(targetRole);
+    if (actorRole === 'Receptionist') return ['Tailor', 'Washer', 'Ironer', 'Driver', 'Driver/Rider'].includes(targetRole);
     return false;
 }
 

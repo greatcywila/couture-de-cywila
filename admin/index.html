@@ -187,8 +187,11 @@
                         <option value="Admin">Admin</option>
                         <option value="Manager">Manager</option>
                         <option value="Receptionist">Receptionist</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Driver">Driver</option>
+                        <option value="Tailor">Tailor</option>
+                        <option value="Washer">Washer</option>
+                        <option value="Ironer">Ironer</option>
+                        <option value="Driver">Driver / Rider</option>
+                        <option value="Staff">General Staff</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -232,9 +235,12 @@
                     <div class="form-group">
                         <label>Role *</label>
                         <select id="staffRole">
-                            <option value="Staff">Staff (Tailor / Washer)</option>
+                            <option value="Tailor">Tailor (Bespoke Production)</option>
+                            <option value="Washer">Washer (Garment Care)</option>
+                            <option value="Ironer">Ironer / Finisher</option>
                             <option value="Receptionist">Receptionist (Front-Desk POS)</option>
-                            <option value="Driver">Driver (Logistics)</option>
+                            <option value="Driver">Driver / Rider (Logistics)</option>
+                            <option value="Staff">General Staff</option>
                             <option value="Manager">Manager</option>
                         </select>
                     </div>
@@ -383,12 +389,13 @@
                             <th>Customer</th>
                             <th>Total</th>
                             <th>Status</th>
+                            <th>Assigned Staff (Workload)</th>
                             <th>Delivery Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTable">
-                        <tr><td colspan="6" style="text-align: center; color: #999;">No orders</td></tr>
+                        <tr><td colspan="7" style="text-align: center; color: #999;">No orders</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1493,9 +1500,9 @@ function saveUserEdit() {
     }, 500);
 }
 
-function deleteUser(username) {
-    if (currentUser.role !== 'Super Admin') {
-        alert('Only Super Admin can delete users');
+async function deleteUser(username) {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
+        alert('Super Admin or Admin privileges required to delete accounts');
         return;
     }
     
@@ -1506,6 +1513,22 @@ function deleteUser(username) {
     
     logAudit('DELETE_USER', 'User "' + username + '" deleted');
     loadUsers();
+    loadStaff();
+
+    if (adminToken) {
+        try {
+            var res = await fetch('/api/users?username=' + encodeURIComponent(username), {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + adminToken }
+            });
+            var data = await res.json();
+            if (!res.ok) {
+                console.error('Delete cloud user error:', data.error);
+            }
+        } catch(e) {
+            console.error('Network error deleting user from cloud:', e);
+        }
+    }
 }
 
 // ============ STAFF MANAGEMENT ============
@@ -1527,8 +1550,8 @@ async function loadStaff() {
         } catch(e) {}
     }
     
-    // Filter staff-level roles: Staff, Receptionist, Driver, Manager
-    var staffUsers = users.filter(u => ['Staff', 'Receptionist', 'Driver', 'Manager'].includes(u.role));
+    // Filter operational staff roles: Tailor, Washer, Ironer, Receptionist, Driver, Staff, Manager
+    var staffUsers = users.filter(u => ['Tailor', 'Washer', 'Ironer', 'Receptionist', 'Driver', 'Driver/Rider', 'Staff', 'Manager'].includes(u.role));
     var commissions = JSON.parse(localStorage.getItem('staff_commissions_v1') || '{}');
     
     if (staffUsers.length === 0) {
@@ -1977,8 +2000,37 @@ function updateOrderStatus(orderId, newStatus) {
     }).catch(function(e) { console.log('Offline update:', e); });
 }
 
+function updateOrderAssignment(orderId, staffName) {
+    var order = couture_orders.find(o => o.orderId === orderId);
+    if (order) {
+        order.assignedTo = staffName;
+        localStorage.setItem('couture_orders', JSON.stringify(couture_orders));
+        loadOrdersTable();
+    }
+    fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + adminToken
+        },
+        body: JSON.stringify({ orderId: orderId, assignedTo: staffName })
+    }).then(function() {
+        syncOrdersFromCloud();
+    }).catch(function(e) { console.log('Offline assignment update:', e); });
+}
+
 function loadOrdersTable() {
     var html = '';
+    // Calculate active workloads for assignable staff
+    var workloadMap = {};
+    couture_orders.forEach(o => {
+        if (o.assignedTo && o.status !== 'Delivered') {
+            workloadMap[o.assignedTo] = (workloadMap[o.assignedTo] || 0) + 1;
+        }
+    });
+
+    var assignableStaff = users.filter(u => ['Tailor', 'Washer', 'Ironer', 'Driver', 'Driver/Rider', 'Staff', 'Receptionist'].includes(u.role));
+
     couture_orders.forEach(order => {
         var statusColor = '#f59e0b';
         if (order.status === 'Completed') statusColor = '#10b981';
@@ -1987,11 +2039,25 @@ function loadOrdersTable() {
 
         var custDisplay = order.customerName ? ('<strong>' + order.customerName + '</strong><br><small style="color:#999;">' + (order.customerPhone || order.customerEmail || order.customerId) + '</small>') : order.customerId;
 
+        // Build Staff Assignment Options
+        var assignOptions = '<option value="">-- Unassigned --</option>';
+        assignableStaff.forEach(stf => {
+            var load = workloadMap[stf.username] || 0;
+            var isSel = (order.assignedTo === stf.username) ? ' selected' : '';
+            var loadBadge = load > 0 ? (' (' + load + ' active)') : ' (Available)';
+            assignOptions += '<option value="' + stf.username + '"' + isSel + '>' + stf.username + ' [' + stf.role + ']' + loadBadge + '</option>';
+        });
+
         html += '<tr>';
         html += '<td><strong>' + order.orderId + '</strong><br><span style="font-size:0.75rem;color:#888;">' + (order.tierName || 'STANDARD') + '</span></td>';
         html += '<td>' + custDisplay + '</td>';
         html += '<td style="font-weight:600;color:var(--gold);">₦' + (order.total || 0).toLocaleString() + '</td>';
         html += '<td><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + ';">' + order.status + '</span></td>';
+        html += '<td>' +
+            '<select onchange="updateOrderAssignment(\'' + order.orderId + '\', this.value)" style="padding:4px 8px;background:#1a1a2e;color:#fff;border:1px solid #2d3561;border-radius:4px;font-size:0.8rem;max-width:180px;">' +
+                assignOptions +
+            '</select>' +
+        '</td>';
         html += '<td>' + (order.expectedDeliveryDate || '-') + '</td>';
         html += '<td>' +
             '<div style="display:flex; gap:6px; align-items:center;">' +
@@ -2008,7 +2074,7 @@ function loadOrdersTable() {
     });
     
     if (couture_orders.length === 0) {
-        html = '<tr><td colspan="6" style="text-align: center; color: #999;">No orders found</td></tr>';
+        html = '<tr><td colspan="7" style="text-align: center; color: #999;">No orders found</td></tr>';
     }
     
     document.getElementById('ordersTable').innerHTML = html;

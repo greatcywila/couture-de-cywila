@@ -53,17 +53,17 @@ export default async (req) => {
         }
 
         if (req.method === 'POST' && b.action === 'forgot') {
-            const id = String(b.identifier || '').trim().toLowerCase();
+            const id = String(b.identifier || b.username || '').trim().toLowerCase();
             const u = users.find(x => x.username.toLowerCase() === id || normEmail(x.email) === id);
-            if (!u) return json({ error: 'No staff account found' }, 404);
-            if (!isEmail(u.email)) return json({ error: 'This account has no email on file. Ask an admin to reset your PIN.' }, 400);
+            if (!u) return json({ error: 'No staff account found with that username or email' }, 404);
+            if (!isEmail(u.email)) return json({ error: 'This account has no email on file. Please ask an Administrator to update your email or reset your PIN.' }, 400);
             const code = await createResetCode('user', u.username);
             await sendEmail({ to: u.email, subject: `Your PIN reset code: ${code} | Couture dé Cywila`, html: resetEmailHtml(u.fullName || u.username, code) });
             return json({ success: true, username: u.username });
         }
 
         if (req.method === 'POST' && b.action === 'reset') {
-            const id = String(b.identifier || '').trim().toLowerCase();
+            const id = String(b.identifier || b.username || '').trim().toLowerCase();
             const u = users.find(x => x.username.toLowerCase() === id || normEmail(x.email) === id);
             if (!u) return json({ error: 'Account not found' }, 404);
             if (!/^\d{4,6}$/.test(String(b.newPin || ''))) return json({ error: 'PIN must be 4–6 digits' }, 400);

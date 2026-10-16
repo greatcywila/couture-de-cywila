@@ -427,10 +427,20 @@ function renderTasks() {
         return;
     }
 
+    var isManagement = currentStaff && ['Manager', 'Admin', 'Super Admin', 'Receptionist'].includes(currentStaff.role);
+    var myUsername = currentStaff ? currentStaff.username : '';
+
     var html = '';
     var tiers = ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'];
     tiers.forEach(tierKey => {
-        var tierOrders = couture_orders.filter(o => (o.tierId || 'STANDARD') === tierKey && o.status !== 'Delivered');
+        var tierOrders = couture_orders.filter(o => {
+            if ((o.tierId || 'STANDARD') !== tierKey) return false;
+            if (o.status === 'Delivered') return false;
+            // Management sees all active orders. Operational staff sees tasks assigned to them or unassigned
+            if (isManagement) return true;
+            return !o.assignedTo || o.assignedTo === myUsername;
+        });
+
         if (tierOrders.length === 0) return;
 
         html += '<h4 style="color:var(--primary); margin:1.2rem 0 0.5rem; font-weight:700;">' + 
@@ -439,6 +449,7 @@ function renderTasks() {
 
         tierOrders.forEach(order => {
             var isCompleted = order.status === 'Completed';
+            var isAssignedToMe = order.assignedTo === myUsername;
             var statusColor = isCompleted ? '#10b981' : (order.status === 'Processing' ? '#60a5fa' : '#f59e0b');
 
             // WhatsApp link for staff to notify client
@@ -450,11 +461,16 @@ function renderTasks() {
                 waBtn = '<a href="' + waUrl + '" target="_blank" class="whatsapp-btn">💬 Notify Client on WhatsApp</a>';
             }
 
+            var assignBadge = order.assignedTo ? 
+                '<span style="font-size:0.75rem; color:var(--gold); padding:2px 6px; border:1px solid rgba(245,158,11,0.3); border-radius:4px;">👤 Assigned: ' + order.assignedTo + (isAssignedToMe ? ' (You)' : '') + '</span>' :
+                '<span style="font-size:0.75rem; color:#9ca3af; padding:2px 6px; border:1px dashed #4b5563; border-radius:4px;">Unassigned</span>';
+
             html += '<div class="task-card tier-' + tierKey + '">' +
                 '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">' +
                     '<div>' +
                         '<strong style="color:#fff; font-size:1.05rem;">' + order.orderId + '</strong>' +
                         '<span class="tier-badge tier-' + tierKey.toLowerCase() + '" style="margin-left:8px;">' + (order.tierName || tierKey) + '</span>' +
+                        '<div style="margin-top:4px;">' + assignBadge + '</div>' +
                     '</div>' +
                     '<span style="padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:700; background:' + statusColor + '22; color:' + statusColor + '; border:1px solid ' + statusColor + ';">' + order.status + '</span>' +
                 '</div>' +
@@ -467,6 +483,7 @@ function renderTasks() {
 
                 '<div style="margin-top:0.75rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
                     (!isCompleted ? 
+                        '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Processing\')" style="width:auto; margin:0; background:#3b82f6;">▶ Mark In-Progress</button>' +
                         '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Completed\')" style="width:auto; margin:0; background:#10b981;">✓ Mark Complete</button>' : 
                         '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Delivered\')" style="width:auto; margin:0; background:var(--primary);">📦 Mark Delivered</button>'
                     ) +
@@ -476,11 +493,14 @@ function renderTasks() {
         });
     });
 
-    container.innerHTML = html || '<p style="color:var(--text-muted);">All tasks in queue completed!</p>';
+    container.innerHTML = html || '<p style="color:var(--text-muted);">All tasks in your queue are completed!</p>';
 }
 
 async function advanceOrderStatus(orderId, newStatus) {
     try {
+        var existingOrder = couture_orders.find(o => o.orderId === orderId);
+        var targetAssignee = (existingOrder && existingOrder.assignedTo) ? existingOrder.assignedTo : (currentStaff ? currentStaff.username : 'Staff Desk');
+
         var res = await fetch('/api/orders', {
             method: 'PATCH',
             headers: {
@@ -490,7 +510,7 @@ async function advanceOrderStatus(orderId, newStatus) {
             body: JSON.stringify({
                 orderId: orderId,
                 status: newStatus,
-                assignedTo: currentStaff ? currentStaff.username : 'Staff Desk'
+                assignedTo: targetAssignee
             })
         });
         if (res.ok) {
@@ -504,10 +524,17 @@ async function advanceOrderStatus(orderId, newStatus) {
 }
 
 function renderEarnings() {
-    var rate = currentStaff && currentStaff.commission ? currentStaff.commission : 10;
+    var rate = (currentStaff && currentStaff.commission) ? currentStaff.commission : 10;
     document.getElementById('commissionRate').textContent = rate + '%';
 
-    var completed = couture_orders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
+    var myUsername = currentStaff ? currentStaff.username : '';
+    // Completed orders assigned to this staff or all if receptionist/manager
+    var completed = couture_orders.filter(o => {
+        if (o.status !== 'Completed' && o.status !== 'Delivered') return false;
+        if (currentStaff && ['Receptionist', 'Manager', 'Admin'].includes(currentStaff.role)) return true;
+        return o.assignedTo === myUsername;
+    });
+
     var totalEarned = completed.reduce((sum, o) => sum + Math.floor((Number(o.total) || 0) * rate / 100), 0);
     document.getElementById('totalEarnings').textContent = '₦' + totalEarned.toLocaleString();
 
@@ -528,8 +555,16 @@ function renderEarnings() {
 }
 
 function renderPerformance() {
-    var completed = couture_orders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
-    var total = couture_orders.length;
+    var isManagement = currentStaff && ['Manager', 'Admin', 'Super Admin', 'Receptionist'].includes(currentStaff.role);
+    var myUsername = currentStaff ? currentStaff.username : '';
+
+    var relevantOrders = couture_orders.filter(o => {
+        if (isManagement) return true;
+        return o.assignedTo === myUsername;
+    });
+
+    var completed = relevantOrders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
+    var total = relevantOrders.length;
     var pct = total > 0 ? Math.floor(completed.length / total * 100) : 0;
 
     document.getElementById('completedTasks').textContent = completed.length;
@@ -537,7 +572,7 @@ function renderPerformance() {
 
     var html = '';
     ['EXPRESS', 'PREMIUM', 'STANDARD', 'BASIC'].forEach(tk => {
-        var tierAll = couture_orders.filter(o => (o.tierId || 'STANDARD') === tk);
+        var tierAll = relevantOrders.filter(o => (o.tierId || 'STANDARD') === tk);
         var tierComp = tierAll.filter(o => o.status === 'Completed' || o.status === 'Delivered');
         var rate = tierAll.length > 0 ? Math.floor(tierComp.length / tierAll.length * 100) : 0;
         html += '<div style="background:var(--bg-input); padding:0.8rem; border-radius:6px; margin-bottom:0.5rem; display:flex; justify-content:space-between;">' +

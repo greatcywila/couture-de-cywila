@@ -292,13 +292,19 @@
 
         <div class="form-group">
             <label>Payment Method *</label>
-            <select id="paymentMethod" class="cywila-select" required>
+            <select id="paymentMethod" class="cywila-select" onchange="toggleBankDetails(this.value)" required>
                 <option value="">Select payment method</option>
-                <option value="COD">Cash on Delivery / Showroom Collection</option>
-                <option value="BANK_TRANSFER">Bank Transfer</option>
-                <option value="PAYSTACK">Paystack (Online Card/Transfer)</option>
-                <option value="FLUTTERWAVE">Flutterwave (Online Card/Transfer)</option>
+                <option value="FLUTTERWAVE" selected>Flutterwave (Online Card / USSD / Bank Transfer)</option>
+                <option value="BANK_TRANSFER">Direct Bank Transfer to Couture dé Cywila</option>
             </select>
+        </div>
+
+        <div id="bankDetailsBox" style="display:none; background:rgba(245, 158, 11, 0.1); border:1px solid var(--gold); border-radius:var(--radius-sm); padding:1rem; margin-bottom:1rem;">
+            <strong style="color:var(--gold); display:block; margin-bottom:6px;">🏦 Official Bank Account Details</strong>
+            <p style="font-size:0.88rem; color:#fff; margin:2px 0;">Bank: <strong id="checkoutBankName">—</strong></p>
+            <p style="font-size:0.88rem; color:#fff; margin:2px 0;">Account Name: <strong id="checkoutAccountName">—</strong></p>
+            <p style="font-size:0.88rem; color:#fff; margin:2px 0;">Account Number: <strong id="checkoutAccountNumber" style="color:var(--gold); font-size:1.1rem; letter-spacing:1px;">—</strong></p>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;">Your order will be booked as pending. Once payment is transferred, your booking will be confirmed by management.</p>
         </div>
 
         <div class="form-group">
@@ -528,16 +534,16 @@ async function autoCheckSession() {
     }
 }
 
-function initCustomerDashboard() {
+async function initCustomerDashboard() {
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('customerPortal').style.display = 'block';
     document.getElementById('customerGreeting').textContent = 'Welcome back, ' + (currentCustomer.name || 'Valued Client');
     
+    await loadSettings();
     loadCatalog();
-    loadOrders();
+    await loadOrders();
     loadAccount();
     updateCart();
-    loadSettings();
 }
 
 // ============ BUSINESS SETTINGS ============
@@ -572,41 +578,28 @@ async function loadCatalog() {
         var data = await res.json();
         if (data && data.catalog) {
             catalogData = data.catalog;
+            if (Array.isArray(catalogData.laundry)) {
+                localStorage.setItem('couture_laundry_v15', JSON.stringify(catalogData.laundry));
+            }
+            if (Array.isArray(catalogData.outfits)) {
+                localStorage.setItem('couture_outfits_v15', JSON.stringify(catalogData.outfits));
+            }
+            if (Array.isArray(catalogData.laundryPlans)) {
+                localStorage.setItem('couture_laundry_plans', JSON.stringify(catalogData.laundryPlans));
+            }
+            if (Array.isArray(catalogData.tailoringPlans)) {
+                localStorage.setItem('couture_tailoring_plans', JSON.stringify(catalogData.tailoringPlans));
+            }
         }
     } catch(e) {
-        // Fallback to seed data
+        // Fallback to local cache or seed data only if network fails
         catalogData = {
-            laundry: (window.seed_laundry_services || []),
-            outfits: (window.seed_tailoring_outfits || []),
-            laundryPlans: (window.seed_subscription_plans || []),
-            tailoringPlans: [
-                { id: 'TPLN-401', name: 'Quarterly Bespoke Wardrobe Retainer', items: 3, frequency: 'Quarterly', price: 180000 },
-                { id: 'TPLN-402', name: 'Executive Annual Wardrobe Refresh', items: 10, frequency: 'Annual', price: 550000 }
-            ]
+            laundry: JSON.parse(localStorage.getItem('couture_laundry_v15') || '[]'),
+            outfits: JSON.parse(localStorage.getItem('couture_outfits_v15') || '[]'),
+            laundryPlans: JSON.parse(localStorage.getItem('couture_laundry_plans') || '[]'),
+            tailoringPlans: JSON.parse(localStorage.getItem('couture_tailoring_plans') || '[]')
         };
     }
-
-    // Merge any locally cached catalog items saved by Admin
-    try {
-        var localLaundry = JSON.parse(localStorage.getItem('couture_laundry_v15') || '[]');
-        if (localLaundry && localLaundry.length) {
-            catalogData.laundry = catalogData.laundry || [];
-            localLaundry.forEach(li => {
-                var idx = catalogData.laundry.findIndex(x => x.id === li.id);
-                if (idx >= 0) catalogData.laundry[idx] = li;
-                else catalogData.laundry.push(li);
-            });
-        }
-        var localOutfits = JSON.parse(localStorage.getItem('couture_outfits_v15') || '[]');
-        if (localOutfits && localOutfits.length) {
-            catalogData.outfits = catalogData.outfits || [];
-            localOutfits.forEach(oi => {
-                var idx = catalogData.outfits.findIndex(x => x.id === oi.id);
-                if (idx >= 0) catalogData.outfits[idx] = oi;
-                else catalogData.outfits.push(oi);
-            });
-        }
-    } catch(e) {}
 
     renderCatalog();
 }
@@ -967,65 +960,13 @@ async function placeOrder() {
             }
         }
 
-        // ================= PAYSTACK GATEWAY =================
-        if (payUpper === 'PAYSTACK') {
-            if (!businessSettings || !businessSettings.paystackPublicKey) {
-                await loadSettings();
-            }
-            var pstkKey = (businessSettings && businessSettings.paystackPublicKey) ||
-                          (window.CoutureDB && window.CoutureDB.getPaystackKey && window.CoutureDB.getPaystackKey()) ||
-                          '';
-
-            if (!pstkKey) {
-                msgDiv.innerHTML = '<span class="error-msg">Paystack gateway is currently being initialized by the administrator. Please select Flutterwave or Bank Transfer to proceed immediately.</span>';
-                btn.disabled = false;
-                btn.textContent = 'Confirm & Place Order';
-                return;
-            }
-
-            if (typeof PaystackPop === 'undefined' || typeof PaystackPop.setup !== 'function') {
-                msgDiv.innerHTML = '<span class="error-msg">Paystack secure checkout script is loading. Please wait 2 seconds and click confirm again.</span>';
-                btn.disabled = false;
-                btn.textContent = 'Confirm & Place Order';
-                return;
-            }
-
-            msgDiv.innerHTML = '<span class="success-msg">Opening secure Paystack Checkout...</span>';
-            try {
-                var handler = PaystackPop.setup({
-                    key: pstkKey,
-                    email: currentCustomer.email,
-                    amount: Math.round(total * 100), // kobo
-                    currency: 'NGN',
-                    channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-                    ref: 'PSTK-' + Date.now(),
-                    metadata: {
-                        custom_fields: [
-                            { display_name: "Customer Name", variable_name: "customer_name", value: currentCustomer.name },
-                            { display_name: "Turnaround Tier", variable_name: "tier_name", value: t.displayName }
-                        ]
-                    },
-                    callback: function(response) {
-                        sendOrderToCloud('paid', response.reference, 'Paystack Payment Confirmed! Order Booked.');
-                    },
-                    onClose: function() {
-                        msgDiv.innerHTML = '<span class="error-msg">Paystack payment window was closed. You can retry or choose another payment method.</span>';
-                        btn.disabled = false;
-                        btn.textContent = 'Confirm & Place Order';
-                    }
-                });
-                handler.openIframe();
-                return;
-            } catch(pstkErr) {
-                console.error('Paystack popup error:', pstkErr);
-                msgDiv.innerHTML = '<span class="error-msg">Could not load Paystack checkout: ' + pstkErr.message + '</span>';
-                btn.disabled = false;
-                btn.textContent = 'Confirm & Place Order';
-                return;
-            }
+        // ================= BANK TRANSFER / DIRECT =================
+        if (payUpper === 'BANK_TRANSFER' || payUpper === 'BANK TRANSFER') {
+            await sendOrderToCloud('pending', null, 'Order Booked! Please complete bank transfer to finalize.');
+            return;
         }
 
-        // ================= CASH ON DELIVERY / SHOWROOM COLLECTION / BANK TRANSFER =================
+        // Default fallback to pending
         await sendOrderToCloud('pending', null, 'Order Placed Successfully!');
 
     } catch(err) {
@@ -1033,6 +974,23 @@ async function placeOrder() {
     } finally {
         btn.disabled = false;
         btn.textContent = 'Confirm & Place Order';
+    }
+}
+
+function toggleBankDetails(val) {
+    var box = document.getElementById('bankDetailsBox');
+    if (!box) return;
+    if (val === 'BANK_TRANSFER') {
+        var bName = (businessSettings && businessSettings.bankName) || 'Commercial Bank';
+        var bAccName = (businessSettings && (businessSettings.bankAccountName || businessSettings.accountName)) || 'Couture dé Cywila Enterprise';
+        var bAccNum = (businessSettings && (businessSettings.bankAccountNumber || businessSettings.bankAccount)) || 'Please request at desk';
+        
+        document.getElementById('checkoutBankName').textContent = bName;
+        document.getElementById('checkoutAccountName').textContent = bAccName;
+        document.getElementById('checkoutAccountNumber').textContent = bAccNum;
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
     }
 }
 
@@ -1096,6 +1054,7 @@ async function loadOrders() {
 }
 
 function renderOrders(ordersList) {
+    loadAccount();
     var display = document.getElementById('ordersDisplay');
     if (!ordersList || ordersList.length === 0) {
         display.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">You have no active or previous orders yet. Browse our catalog to place your first booking!</p>';
@@ -1106,8 +1065,9 @@ function renderOrders(ordersList) {
     ordersList.forEach(order => {
         var statusBadgeClass = 'status-' + (order.status || 'received').toLowerCase();
         var waMsg = encodeURIComponent("Hello Couture dé Cywila! Checking on status of my Order #" + order.orderId + " (" + (order.tierName || 'STANDARD') + ").");
-        var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
-        var waUrl = "https://wa.me/" + businessPhone.replace('+', '') + "?text=" + waMsg;
+        var rawPhone = (businessSettings && (businessSettings.businessWhatsapp || businessSettings.whatsapp || businessSettings.businessPhone)) || '+2348000000000';
+        var businessPhone = String(rawPhone).replace(/[^0-9]/g, '');
+        var waUrl = "https://wa.me/" + businessPhone + "?text=" + waMsg;
         
         html += '<div class="order-card">' +
             '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">' +
