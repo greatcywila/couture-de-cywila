@@ -138,6 +138,73 @@ export default async (req, context) => {
                 }
             }
 
+            // If order contains subscription / retainer plans, activate cloud subscriptions
+            try {
+                const subItems = items.filter(i => i.type === 'subscription' || i.type === 'tailoring_plan' || (i.id && (i.id.startsWith('PLN-') || i.id.startsWith('TPLN-'))));
+                if (subItems.length > 0) {
+                    let activeSubs = await readKey('subscriptions', []);
+                    let seq = (await readKey('subscription_seq', 500));
+                    const catalog = await readKey('catalog', {});
+
+                    for (const item of subItems) {
+                        seq += 1;
+                        const subId = 'SUB-' + seq;
+                        const isLaundry = item.type === 'subscription' || (item.id && item.id.startsWith('PLN-'));
+                        
+                        // Look up catalog plan for frequency and quota
+                        let quota = 15;
+                        let frequency = 'Monthly';
+                        if (isLaundry && Array.isArray(catalog.laundryPlans)) {
+                            const p = catalog.laundryPlans.find(x => x.id === item.id);
+                            if (p) {
+                                quota = parseInt(p.items) || 15;
+                                frequency = p.frequency || 'Monthly';
+                            }
+                        } else if (!isLaundry && Array.isArray(catalog.tailoringPlans)) {
+                            const p = catalog.tailoringPlans.find(x => x.id === item.id);
+                            if (p) {
+                                quota = parseInt(p.items) || 3;
+                                frequency = p.frequency || 'Quarterly';
+                            }
+                        }
+
+                        const daysMap = { 'Weekly': 7, 'Bi-Weekly': 14, 'Monthly': 30, 'Quarterly': 90, 'Annually': 365 };
+                        const cycleDays = daysMap[frequency] || 30;
+
+                        activeSubs.unshift({
+                            id: subId,
+                            orderId: order.orderId,
+                            customerId: customer.id || (who && who.id) || '',
+                            customerName: customer.name || (who && who.name) || 'Valued Client',
+                            customerEmail: normEmail(customer.email || (who && who.email)),
+                            customerPhone: customer.phone || (who && who.phone) || '',
+                            planId: item.id,
+                            planName: item.name,
+                            planType: isLaundry ? 'laundry' : 'tailoring',
+                            frequency: frequency,
+                            cost: item.price,
+                            price: item.price,
+                            quotaItems: quota,
+                            itemsQuota: quota,
+                            itemsTotal: quota,
+                            itemsUsed: 0,
+                            status: 'active',
+                            startDate: new Date().toISOString(),
+                            nextPickup: new Date(Date.now() + 7 * 86400000).toISOString(),
+                            nextPickupDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+                            renewalDate: new Date(Date.now() + cycleDays * 86400000).toISOString(),
+                            paymentStatus: order.paymentStatus || 'paid',
+                            paymentMethod: order.paymentMethod || 'Online',
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                    await writeKey('subscription_seq', seq);
+                    await writeKey('subscriptions', activeSubs);
+                }
+            } catch(subErr) {
+                console.log('[subscription auto-activation error]', subErr.message);
+            }
+
             // Dispatch Resend emails immediately without blocking order return
             try {
                 if (order.customerEmail) {

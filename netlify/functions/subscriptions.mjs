@@ -41,16 +41,101 @@ export default async (req) => {
             await writeKey('subscriptions', subscriptions);
         }
 
+        // Backfill check: Scan orders for subscription items not yet in subscriptions store
+        try {
+            const orders = await readKey('orders', []);
+            let needWrite = false;
+            let seq = (await readKey('subscription_seq', 500));
+            const catalog = await readKey('catalog', {});
+
+            for (const ord of orders) {
+                const subItems = (ord.items || []).filter(i => i.type === 'subscription' || i.type === 'tailoring_plan' || (i.id && (i.id.startsWith('PLN-') || i.id.startsWith('TPLN-'))));
+                for (const item of subItems) {
+                    const exists = subscriptions.some(s => s.orderId === ord.orderId && s.planId === item.id);
+                    if (!exists) {
+                        seq += 1;
+                        needWrite = true;
+                        const isLaundry = item.type === 'subscription' || (item.id && item.id.startsWith('PLN-'));
+                        let quota = 15;
+                        let frequency = 'Monthly';
+                        if (isLaundry && Array.isArray(catalog.laundryPlans)) {
+                            const p = catalog.laundryPlans.find(x => x.id === item.id);
+                            if (p) {
+                                quota = parseInt(p.items) || 15;
+                                frequency = p.frequency || 'Monthly';
+                            }
+                        } else if (!isLaundry && Array.isArray(catalog.tailoringPlans)) {
+                            const p = catalog.tailoringPlans.find(x => x.id === item.id);
+                            if (p) {
+                                quota = parseInt(p.items) || 3;
+                                frequency = p.frequency || 'Quarterly';
+                            }
+                        }
+
+                        const daysMap = { 'Weekly': 7, 'Bi-Weekly': 14, 'Monthly': 30, 'Quarterly': 90, 'Annually': 365 };
+                        const cycleDays = daysMap[frequency] || 30;
+
+                        subscriptions.unshift({
+                            id: 'SUB-' + seq,
+                            orderId: ord.orderId,
+                            customerId: ord.customerId || '',
+                            customerName: ord.customerName || 'Valued Client',
+                            customerEmail: normEmail(ord.customerEmail),
+                            customerPhone: ord.customerPhone || '',
+                            planId: item.id,
+                            planName: item.name,
+                            planType: isLaundry ? 'laundry' : 'tailoring',
+                            frequency: frequency,
+                            cost: item.price,
+                            price: item.price,
+                            quotaItems: quota,
+                            itemsQuota: quota,
+                            itemsTotal: quota,
+                            itemsUsed: 0,
+                            status: 'active',
+                            startDate: ord.createdAt || new Date().toISOString(),
+                            nextPickup: new Date(Date.now() + 7 * 86400000).toISOString(),
+                            nextPickupDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+                            renewalDate: new Date(Date.now() + cycleDays * 86400000).toISOString(),
+                            paymentStatus: ord.paymentStatus || 'paid',
+                            paymentMethod: ord.paymentMethod || 'Online',
+                            createdAt: ord.createdAt || new Date().toISOString()
+                        });
+                    }
+                }
+            }
+
+            if (needWrite) {
+                await writeKey('subscription_seq', seq);
+                await writeKey('subscriptions', subscriptions);
+            }
+        } catch(e) {
+            console.log('[subscriptions backfill error]', e.message);
+        }
+
+        // Standardize properties for frontend rendering
+        const normalizedSubs = subscriptions.map(s => ({
+            ...s,
+            price: Number(s.price || s.cost || 0),
+            cost: Number(s.cost || s.price || 0),
+            itemsQuota: Number(s.itemsQuota || s.quotaItems || s.itemsTotal || 0),
+            quotaItems: Number(s.quotaItems || s.itemsQuota || s.itemsTotal || 0),
+            itemsTotal: Number(s.itemsTotal || s.itemsQuota || s.quotaItems || 0),
+            itemsUsed: Number(s.itemsUsed || 0),
+            nextPickupDate: s.nextPickupDate || s.nextPickup,
+            nextPickup: s.nextPickup || s.nextPickupDate
+        }));
+
         // ---------------------------------------------------------- GET
         if (req.method === 'GET') {
             if (who && who.kind === 'customer') {
                 const email = normEmail(who.email);
-                const mine = subscriptions.filter(s => s.customerId === who.id || (s.customerEmail && normEmail(s.customerEmail) === email));
+                const mine = normalizedSubs.filter(s => s.customerId === who.id || (s.customerEmail && normEmail(s.customerEmail) === email));
                 return json({ success: true, count: mine.length, subscriptions: mine });
             }
             if (who && who.kind === 'user') {
                 // Admin / Staff portal: view all subscriptions
-                return json({ success: true, count: subscriptions.length, subscriptions });
+                return json({ success: true, count: normalizedSubs.length, subscriptions: normalizedSubs });
             }
             // If not authenticated or unverified token, return empty array to protect customer privacy
             return json({ success: true, count: 0, subscriptions: [] });

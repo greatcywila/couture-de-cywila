@@ -109,6 +109,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
             <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
+            <button class="tab-btn" onclick="switchTab('subscriptions')" style="color: #60A5FA; font-weight: 700;">📅 Subscriptions</button>
             <button class="tab-btn" onclick="switchTab('catalog')" style="color: #EC4899; font-weight: 700;">🏷️ Services & Plans</button>
             <button class="tab-btn" onclick="switchTab('staff')">👨‍💼 Staff</button>
             <button class="tab-btn" onclick="switchTab('inventory')">📦 Inventory</button>
@@ -135,6 +136,10 @@
                 <div class="stat-box">
                     <p style="color: #999;">Total Orders</p>
                     <strong id="dashOrders">0</strong>
+                </div>
+                <div class="stat-box">
+                    <p style="color: #999;">Active Subscriptions</p>
+                    <strong id="dashSubscriptions" style="color: #60A5FA;">0</strong>
                 </div>
                 <div class="stat-box">
                     <p style="color: #999;">Total Customers</p>
@@ -396,6 +401,43 @@
                     </thead>
                     <tbody id="ordersTable">
                         <tr><td colspan="7" style="text-align: center; color: #999;">No orders</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: CLIENT SUBSCRIPTIONS & RETAINERS -->
+        <div id="tab-subscriptions" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="color: #60A5FA; margin-bottom: 0.25rem;">📅 Subscriptions & Retainers Management</h2>
+                    <p style="color: #999; font-size: 0.85rem;">View all active client plans, log garment usage quotas, update schedules, and manage statuses.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="syncSubscriptionsFromCloud()" style="background: #1e1e38; border: 1px solid #2d3561; color: #fff;">🔄 Refresh Subscriptions</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="color: #fff; margin: 0;">All Active & Historical Client Subscriptions</h3>
+                    <input type="text" id="subSearchInput" onkeyup="filterAdminSubscriptions()" placeholder="Filter by client, email, plan..." style="max-width: 280px; padding: 0.5rem 0.8rem; background: #1a1a2e; border: 1px solid #2d3561; border-radius: 6px; color: #fff; font-size: 0.85rem;">
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sub ID</th>
+                            <th>Customer</th>
+                            <th>Plan Details</th>
+                            <th>Quota & Garment Usage</th>
+                            <th>Price (₦)</th>
+                            <th>Next Pickup / Renewal</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminSubscriptionsTable">
+                        <tr><td colspan="8" style="text-align: center; color: #999;">Loading subscriptions...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1104,6 +1146,7 @@ function switchTab(tabName) {
     if (tabName === 'inventory') loadInventory();
     if (tabName === 'audit') loadAuditLog();
     if (tabName === 'orders') { syncOrdersFromCloud(); loadOrdersTable(); }
+    if (tabName === 'subscriptions') { syncSubscriptionsFromCloud(); }
     if (tabName === 'catalog') loadCatalogManager();
     if (tabName === 'customers') loadCustomersTable();
     if (tabName === 'tiers') loadTiers();
@@ -1409,6 +1452,7 @@ function loadAllData() {
     loadTiers();
     loadCycles();
     syncOrdersFromCloud();
+    syncSubscriptionsFromCloud();
     renderDashboardCharts(couture_orders);
 }
 
@@ -2287,6 +2331,156 @@ function assignDriver() {
         document.getElementById('assignDriverId').value = '';
         loadDeliveryTab();
     }, 1000);
+}
+
+// ============ CLIENT SUBSCRIPTIONS MANAGEMENT (ADMIN) ============
+var adminSubscriptions = [];
+
+async function syncSubscriptionsFromCloud() {
+    var tableEl = document.getElementById('adminSubscriptionsTable');
+    if (tableEl && adminSubscriptions.length === 0) {
+        tableEl.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Fetching cloud subscriptions...</td></tr>';
+    }
+    try {
+        var res = await fetch('/api/subscriptions', {
+            headers: adminToken ? { 'Authorization': 'Bearer ' + adminToken } : {}
+        });
+        var data = await res.json();
+        if (data && Array.isArray(data.subscriptions)) {
+            adminSubscriptions = data.subscriptions;
+            localStorage.setItem('admin_subscriptions_v1', JSON.stringify(adminSubscriptions));
+            var activeCount = adminSubscriptions.filter(s => (s.status || '').toLowerCase() === 'active').length;
+            var dashEl = document.getElementById('dashSubscriptions');
+            if (dashEl) dashEl.textContent = activeCount;
+            renderAdminSubscriptions(adminSubscriptions);
+        }
+    } catch(err) {
+        console.log('Error fetching subscriptions:', err);
+        var cached = JSON.parse(localStorage.getItem('admin_subscriptions_v1') || '[]');
+        if (cached.length) renderAdminSubscriptions(cached);
+    }
+}
+
+function filterAdminSubscriptions() {
+    var query = (document.getElementById('subSearchInput').value || '').toLowerCase().trim();
+    if (!query) {
+        renderAdminSubscriptions(adminSubscriptions);
+        return;
+    }
+    var filtered = adminSubscriptions.filter(s => {
+        var name = (s.customerName || '').toLowerCase();
+        var email = (s.customerEmail || '').toLowerCase();
+        var phone = (s.customerPhone || '').toLowerCase();
+        var plan = (s.planName || '').toLowerCase();
+        var id = (s.id || '').toLowerCase();
+        return name.includes(query) || email.includes(query) || phone.includes(query) || plan.includes(query) || id.includes(query);
+    });
+    renderAdminSubscriptions(filtered);
+}
+
+function renderAdminSubscriptions(subsList) {
+    var tbody = document.getElementById('adminSubscriptionsTable');
+    if (!tbody) return;
+
+    if (!subsList || subsList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999; padding: 2rem;">No active or past subscriptions found</td></tr>';
+        return;
+    }
+
+    var html = '';
+    subsList.forEach(sub => {
+        var status = (sub.status || 'ACTIVE').toUpperCase();
+        var statusColor = '#10b981';
+        if (status === 'PAUSED') statusColor = '#f59e0b';
+        if (status === 'EXPIRED' || status === 'CANCELLED') statusColor = '#ef4444';
+
+        var quota = Number(sub.itemsQuota || sub.quotaItems || sub.itemsTotal || 0);
+        var used = Number(sub.itemsUsed || 0);
+        var remaining = Math.max(0, quota - used);
+        var pct = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0;
+
+        var nextPickup = sub.nextPickupDate ? new Date(sub.nextPickupDate).toLocaleDateString('en-GB') : (sub.frequency || 'Weekly');
+        var custDisplay = '<strong>' + (sub.customerName || 'Valued Client') + '</strong><br><small style="color:#9CA3AF;">' + (sub.customerEmail || sub.customerPhone || sub.customerId) + '</small>';
+
+        html += '<tr>' +
+            '<td><code>' + (sub.id || sub.subscriptionId) + '</code></td>' +
+            '<td>' + custDisplay + '</td>' +
+            '<td><strong>' + (sub.planName || 'Care Plan') + '</strong><br><span style="font-size:0.75rem; color:#A78BFA;">' + (sub.frequency || 'Monthly') + ' (' + (sub.planType || 'laundry') + ')</span></td>' +
+            '<td style="min-width: 170px;">' +
+                '<div style="font-size:0.85rem; margin-bottom:4px; display:flex; justify-content:space-between;">' +
+                    '<strong style="color:var(--gold);">' + used + ' / ' + quota + '</strong> <span style="color:#9CA3AF;">(' + remaining + ' left)</span>' +
+                '</div>' +
+                '<div style="background:#1e1e38; height:6px; border-radius:3px; overflow:hidden;">' +
+                    '<div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg, #7C3AED, #F59E0B); border-radius:3px;"></div>' +
+                '</div>' +
+                '<div style="margin-top:4px; display:flex; gap:4px;">' +
+                    '<button class="btn-sm btn" onclick="logAdminSubscriptionUsage(\'' + sub.id + '\', 1)" style="padding:2px 6px; font-size:0.75rem; background:#10b981; color:#000; font-weight:700;" title="Log 1 garment processed">+1 Item</button>' +
+                    '<button class="btn-sm btn" onclick="logAdminSubscriptionUsage(\'' + sub.id + '\', -1)" style="padding:2px 6px; font-size:0.75rem; background:#374151; color:#fff;" title="Revert 1 garment">-1</button>' +
+                '</div>' +
+            '</td>' +
+            '<td style="font-weight:600; color:var(--gold);">₦' + Number(sub.price || sub.cost || 0).toLocaleString() + '</td>' +
+            '<td><span style="font-size:0.85rem; color:#fff;">' + nextPickup + '</span></td>' +
+            '<td><span style="display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; background:' + statusColor + '22; color:' + statusColor + '; border:1px solid ' + statusColor + ';">' + status + '</span></td>' +
+            '<td style="text-align: right;">' +
+                '<select onchange="updateAdminSubStatus(\'' + sub.id + '\', this.value)" style="padding:3px 6px; background:#1a1a2e; color:#fff; border:1px solid #2d3561; border-radius:4px; font-size:0.78rem;">' +
+                    '<option value="ACTIVE"' + (status === 'ACTIVE' ? ' selected' : '') + '>Active</option>' +
+                    '<option value="PAUSED"' + (status === 'PAUSED' ? ' selected' : '') + '>Paused</option>' +
+                    '<option value="CANCELLED"' + (status === 'CANCELLED' ? ' selected' : '') + '>Cancelled</option>' +
+                '</select>' +
+            '</td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = html;
+}
+
+async function logAdminSubscriptionUsage(subId, delta) {
+    var sub = adminSubscriptions.find(s => s.id === subId);
+    if (!sub) return;
+
+    var currentUsed = Number(sub.itemsUsed || 0);
+    var quota = Number(sub.itemsQuota || sub.quotaItems || 15);
+    var newUsed = Math.max(0, Math.min(quota, currentUsed + delta));
+
+    sub.itemsUsed = newUsed;
+    renderAdminSubscriptions(adminSubscriptions);
+
+    try {
+        await fetch('/api/subscriptions', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({ id: subId, itemsUsed: newUsed })
+        });
+        logAudit('Log Subscription Usage', 'Updated ' + sub.planName + ' (' + subId + ') used items to ' + newUsed + '/' + quota);
+    } catch(err) {
+        console.log('Error updating subscription quota:', err);
+    }
+}
+
+async function updateAdminSubStatus(subId, newStatus) {
+    var sub = adminSubscriptions.find(s => s.id === subId);
+    if (sub) {
+        sub.status = newStatus.toLowerCase();
+        renderAdminSubscriptions(adminSubscriptions);
+    }
+
+    try {
+        await fetch('/api/subscriptions', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + adminToken
+            },
+            body: JSON.stringify({ id: subId, status: newStatus.toLowerCase() })
+        });
+        logAudit('Update Subscription Status', 'Set status of ' + subId + ' to ' + newStatus);
+        syncSubscriptionsFromCloud();
+    } catch(err) {
+        console.log('Error updating subscription status:', err);
+    }
 }
 
 // ============ CATALOG MANAGER (SERVICES & PLANS) ============
