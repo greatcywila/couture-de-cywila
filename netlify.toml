@@ -59,6 +59,12 @@
   to = "/.netlify/functions/settings"
   status = 200
 
+# API Route for Cloud Customer Subscriptions & Retainers
+[[redirects]]
+  from = "/api/subscriptions"
+  to = "/.netlify/functions/subscriptions"
+  status = 200
+
 # Global Security & Asset Headers
 [[headers]]
   for = "/*"

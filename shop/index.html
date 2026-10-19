@@ -79,6 +79,52 @@
             margin-bottom: 1rem;
             border-left: 4px solid var(--primary);
         }
+        /* Subscriptions & VIP Tier Styles */
+        .subscription-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #60A5FA;
+        }
+        .subscription-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-active { background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid #10B981; }
+        .status-paused { background: rgba(245,158,11,0.15); color: #F59E0B; border: 1px solid #F59E0B; }
+        .status-cancelled, .status-expired { background: rgba(239,68,68,0.15); color: #EF4444; border: 1px solid #EF4444; }
+        .spending-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+        .badge-insider { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid #60A5FA; }
+        .badge-premium { background: rgba(168,85,247,0.15); color: #C084FC; border: 1px solid #C084FC; }
+        .badge-prestige { background: rgba(236,72,153,0.15); color: #F472B6; border: 1px solid #F472B6; }
+        .badge-vip { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid #FBBF24; }
+        .badge-vvip { background: linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(245,158,11,0.3) 100%); color: #FCD34D; border: 1px solid #F59E0B; }
+        .vip-tier-progress-track {
+            background: #1e1e38;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .vip-tier-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--gold) 100%);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
     </style>
 </head>
 <body>
@@ -168,10 +214,11 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchCustomerTab('shop')">🛍️ Services & Plans</button>
-            <button class="tab-btn" onclick="switchCustomerTab('cart')">🛒 Cart (<span id="cartCountBadge">0</span>)</button>
-            <button class="tab-btn" onclick="switchCustomerTab('orders')">📦 Order History</button>
-            <button class="tab-btn" onclick="switchCustomerTab('account')">👤 My Account</button>
+            <button class="tab-btn active" onclick="switchCustomerTab('shop', this)">🛍️ Services & Plans</button>
+            <button class="tab-btn" onclick="switchCustomerTab('cart', this)">🛒 Cart (<span id="cartCountBadge">0</span>)</button>
+            <button class="tab-btn" onclick="switchCustomerTab('orders', this)">📦 Order History</button>
+            <button class="tab-btn" onclick="switchCustomerTab('subscriptions', this)">📅 My Subscriptions</button>
+            <button class="tab-btn" onclick="switchCustomerTab('account', this)">👤 My Account</button>
         </div>
 
         <!-- TAB 1: SHOP CATALOG -->
@@ -182,8 +229,19 @@
             </div>
 
             <div class="cywila-card">
-                <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.2rem;">✂️ Bespoke Tailoring Services</h3>
+                <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.2rem;">✂️ Bespoke Tailoring (Couture Fabric Included)</h3>
                 <div class="grid" id="tailoringGrid"></div>
+            </div>
+
+            <div class="cywila-card" style="border-left: 4px solid var(--gold);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 0.8rem;">
+                    <div>
+                        <h3 style="color: #FBBF24; margin: 0; font-size: 1.2rem;">✂️ Client Provides Own Fabric (Workmanship Only)</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Bring or send your fabrics (Lace, Senator, Guinea Brocade, Kaftan) for custom master sewing. Turnaround speed tiers apply.</p>
+                    </div>
+                    <span style="font-size: 0.75rem; background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid #F59E0B; padding: 4px 10px; border-radius: 12px; font-weight: 600;">Workmanship Only</span>
+                </div>
+                <div class="grid" id="fabricProvidedGrid"></div>
             </div>
 
             <div class="cywila-card">
@@ -238,9 +296,53 @@
             </div>
         </div>
 
+        <!-- TAB: MY SUBSCRIPTIONS -->
+        <div id="tab-subscriptions" class="tab-content">
+            <div class="cywila-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 style="color: #60A5FA; margin: 0; font-size: 1.2rem;">📅 Active Subscriptions & Retainers</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Track your recurring laundry allowances, bespoke retainers, quota usage, and pickup schedules.</p>
+                    </div>
+                    <button class="btn-sm btn" onclick="loadSubscriptions()" style="width: auto; background: var(--bg-input); border: 1px solid var(--border-color);">🔄 Refresh Plans</button>
+                </div>
+                <div id="subscriptionsList">
+                    <p style="color: var(--text-muted); padding: 1rem 0;">Loading your active plans...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB 4: ACCOUNT -->
         <div id="tab-account" class="tab-content">
+            <!-- VIP STATUS & SPENDING PROGRESS -->
             <div class="cywila-card" style="border-left: 4px solid var(--gold); background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(236,72,153,0.08) 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 0.8rem;">
+                    <div>
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Client Standing</span>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                            <h3 id="vipLevelName" style="margin: 0; font-size: 1.3rem; color: #fff;">Insider Member</h3>
+                            <span id="vipBadge" class="spending-badge badge-insider">INSIDER</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Verified Lifetime Spend</span>
+                        <div id="vipLifetimeSpend" style="font-size: 1.25rem; font-weight: 700; color: var(--gold);">₦0</div>
+                    </div>
+                </div>
+
+                <div id="vipNextTierBox" style="margin-top: 0.8rem; background: rgba(0,0,0,0.25); padding: 0.9rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                        <span id="vipProgressLabel" style="color: var(--text-subtle);">Progress to Premium (₦250k):</span>
+                        <strong id="vipProgressPercent" style="color: var(--gold);">0%</strong>
+                    </div>
+                    <div class="vip-tier-progress-track">
+                        <div id="vipProgressFill" class="vip-tier-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <p id="vipRemainingNotice" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></p>
+                </div>
+            </div>
+
+            <div class="cywila-card" style="border-left: 4px solid var(--primary); background: rgba(124,58,237,0.08);">
                 <p style="font-size: 1.1rem;">💎 Loyalty Points: <strong id="loyaltyPoints" style="color: var(--gold); font-size: 1.4rem;">0</strong></p>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">Earn points on every laundry or bespoke tailoring booking to redeem future discounts.</p>
             </div>
@@ -543,6 +645,7 @@ async function initCustomerDashboard() {
     loadCatalog();
     await loadOrders();
     loadAccount();
+    loadSubscriptions();
     updateCart();
 }
 
@@ -584,6 +687,9 @@ async function loadCatalog() {
             if (Array.isArray(catalogData.outfits)) {
                 localStorage.setItem('couture_outfits_v15', JSON.stringify(catalogData.outfits));
             }
+            if (Array.isArray(catalogData.fabricProvided)) {
+                localStorage.setItem('couture_fabric_provided', JSON.stringify(catalogData.fabricProvided));
+            }
             if (Array.isArray(catalogData.laundryPlans)) {
                 localStorage.setItem('couture_laundry_plans', JSON.stringify(catalogData.laundryPlans));
             }
@@ -596,6 +702,7 @@ async function loadCatalog() {
         catalogData = {
             laundry: JSON.parse(localStorage.getItem('couture_laundry_v15') || '[]'),
             outfits: JSON.parse(localStorage.getItem('couture_outfits_v15') || '[]'),
+            fabricProvided: JSON.parse(localStorage.getItem('couture_fabric_provided') || '[]'),
             laundryPlans: JSON.parse(localStorage.getItem('couture_laundry_plans') || '[]'),
             tailoringPlans: JSON.parse(localStorage.getItem('couture_tailoring_plans') || '[]')
         };
@@ -632,6 +739,23 @@ function renderCatalog() {
         '</div>';
     });
     document.getElementById('tailoringGrid').innerHTML = html || '<p style="color:var(--text-muted);">No tailoring items available</p>';
+
+    // Bespoke Sewing - Client Provides Own Fabric (Workmanship Only)
+    html = '';
+    (catalogData.fabricProvided || []).forEach(f => {
+        html += '<div class="service-item" style="border-top: 2px solid var(--gold);">' +
+            '<div>' +
+                '<h4>' + f.name + '</h4>' +
+                '<p>' + (f.description || 'Master artisan sewing for client-provided fabric. Turnaround tiers apply.') + '</p>' +
+                '<div class="service-price">₦' + Number(f.price).toLocaleString() + ' <span style="font-size:0.75rem; color:#FBBF24; font-weight:600;">(Workmanship)</span></div>' +
+            '</div>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + f.id + '\', \'tailoring\', ' + f.price + ', \'' + escapeHtml(f.name + ' (Workmanship Only)') + '\')">+ Add to Cart</button>' +
+        '</div>';
+    });
+    var fabricEl = document.getElementById('fabricProvidedGrid');
+    if (fabricEl) {
+        fabricEl.innerHTML = html || '<p style="color:var(--text-muted);">No fabric sewing services available</p>';
+    }
 
     // Laundry Plans
     html = '';
@@ -1186,6 +1310,211 @@ function viewOrderInvoice(orderId) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
+// ============ VIP SPENDING LADDER & CLIENT STANDING ============
+function updateSpendingLevel(totalSpent) {
+    var spent = Number(totalSpent) || 0;
+    var badgeEl = document.getElementById('vipBadge');
+    var nameEl = document.getElementById('vipLevelName');
+    var spendEl = document.getElementById('vipLifetimeSpend');
+    var labelEl = document.getElementById('vipProgressLabel');
+    var pctEl = document.getElementById('vipProgressPercent');
+    var fillEl = document.getElementById('vipProgressFill');
+    var noticeEl = document.getElementById('vipRemainingNotice');
+
+    if (spendEl) spendEl.textContent = '₦' + spent.toLocaleString();
+
+    var currentTier = 'Insider';
+    var badgeClass = 'badge-insider';
+    var nextTier = 'Premium';
+    var nextThreshold = 250000;
+    var baseThreshold = 0;
+
+    if (spent >= 1000000) {
+        currentTier = 'VVIP Patron';
+        badgeClass = 'badge-vvip';
+        nextTier = null;
+        nextThreshold = 1000000;
+        baseThreshold = 1000000;
+    } else if (spent >= 500000) {
+        currentTier = 'VIP Client';
+        badgeClass = 'badge-vip';
+        nextTier = 'VVIP Patron';
+        nextThreshold = 1000000;
+        baseThreshold = 500000;
+    } else if (spent >= 250000) {
+        currentTier = 'Prestige Client';
+        badgeClass = 'badge-prestige';
+        nextTier = 'VIP Client';
+        nextThreshold = 500000;
+        baseThreshold = 250000;
+    } else if (spent >= 100000) {
+        currentTier = 'Premium Client';
+        badgeClass = 'badge-premium';
+        nextTier = 'Prestige Client';
+        nextThreshold = 250000;
+        baseThreshold = 100000;
+    } else {
+        currentTier = 'Insider Member';
+        badgeClass = 'badge-insider';
+        nextTier = 'Premium Client';
+        nextThreshold = 100000;
+        baseThreshold = 0;
+    }
+
+    if (nameEl) nameEl.textContent = currentTier;
+    if (badgeEl) {
+        badgeEl.className = 'spending-badge ' + badgeClass;
+        badgeEl.textContent = currentTier.toUpperCase();
+    }
+
+    if (nextTier) {
+        var range = nextThreshold - baseThreshold;
+        var progressIntoTier = Math.max(0, spent - baseThreshold);
+        var pct = Math.min(100, Math.round((progressIntoTier / range) * 100));
+        var remaining = Math.max(0, nextThreshold - spent);
+
+        if (labelEl) labelEl.textContent = 'Progress to ' + nextTier + ' (₦' + (nextThreshold / 1000) + 'k):';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (noticeEl) noticeEl.innerHTML = 'Spend <strong>₦' + remaining.toLocaleString() + '</strong> more to unlock exclusive ' + nextTier + ' concierge perks and tier discounts.';
+    } else {
+        if (labelEl) labelEl.textContent = 'Highest Standing Achieved:';
+        if (pctEl) pctEl.textContent = '100%';
+        if (fillEl) fillEl.style.width = '100%';
+        if (noticeEl) noticeEl.innerHTML = '👑 You have unlocked Top-Tier VVIP Bespoke Privileges & Dedicated Concierge.';
+    }
+}
+
+// ============ CLOUD SUBSCRIPTIONS ============
+var customerSubscriptions = [];
+
+async function loadSubscriptions() {
+    var container = document.getElementById('subscriptionsList');
+    if (!container) return;
+
+    if (!customerToken) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">Please sign in to view your subscriptions.</p>';
+        return;
+    }
+
+    container.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">Fetching cloud subscription records...</p>';
+
+    try {
+        var res = await fetch('/api/subscriptions', {
+            headers: { 'Authorization': 'Bearer ' + customerToken }
+        });
+        var data = await res.json();
+        if (res.ok && Array.isArray(data.subscriptions)) {
+            customerSubscriptions = data.subscriptions;
+            renderSubscriptions();
+        } else {
+            container.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">No active subscriptions or retainers found. Subscribe to a plan from Services & Plans to unlock scheduled garment care!</p>';
+        }
+    } catch(err) {
+        container.innerHTML = '<p style="color:#ef4444; padding:1rem 0;">Could not connect to subscription services: ' + err.message + '</p>';
+    }
+}
+
+function renderSubscriptions() {
+    var container = document.getElementById('subscriptionsList');
+    if (!container) return;
+
+    if (!customerSubscriptions || customerSubscriptions.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:2rem 1rem;">' +
+            '<p style="color:var(--text-muted); margin-bottom:1rem;">You currently do not have any active laundry subscriptions or tailoring retainers.</p>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="switchCustomerTab(\'shop\')" style="width:auto;">Browse Plans & Subscribe</button>' +
+        '</div>';
+        return;
+    }
+
+    var html = '';
+    customerSubscriptions.forEach(sub => {
+        var status = (sub.status || 'ACTIVE').toUpperCase();
+        var statusBadgeClass = 'sub-badge-active';
+        if (status === 'PAUSED') statusBadgeClass = 'sub-badge-paused';
+        else if (status === 'EXPIRED' || status === 'CANCELLED') statusBadgeClass = 'sub-badge-expired';
+
+        var quota = Number(sub.itemsQuota || sub.itemsTotal || 0);
+        var used = Number(sub.itemsUsed || 0);
+        var remaining = Math.max(0, quota - used);
+        var pct = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0;
+
+        var nextPickup = sub.nextPickupDate ? new Date(sub.nextPickupDate).toLocaleDateString('en-GB') : 'Every ' + (sub.frequency || 'Week');
+        var startDate = sub.startDate ? new Date(sub.startDate).toLocaleDateString('en-GB') : 'Active';
+
+        html += '<div class="subscription-item">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">' +
+                '<div>' +
+                    '<h4 style="margin:0; font-size:1.15rem; color:#fff;">' + (sub.planName || 'Care Subscription') + '</h4>' +
+                    '<p style="color:var(--text-muted); font-size:0.85rem; margin:3px 0 0;">ID: #' + (sub.id || sub.subscriptionId) + ' • ' + (sub.frequency || 'Monthly') + ' Plan</p>' +
+                '</div>' +
+                '<span class="subscription-status ' + statusBadgeClass + '">' + status + '</span>' +
+            '</div>' +
+
+            '<div style="margin-top:1rem; background:rgba(0,0,0,0.25); padding:0.9rem; border-radius:8px;">' +
+                '<div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">' +
+                    '<span style="color:var(--text-subtle);">Garments / Items Allowance:</span>' +
+                    '<strong style="color:var(--gold);">' + used + ' / ' + quota + ' Used (' + remaining + ' Remaining)</strong>' +
+                '</div>' +
+                '<div class="vip-tier-progress-track">' +
+                    '<div class="vip-tier-progress-fill" style="width: ' + pct + '%;"></div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-top:0.9rem; font-size:0.85rem;">' +
+                '<div style="background:var(--bg-input); padding:0.6rem; border-radius:6px;">' +
+                    '<span style="color:var(--text-muted); display:block; font-size:0.75rem;">Started</span>' +
+                    '<strong style="color:#fff;">' + startDate + '</strong>' +
+                '</div>' +
+                '<div style="background:var(--bg-input); padding:0.6rem; border-radius:6px;">' +
+                    '<span style="color:var(--text-muted); display:block; font-size:0.75rem;">Next Pickup</span>' +
+                    '<strong style="color:var(--primary);">' + nextPickup + '</strong>' +
+                '</div>' +
+                '<div style="background:var(--bg-input); padding:0.6rem; border-radius:6px;">' +
+                    '<span style="color:var(--text-muted); display:block; font-size:0.75rem;">Price</span>' +
+                    '<strong style="color:var(--gold);">₦' + Number(sub.price || 0).toLocaleString() + '</strong>' +
+                '</div>' +
+            '</div>' +
+
+            '<div style="margin-top:1rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                (status === 'ACTIVE' ? 
+                    '<button class="btn-sm btn" onclick="updateSubscriptionStatus(\'' + sub.id + '\', \'PAUSED\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.8rem; background:rgba(245,158,11,0.2); color:#FBBF24; border:1px solid #F59E0B;">⏸️ Pause Plan</button>' : 
+                    (status === 'PAUSED' ? 
+                        '<button class="btn-sm btn" onclick="updateSubscriptionStatus(\'' + sub.id + '\', \'ACTIVE\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.8rem; background:rgba(16,185,129,0.2); color:#10b981; border:1px solid #10b981;">▶️ Resume Plan</button>' : 
+                        ''
+                    )
+                ) +
+                '<a href="https://wa.me/' + ((businessSettings.whatsapp || '+2348000000000').replace(/[^0-9]/g, '')) + '?text=' + encodeURIComponent('Hello Couture dé Cywila! Regarding my subscription #' + sub.id + ' (' + sub.planName + '): ') + '" target="_blank" class="whatsapp-btn" style="padding:0.45rem 0.9rem; font-size:0.8rem;">💬 Inquire Concierge</a>' +
+            '</div>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+async function updateSubscriptionStatus(subId, newStatus) {
+    if (!confirm('Are you sure you want to ' + (newStatus === 'PAUSED' ? 'pause' : 'resume') + ' this subscription?')) return;
+
+    try {
+        var res = await fetch('/api/subscriptions', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify({ id: subId, status: newStatus })
+        });
+        var data = await res.json();
+        if (res.ok) {
+            await loadSubscriptions();
+        } else {
+            alert('Could not update subscription: ' + (data.error || 'Server error'));
+        }
+    } catch(err) {
+        alert('Network error: ' + err.message);
+    }
+}
+
 // ============ ACCOUNT DETAILS ============
 function loadAccount() {
     if (!currentCustomer) return;
@@ -1198,6 +1527,21 @@ function loadAccount() {
     document.getElementById('totalOrders').textContent = couture_orders.length;
     var spent = couture_orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     document.getElementById('totalSpent').textContent = '₦' + spent.toLocaleString();
+
+    // Calculate favorite turnaround tier
+    if (couture_orders.length > 0) {
+        var tierCounts = {};
+        couture_orders.forEach(o => {
+            var t = o.tierName || o.tierId || 'STANDARD';
+            tierCounts[t] = (tierCounts[t] || 0) + 1;
+        });
+        var fav = Object.keys(tierCounts).reduce((a, b) => tierCounts[a] > tierCounts[b] ? a : b);
+        var favEl = document.getElementById('favoriteTier');
+        if (favEl) favEl.textContent = fav;
+    }
+
+    // Update VIP Level & Progress Ladder
+    updateSpendingLevel(spent);
 }
 
 async function editAccount() {
@@ -1324,12 +1668,25 @@ async function completePasswordReset() {
 }
 
 // ============ TABS & MODALS ============
-function switchCustomerTab(tabName) {
+function switchCustomerTab(tabName, btn) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     var target = document.getElementById('tab-' + tabName);
     if (target) target.classList.add('active');
-    if (event && event.target) event.target.classList.add('active');
+    
+    if (btn) {
+        btn.classList.add('active');
+    } else if (window.event && window.event.target && window.event.target.classList.contains('tab-btn')) {
+        window.event.target.classList.add('active');
+    }
+
+    if (tabName === 'subscriptions') {
+        loadSubscriptions();
+    } else if (tabName === 'orders') {
+        loadOrders();
+    } else if (tabName === 'account') {
+        loadAccount();
+    }
 }
 
 function closeModal(modalId) {

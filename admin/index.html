@@ -452,6 +452,30 @@
                 </table>
             </div>
 
+            <!-- 2B. CLIENT FABRIC BESPOKE SEWING (WORKMANSHIP ONLY) -->
+            <div class="card" style="border-left: 4px solid var(--gold);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 style="color: #FBBF24; margin: 0;">✂️ Client Fabric Sewing - Workmanship Only (<span id="countFabricProvided">0</span>)</h3>
+                        <p style="color: #999; font-size: 0.85rem; margin-top: 4px;">Styles sewn when client supplies their own fabric. Turnaround tiers apply.</p>
+                    </div>
+                    <button class="btn btn-sm" onclick="openAddFabricProvidedModal()" style="background: #F59E0B; color: black; font-weight: 700;">➕ Add Client Fabric Service</button>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Garment / Style</th>
+                            <th>Workmanship Fee (₦)</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogFabricProvidedTable">
+                        <tr><td colspan="4" style="text-align: center; color: #999;">Loading client fabric services...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
             <!-- 3. LAUNDRY SUBSCRIPTION PLANS -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
@@ -801,6 +825,30 @@
         <button class="btn btn-success" onclick="saveOutfitItem()">Save Garment</button>
         <button class="btn btn-danger" onclick="closeModal('outfitItemModal')">Cancel</button>
         <div id="outfitModalMsg" style="margin-top: 0.5rem;"></div>
+    </div>
+</div>
+
+<!-- CLIENT FABRIC SEWING ITEM MODAL -->
+<div id="fabricProvidedItemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('fabricProvidedItemModal')">&times;</span>
+        <h3 id="fabricProvidedModalTitle" style="color: #FBBF24;">Add Client Fabric Sewing Style</h3>
+        <input type="hidden" id="fabricProvidedItemId">
+        <div class="form-group">
+            <label>Garment Style Name</label>
+            <input type="text" id="fabricProvidedItemName" placeholder="e.g. Senator Suit (Client Provides Fabric)">
+        </div>
+        <div class="form-group">
+            <label>Workmanship / Sewing Fee (₦)</label>
+            <input type="number" id="fabricProvidedItemPrice" placeholder="25000">
+        </div>
+        <div class="form-group">
+            <label>Description / Notes</label>
+            <input type="text" id="fabricProvidedItemDesc" placeholder="e.g. Master cut, precision stitching & hand-finished lining">
+        </div>
+        <button class="btn btn-success" onclick="saveFabricProvidedItem()">Save Service</button>
+        <button class="btn btn-danger" onclick="closeModal('fabricProvidedItemModal')">Cancel</button>
+        <div id="fabricProvidedModalMsg" style="margin-top: 0.5rem;"></div>
     </div>
 </div>
 
@@ -2246,6 +2294,8 @@ var laundryModalMode = 'add';
 var laundryEditId = null;
 var outfitModalMode = 'add';
 var outfitEditId = null;
+var fabricProvidedModalMode = 'add';
+var fabricProvidedEditId = null;
 var planModalMode = 'add';
 var planEditId = null;
 var tailoringPlanModalMode = 'add';
@@ -2254,6 +2304,7 @@ var tailoringPlanEditId = null;
 async function syncCatalogToCloud() {
     var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
     var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var fabricProvided = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
     var laundryPlans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
     var tailoringPlans = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
     
@@ -2269,6 +2320,7 @@ async function syncCatalogToCloud() {
                     catalog: {
                         laundry: laundry,
                         outfits: outfits,
+                        fabricProvided: fabricProvided,
                         laundryPlans: laundryPlans,
                         tailoringPlans: tailoringPlans
                     }
@@ -2288,6 +2340,7 @@ async function loadCatalogManager() {
         if (data && data.catalog) {
             if (Array.isArray(data.catalog.laundry)) localStorage.setItem('couture_laundry_v15', JSON.stringify(data.catalog.laundry));
             if (Array.isArray(data.catalog.outfits)) localStorage.setItem('couture_outfits_v15', JSON.stringify(data.catalog.outfits));
+            if (Array.isArray(data.catalog.fabricProvided)) localStorage.setItem('couture_fabric_provided', JSON.stringify(data.catalog.fabricProvided));
             if (Array.isArray(data.catalog.laundryPlans)) localStorage.setItem('couture_laundry_plans', JSON.stringify(data.catalog.laundryPlans));
             if (Array.isArray(data.catalog.tailoringPlans)) localStorage.setItem('couture_tailoring_plans', JSON.stringify(data.catalog.tailoringPlans));
         }
@@ -2295,15 +2348,18 @@ async function loadCatalogManager() {
 
     var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
     var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var fabricProvided = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
     var laundryPlans = JSON.parse(localStorage.getItem('couture_laundry_plans')) || [];
     var tailoringPlans = JSON.parse(localStorage.getItem('couture_tailoring_plans')) || [];
 
     var countL = document.getElementById('countLaundry');
     var countT = document.getElementById('countTailoring');
+    var countFP = document.getElementById('countFabricProvided');
     var countLP = document.getElementById('countLaundryPlans');
     var countTP = document.getElementById('countTailoringPlans');
     if (countL) countL.textContent = laundry.length;
     if (countT) countT.textContent = outfits.length;
+    if (countFP) countFP.textContent = fabricProvided.length;
     if (countLP) countLP.textContent = laundryPlans.length;
     if (countTP) countTP.textContent = tailoringPlans.length;
 
@@ -2338,6 +2394,22 @@ async function loadCatalogManager() {
     });
     var elT = document.getElementById('catalogTailoringTable');
     if (elT) elT.innerHTML = tHtml || '<tr><td colspan="4" style="text-align:center; color:#999;">No tailoring garments added</td></tr>';
+
+    // 2B. Client Fabric Sewing Table (Workmanship Only)
+    var fpHtml = '';
+    fabricProvided.forEach(item => {
+        fpHtml += '<tr>' +
+            '<td><code>' + item.id + '</code></td>' +
+            '<td><strong>' + item.name + '</strong><br><small style="color:#9CA3AF;">' + (item.description || 'Client provides own fabric') + '</small></td>' +
+            '<td style="color: #FBBF24; font-weight: 600;">₦' + Number(item.price).toLocaleString() + '</td>' +
+            '<td style="text-align: right;">' +
+                '<button class="btn-sm btn btn-secondary" onclick="openEditFabricProvidedModal(\'' + item.id + '\')">Edit</button>' +
+                '<button class="btn-sm btn btn-danger" onclick="deleteFabricProvidedItem(\'' + item.id + '\')">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    });
+    var elFP = document.getElementById('catalogFabricProvidedTable');
+    if (elFP) elFP.innerHTML = fpHtml || '<tr><td colspan="4" style="text-align:center; color:#999;">No client fabric sewing services added</td></tr>';
 
     // 3. Laundry Plans Table
     var lpHtml = '';
@@ -2374,6 +2446,99 @@ async function loadCatalogManager() {
     });
     var elTP = document.getElementById('catalogTailoringPlansTable');
     if (elTP) elTP.innerHTML = tpHtml || '<tr><td colspan="6" style="text-align:center; color:#999;">No retainer plans added</td></tr>';
+}
+
+function openAddFabricProvidedModal() {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin' && currentUser.role !== 'Manager') {
+        alert('Permission Denied: Only Managers, Admins, and Super Admins can add or edit sewing pricing.');
+        return;
+    }
+    fabricProvidedModalMode = 'add';
+    fabricProvidedEditId = null;
+    document.getElementById('fabricProvidedModalTitle').textContent = 'Add Client Fabric Sewing Style';
+    document.getElementById('fabricProvidedItemId').value = '';
+    document.getElementById('fabricProvidedItemName').value = '';
+    document.getElementById('fabricProvidedItemPrice').value = '';
+    document.getElementById('fabricProvidedItemDesc').value = '';
+    document.getElementById('fabricProvidedModalMsg').innerHTML = '';
+    var modal = document.getElementById('fabricProvidedItemModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
+}
+
+function openEditFabricProvidedModal(id) {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin' && currentUser.role !== 'Manager') {
+        alert('Permission Denied: Only Managers, Admins, and Super Admins can add or edit sewing pricing.');
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
+    var item = list.find(i => i.id === id);
+    if (!item) return;
+    fabricProvidedModalMode = 'edit';
+    fabricProvidedEditId = id;
+    document.getElementById('fabricProvidedModalTitle').textContent = 'Edit Client Fabric Sewing Style';
+    document.getElementById('fabricProvidedItemId').value = item.id;
+    document.getElementById('fabricProvidedItemName').value = item.name;
+    document.getElementById('fabricProvidedItemPrice').value = item.price;
+    document.getElementById('fabricProvidedItemDesc').value = item.description || '';
+    document.getElementById('fabricProvidedModalMsg').innerHTML = '';
+    var modal = document.getElementById('fabricProvidedItemModal');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
+}
+
+async function saveFabricProvidedItem() {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin' && currentUser.role !== 'Manager') {
+        alert('Permission Denied: Only Managers, Admins, and Super Admins can save sewing pricing.');
+        return;
+    }
+    var name = document.getElementById('fabricProvidedItemName').value.trim();
+    var price = Number(document.getElementById('fabricProvidedItemPrice').value);
+    var desc = document.getElementById('fabricProvidedItemDesc').value.trim();
+    var msg = document.getElementById('fabricProvidedModalMsg');
+    if (!name || isNaN(price) || price < 0) {
+        msg.innerHTML = '<span class="error-msg">Please enter valid garment style and workmanship price</span>';
+        return;
+    }
+    var list = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
+    if (fabricProvidedModalMode === 'add') {
+        var newId = 'TLR-W0' + (list.length + 1);
+        list.push({ id: newId, name: name, price: price, description: desc });
+        logAudit('Add Client Fabric Style', 'Added ' + name + ' (₦' + price + ')');
+    } else {
+        var idx = list.findIndex(i => i.id === fabricProvidedEditId);
+        if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].price = price;
+            list[idx].description = desc;
+            logAudit('Edit Client Fabric Style', 'Updated ' + name + ' (₦' + price + ')');
+        }
+    }
+    localStorage.setItem('couture_fabric_provided', JSON.stringify(list));
+    await syncCatalogToCloud();
+    msg.innerHTML = '<span class="success-msg">✓ Sewing service saved! Synced to cloud and customer portal.</span>';
+    setTimeout(function() {
+        closeModal('fabricProvidedItemModal');
+        loadCatalogManager();
+    }, 600);
+}
+
+async function deleteFabricProvidedItem(id) {
+    if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin' && currentUser.role !== 'Manager') {
+        alert('Permission Denied: Only Managers, Admins, and Super Admins can delete sewing pricing.');
+        return;
+    }
+    if (!confirm('Are you sure you want to delete this client fabric sewing service?')) return;
+    var list = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
+    list = list.filter(i => i.id !== id);
+    localStorage.setItem('couture_fabric_provided', JSON.stringify(list));
+    await syncCatalogToCloud();
+    logAudit('Delete Client Fabric Style', 'Deleted item ' + id);
+    loadCatalogManager();
 }
 
 function openAddLaundryModal() {
@@ -2707,14 +2872,19 @@ function openWalkInOrderModal() {
 function populateAdminWalkInServices() {
     var laundry = JSON.parse(localStorage.getItem('couture_laundry_v15')) || [];
     var outfits = JSON.parse(localStorage.getItem('couture_outfits_v15')) || [];
+    var fabricProvided = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
     var select = document.getElementById('adminWalkInServiceSelect');
     var html = '<optgroup label="🧺 Laundry & Care Services">';
     laundry.forEach(s => {
         html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
     });
-    html += '</optgroup><optgroup label="✂️ Bespoke Tailoring Services">';
+    html += '</optgroup><optgroup label="✂️ Bespoke Tailoring (Fabric Included)">';
     outfits.forEach(s => {
         html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="tailoring">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric)">';
+    fabricProvided.forEach(s => {
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + ' (Workmanship)" data-type="tailoring">' + s.name + ' (Workmanship: ₦' + Number(s.price).toLocaleString() + ')</option>';
     });
     html += '</optgroup>';
     select.innerHTML = html;

@@ -604,9 +604,13 @@ function populateWalkInServices() {
     (catalogData.laundry || []).forEach(s => {
         html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + escapeHtml(s.name) + '" data-type="laundry">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
     });
-    html += '</optgroup><optgroup label="✂️ Tailoring Services">';
+    html += '</optgroup><optgroup label="✂️ Tailoring (Fabric Included)">';
     (catalogData.outfits || []).forEach(o => {
         html += '<option value="' + o.id + '" data-price="' + o.price + '" data-name="' + escapeHtml(o.name) + '" data-type="tailoring">' + o.name + ' (₦' + Number(o.price).toLocaleString() + ')</option>';
+    });
+    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric)">';
+    (catalogData.fabricProvided || []).forEach(f => {
+        html += '<option value="' + f.id + '" data-price="' + f.price + '" data-name="' + escapeHtml(f.name + ' (Workmanship)') + '" data-type="tailoring">' + f.name + ' (Workmanship: ₦' + Number(f.price).toLocaleString() + ')</option>';
     });
     html += '</optgroup>';
     select.innerHTML = html;

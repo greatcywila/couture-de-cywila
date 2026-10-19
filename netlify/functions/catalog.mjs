@@ -22,6 +22,13 @@ const DEFAULT_CATALOG = {
         { id: 'TLR-204', name: 'Bespoke Evening / Bridal Gown', price: 95000 },
         { id: 'TLR-205', name: 'Precision Alteration & Refitting', price: 5000 }
     ],
+    fabricProvided: [
+        { id: 'TLR-W01', name: 'Senator Suit Sewing (Client Fabric)', price: 15000 },
+        { id: 'TLR-W02', name: 'Royal Agbada 3-Piece Tailoring (Client Fabric)', price: 28000 },
+        { id: 'TLR-W03', name: 'Executive Suit Tailoring (Client Fabric)', price: 35000 },
+        { id: 'TLR-W04', name: 'Female Gown / Kaftan Sewing (Client Fabric)', price: 18000 },
+        { id: 'TLR-W05', name: 'Shirt & Trouser Tailoring (Client Fabric)', price: 12000 }
+    ],
     laundryPlans: [
         { id: 'PLN-301', name: 'Executive Weekly Plan', items: 15, frequency: 'Weekly', price: 18000 },
         { id: 'PLN-302', name: 'Family Monthly Plan', items: 50, frequency: 'Monthly', price: 55000 },
@@ -47,6 +54,9 @@ export default async (req) => {
         let catalog = await readKey('catalog', null);
         if (!catalog || !catalog.laundry) {
             catalog = DEFAULT_CATALOG;
+            await writeKey('catalog', catalog);
+        } else if (!catalog.fabricProvided) {
+            catalog.fabricProvided = DEFAULT_CATALOG.fabricProvided;
             await writeKey('catalog', catalog);
         }
 
