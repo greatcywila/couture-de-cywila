@@ -96,6 +96,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchStaffTab('tasks')">📋 Production Queue</button>
             <button class="tab-btn" onclick="openWalkInModal()" style="color: #34D399; font-weight: 700; background: rgba(16,185,129,0.1); border-radius: 6px;">➕ Front-Desk Walk-In (POS)</button>
+            <button class="tab-btn" id="staffSubTabBtn" onclick="switchStaffTab('subscriptions')" style="display:none; color: #60A5FA; font-weight: 700; background: rgba(96,165,250,0.1); border-radius: 6px;">📅 Subscriptions</button>
             <button class="tab-btn" id="earningsTabBtn" onclick="switchStaffTab('earnings')">💰 My Earnings</button>
             <button class="tab-btn" id="performanceTabBtn" onclick="switchStaffTab('performance')">📊 Performance</button>
         </div>
@@ -158,6 +159,38 @@
             <div class="cywila-card">
                 <h3 style="margin-bottom: 1rem;">Tier Completion Metrics</h3>
                 <div id="performanceDisplay"></div>
+            </div>
+        </div>
+
+        <!-- SUBSCRIPTIONS TAB (Strictly Receptionist, Manager, Admin, Super Admin) -->
+        <div id="tab-subscriptions" class="tab-content">
+            <div class="cywila-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h2 style="color: #60A5FA; margin: 0; font-size: 1.3rem;">📅 Active Client Care Subscriptions</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Log garments brought in by walk-in subscribed clients to deduct from their plan quota.</p>
+                    </div>
+                    <button class="btn-sm btn" onclick="loadStaffSubscriptions()" style="width: auto; background: var(--bg-input); border: 1px solid var(--border-color);">🔄 Refresh Subscriptions</button>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <input type="text" id="staffSubSearchInput" onkeyup="filterStaffSubscriptions()" placeholder="🔍 Search by client name, email, phone, or plan..." class="cywila-input" style="max-width: 420px;">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="cywila-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.82rem;">
+                                <th style="padding: 10px;">Client</th>
+                                <th style="padding: 10px;">Subscription Plan</th>
+                                <th style="padding: 10px;">Garment Usage</th>
+                                <th style="padding: 10px;">Status</th>
+                                <th style="padding: 10px; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffSubscriptionsList">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Loading client subscriptions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -367,6 +400,19 @@ function initStaffPortal() {
     if (currentStaff.role === 'Receptionist') {
         var rBanner = document.getElementById('receptionistBanner');
         if (rBanner) rBanner.style.display = 'flex';
+    }
+
+    // Role-locked Subscriptions tab: ONLY Super Admin, Admin, Manager, Receptionist
+    // Operational staff (Tailor, Washer, Ironer, Driver) are strictly locked out
+    var allowedSubRoles = ['Super Admin', 'Admin', 'Manager', 'Receptionist'];
+    var subTabBtn = document.getElementById('staffSubTabBtn');
+    if (subTabBtn) {
+        if (allowedSubRoles.includes(currentStaff.role)) {
+            subTabBtn.style.display = 'inline-block';
+            loadStaffSubscriptions();
+        } else {
+            subTabBtn.style.display = 'none';
+        }
     }
 
     loadStaffCatalog();
@@ -608,9 +654,9 @@ function populateWalkInServices() {
     (catalogData.outfits || []).forEach(o => {
         html += '<option value="' + o.id + '" data-price="' + o.price + '" data-name="' + escapeHtml(o.name) + '" data-type="tailoring">' + o.name + ' (₦' + Number(o.price).toLocaleString() + ')</option>';
     });
-    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric)">';
+    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric - Craftsmanship)">';
     (catalogData.fabricProvided || []).forEach(f => {
-        html += '<option value="' + f.id + '" data-price="' + f.price + '" data-name="' + escapeHtml(f.name + ' (Workmanship)') + '" data-type="tailoring">' + f.name + ' (Workmanship: ₦' + Number(f.price).toLocaleString() + ')</option>';
+        html += '<option value="' + f.id + '" data-price="' + f.price + '" data-name="' + escapeHtml(f.name + ' (Craftsmanship)') + '" data-type="tailoring">' + f.name + ' (Craftsmanship: ₦' + Number(f.price).toLocaleString() + ')</option>';
     });
     html += '</optgroup>';
     select.innerHTML = html;
@@ -868,6 +914,183 @@ function closeModal(modalId) {
 
 function escapeHtml(str) {
     return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ============ CLIENT SUBSCRIPTIONS (MANAGEMENT ONLY) ============
+var staffSubscriptionsList = [];
+
+async function loadStaffSubscriptions() {
+    var allowedSubRoles = ['Super Admin', 'Admin', 'Manager', 'Receptionist'];
+    if (!currentStaff || !allowedSubRoles.includes(currentStaff.role)) return;
+
+    var tbody = document.getElementById('staffSubscriptionsList');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1rem;">Loading client subscriptions...</td></tr>';
+
+    try {
+        var res = await fetch('/api/subscriptions', {
+            headers: staffToken ? { 'Authorization': 'Bearer ' + staffToken } : {}
+        });
+        var data = await res.json();
+        staffSubscriptionsList = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+        renderStaffSubscriptions(staffSubscriptionsList);
+    } catch(err) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ef4444; padding: 1rem;">Failed to load subscriptions: ' + (err.message || 'Offline') + '</td></tr>';
+    }
+}
+
+function renderStaffSubscriptions(list) {
+    var tbody = document.getElementById('staffSubscriptionsList');
+    if (!tbody) return;
+
+    if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No client subscriptions found.</td></tr>';
+        return;
+    }
+
+    var html = '';
+    list.forEach(sub => {
+        var quota = Number(sub.itemsQuota || sub.quotaItems || 15);
+        var used = Number(sub.itemsUsed || 0);
+        var remaining = Math.max(0, quota - used);
+        var pct = quota > 0 ? Math.min(100, Math.round((used / quota) * 100)) : 0;
+        var status = (sub.status || 'ACTIVE').toUpperCase();
+        var statusColor = status === 'ACTIVE' ? '#10b981' : (status === 'COMPLETED' ? '#60a5fa' : '#f59e0b');
+
+        var custName = sub.customerName || 'Client';
+        var custContact = sub.customerPhone || sub.customerEmail || sub.customerId || '';
+
+        html += '<tr style="border-bottom: 1px solid var(--border-color);">' +
+            '<td style="padding: 10px;">' +
+                '<strong>' + escapeHtml(custName) + '</strong><br>' +
+                '<small style="color: var(--text-muted);">' + escapeHtml(custContact) + '</small>' +
+            '</td>' +
+            '<td style="padding: 10px;">' +
+                '<strong>' + escapeHtml(sub.planName || 'Care Subscription') + '</strong><br>' +
+                '<span style="font-size: 0.75rem; color: #A78BFA;">' + (sub.frequency || 'Monthly') + ' (' + (sub.planType || 'laundry') + ')</span>' +
+            '</td>' +
+            '<td style="padding: 10px; min-width: 170px;">' +
+                '<div style="font-size: 0.85rem; margin-bottom: 4px; display: flex; justify-content: space-between;">' +
+                    '<strong style="color: var(--gold);">' + used + ' / ' + quota + '</strong> ' +
+                    '<span style="color: var(--text-muted);">(' + remaining + ' left)</span>' +
+                '</div>' +
+                '<div style="background: var(--bg-input); height: 6px; border-radius: 3px; overflow: hidden;">' +
+                    '<div style="height: 100%; width: ' + pct + '%; background: linear-gradient(90deg, #7C3AED, #10B981); border-radius: 3px;"></div>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px;">' +
+                '<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: ' + statusColor + '22; color: ' + statusColor + '; border: 1px solid ' + statusColor + ';">' + status + '</span>' +
+            '</td>' +
+            '<td style="padding: 10px; text-align: right;">' +
+                (remaining > 0 && status === 'ACTIVE' ?
+                    '<button class="btn-sm btn" onclick="promptStaffLogGarments(\'' + sub.id + '\')" style="background: #10b981; color: #000; font-weight: 700; padding: 4px 10px;">🧺 Log Garments</button>' :
+                    '<span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">Quota Exhausted</span>'
+                ) +
+            '</td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = html;
+}
+
+function filterStaffSubscriptions() {
+    var q = (document.getElementById('staffSubSearchInput').value || '').toLowerCase().trim();
+    if (!q) {
+        renderStaffSubscriptions(staffSubscriptionsList);
+        return;
+    }
+    var filtered = staffSubscriptionsList.filter(s => {
+        var name = (s.customerName || '').toLowerCase();
+        var email = (s.customerEmail || '').toLowerCase();
+        var phone = (s.customerPhone || '').toLowerCase();
+        var plan = (s.planName || '').toLowerCase();
+        return name.includes(q) || email.includes(q) || phone.includes(q) || plan.includes(q);
+    });
+    renderStaffSubscriptions(filtered);
+}
+
+function promptStaffLogGarments(subId) {
+    var allowedSubRoles = ['Super Admin', 'Admin', 'Manager', 'Receptionist'];
+    if (!currentStaff || !allowedSubRoles.includes(currentStaff.role)) {
+        alert('Permission Denied: Operational staff cannot alter client subscription quotas.');
+        return;
+    }
+
+    var sub = staffSubscriptionsList.find(s => s.id === subId);
+    if (!sub) return;
+
+    var quota = Number(sub.itemsQuota || sub.quotaItems || 15);
+    var used = Number(sub.itemsUsed || 0);
+    var remaining = Math.max(0, quota - used);
+
+    if (remaining <= 0) {
+        alert('This client has used all ' + quota + ' garments in this plan cycle.');
+        return;
+    }
+
+    var countStr = prompt(
+        'Client: ' + (sub.customerName || 'Valued Client') + '\n' +
+        'Plan: ' + sub.planName + '\n' +
+        'Remaining Quota: ' + remaining + ' garments.\n\n' +
+        'Enter number of garments client is dropping off today:',
+        '1'
+    );
+    if (!countStr) return;
+
+    var count = parseInt(countStr, 10);
+    if (isNaN(count) || count <= 0) {
+        alert('Please enter a valid positive number of garments.');
+        return;
+    }
+    if (count > remaining) {
+        alert('Cannot log ' + count + ' garments. Only ' + remaining + ' garments remain in this quota.');
+        return;
+    }
+
+    submitStaffGarmentUsage(subId, count);
+}
+
+async function submitStaffGarmentUsage(subId, count) {
+    var sub = staffSubscriptionsList.find(s => s.id === subId);
+    if (!sub) return;
+
+    var quota = Number(sub.itemsQuota || sub.quotaItems || 15);
+    var currentUsed = Number(sub.itemsUsed || 0);
+    var newUsed = Math.min(quota, currentUsed + count);
+
+    try {
+        var res = await fetch('/api/subscriptions', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + staffToken
+            },
+            body: JSON.stringify({
+                id: subId,
+                itemsUsed: newUsed,
+                logUsage: {
+                    itemCount: count,
+                    loggedBy: currentStaff.username + ' (' + currentStaff.role + ')',
+                    note: 'Walk-in drop-off received at front desk'
+                }
+            })
+        });
+
+        var data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to update subscription');
+        }
+
+        alert('✓ Successfully logged ' + count + ' garments for ' + (sub.customerName || 'Client') + '!\nNew quota used: ' + newUsed + ' / ' + quota + '.');
+        if (data.subscription) {
+            var idx = staffSubscriptionsList.findIndex(s => s.id === subId);
+            if (idx !== -1) staffSubscriptionsList[idx] = data.subscription;
+            renderStaffSubscriptions(staffSubscriptionsList);
+        } else {
+            loadStaffSubscriptions();
+        }
+    } catch(err) {
+        alert('Error logging garments: ' + err.message);
+    }
 }
 
 // ============ PWA INSTALL & SERVICE WORKER ============

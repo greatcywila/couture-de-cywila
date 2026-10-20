@@ -229,17 +229,17 @@
             </div>
 
             <div class="cywila-card">
-                <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.2rem;">✂️ Bespoke Tailoring (Couture Fabric Included)</h3>
+                <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.2rem;">✂️ Bespoke Tailoring Service (Cywila Fabric Inclusive)</h3>
                 <div class="grid" id="tailoringGrid"></div>
             </div>
 
             <div class="cywila-card" style="border-left: 4px solid var(--gold);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 0.8rem;">
                     <div>
-                        <h3 style="color: #FBBF24; margin: 0; font-size: 1.2rem;">✂️ Client Provides Own Fabric (Workmanship Only)</h3>
+                        <h3 style="color: #FBBF24; margin: 0; font-size: 1.2rem;">✂️ Client Provides Own Fabric (Craftsmanship)</h3>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Bring or send your fabrics (Lace, Senator, Guinea Brocade, Kaftan) for custom master sewing. Turnaround speed tiers apply.</p>
                     </div>
-                    <span style="font-size: 0.75rem; background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid #F59E0B; padding: 4px 10px; border-radius: 12px; font-weight: 600;">Workmanship Only</span>
+                    <span style="font-size: 0.75rem; background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid #F59E0B; padding: 4px 10px; border-radius: 12px; font-weight: 600;">Craftsmanship</span>
                 </div>
                 <div class="grid" id="fabricProvidedGrid"></div>
             </div>
@@ -318,7 +318,7 @@
             <div class="cywila-card" style="border-left: 4px solid var(--gold); background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(236,72,153,0.08) 100%);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 0.8rem;">
                     <div>
-                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Client Standing</span>
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">Badge Status</span>
                         <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
                             <h3 id="vipLevelName" style="margin: 0; font-size: 1.3rem; color: #fff;">Insider Member</h3>
                             <span id="vipBadge" class="spending-badge badge-insider">INSIDER</span>
@@ -431,6 +431,50 @@
         <button class="cywila-btn-primary" onclick="placeOrder()" id="placeOrderBtn">Confirm & Place Order</button>
         <button class="btn btn-danger" onclick="closeModal('checkoutModal')" style="margin-top: 0.5rem;">Cancel</button>
         <div id="checkoutMsg"></div>
+    </div>
+</div>
+
+<!-- USE SUBSCRIPTION / SEND CLOTHES MODAL -->
+<div id="useSubscriptionModal" class="modal">
+    <div class="modal-content" style="max-width: 520px;">
+        <span class="close-modal" onclick="closeModal('useSubscriptionModal')">&times;</span>
+        <h3 style="color: var(--primary); margin-bottom: 0.3rem; font-size: 1.3rem;">🧺 Send Clothes for Care</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;" id="useSubPlanTitle">Use your active subscription quota</p>
+
+        <input type="hidden" id="useSubId">
+        <input type="hidden" id="useSubMaxRemaining">
+
+        <div style="background: rgba(124,58,237,0.1); border: 1px solid var(--primary); padding: 0.9rem; border-radius: 8px; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                <span style="color: var(--text-subtle);">Remaining Quota:</span>
+                <strong style="color: var(--gold);" id="useSubRemainingDisplay">0 garments</strong>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>How many clothes are you sending? *</label>
+            <input type="number" id="useSubCount" min="1" max="100" placeholder="e.g. 8" class="cywila-input" required style="font-size: 1.1rem; font-weight: 700; text-align: center;">
+            <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 4px;" id="useSubCountHelper">Enter garments count to be deducted from plan quota</small>
+        </div>
+
+        <div class="form-group">
+            <label>Pickup / Collection Address</label>
+            <textarea id="useSubAddress" placeholder="Enter home/office address or leave as Showroom Drop-off" class="cywila-input" style="height: 65px;"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Preferred Pickup / Hand-over Date</label>
+            <input type="date" id="useSubDate" class="cywila-input">
+        </div>
+
+        <div class="form-group">
+            <label>Notes / Instructions (Optional)</label>
+            <input type="text" id="useSubNotes" placeholder="e.g. 4 Senator suits, 2 Kaftans, 2 shirts" class="cywila-input">
+        </div>
+
+        <button class="cywila-btn-primary" onclick="submitSubscriptionUsage()" id="useSubSubmitBtn" style="margin-top: 0.5rem;">Confirm & Send Clothes</button>
+        <button class="btn btn-danger" onclick="closeModal('useSubscriptionModal')" style="margin-top: 0.5rem;">Cancel</button>
+        <div id="useSubMsg" style="margin-top: 0.5rem;"></div>
     </div>
 </div>
 
@@ -740,16 +784,16 @@ function renderCatalog() {
     });
     document.getElementById('tailoringGrid').innerHTML = html || '<p style="color:var(--text-muted);">No tailoring items available</p>';
 
-    // Bespoke Sewing - Client Provides Own Fabric (Workmanship Only)
+    // Bespoke Sewing - Client Provides Own Fabric (Craftsmanship)
     html = '';
     (catalogData.fabricProvided || []).forEach(f => {
         html += '<div class="service-item" style="border-top: 2px solid var(--gold);">' +
             '<div>' +
                 '<h4>' + f.name + '</h4>' +
                 '<p>' + (f.description || 'Master artisan sewing for client-provided fabric. Turnaround tiers apply.') + '</p>' +
-                '<div class="service-price">₦' + Number(f.price).toLocaleString() + ' <span style="font-size:0.75rem; color:#FBBF24; font-weight:600;">(Workmanship)</span></div>' +
+                '<div class="service-price">₦' + Number(f.price).toLocaleString() + ' <span style="font-size:0.75rem; color:#FBBF24; font-weight:600;">(Craftsmanship)</span></div>' +
             '</div>' +
-            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + f.id + '\', \'tailoring\', ' + f.price + ', \'' + escapeHtml(f.name + ' (Workmanship Only)') + '\')">+ Add to Cart</button>' +
+            '<button class="cywila-btn-primary btn-sm" onclick="addToCart(\'' + f.id + '\', \'tailoring\', ' + f.price + ', \'' + escapeHtml(f.name + ' (Craftsmanship)') + '\')">+ Add to Cart</button>' +
         '</div>';
     });
     var fabricEl = document.getElementById('fabricProvidedGrid');
@@ -1323,40 +1367,40 @@ function updateSpendingLevel(totalSpent) {
 
     if (spendEl) spendEl.textContent = '₦' + spent.toLocaleString();
 
-    var currentTier = 'Insider';
+    var currentTier = 'INSIDER';
     var badgeClass = 'badge-insider';
-    var nextTier = 'Premium';
+    var nextTier = 'PREMIUM';
     var nextThreshold = 250000;
     var baseThreshold = 0;
 
     if (spent >= 1000000) {
-        currentTier = 'VVIP Patron';
+        currentTier = 'VVIP';
         badgeClass = 'badge-vvip';
         nextTier = null;
         nextThreshold = 1000000;
         baseThreshold = 1000000;
     } else if (spent >= 500000) {
-        currentTier = 'VIP Client';
+        currentTier = 'VIP';
         badgeClass = 'badge-vip';
-        nextTier = 'VVIP Patron';
+        nextTier = 'VVIP';
         nextThreshold = 1000000;
         baseThreshold = 500000;
     } else if (spent >= 250000) {
-        currentTier = 'Prestige Client';
+        currentTier = 'PRESTIGE';
         badgeClass = 'badge-prestige';
-        nextTier = 'VIP Client';
+        nextTier = 'VIP';
         nextThreshold = 500000;
         baseThreshold = 250000;
     } else if (spent >= 100000) {
-        currentTier = 'Premium Client';
+        currentTier = 'PREMIUM';
         badgeClass = 'badge-premium';
-        nextTier = 'Prestige Client';
+        nextTier = 'PRESTIGE';
         nextThreshold = 250000;
         baseThreshold = 100000;
     } else {
-        currentTier = 'Insider Member';
+        currentTier = 'INSIDER';
         badgeClass = 'badge-insider';
-        nextTier = 'Premium Client';
+        nextTier = 'PREMIUM';
         nextThreshold = 100000;
         baseThreshold = 0;
     }
@@ -1364,7 +1408,7 @@ function updateSpendingLevel(totalSpent) {
     if (nameEl) nameEl.textContent = currentTier;
     if (badgeEl) {
         badgeEl.className = 'spending-badge ' + badgeClass;
-        badgeEl.textContent = currentTier.toUpperCase();
+        badgeEl.textContent = currentTier;
     }
 
     if (nextTier) {
@@ -1477,6 +1521,10 @@ function renderSubscriptions() {
             '</div>' +
 
             '<div style="margin-top:1rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                (status === 'ACTIVE' && remaining > 0 ? 
+                    '<button class="cywila-btn-primary btn-sm" onclick="openUseSubscriptionModal(\'' + sub.id + '\')" style="width:auto; margin:0; padding:0.5rem 1.1rem; font-size:0.85rem; font-weight:700; background:linear-gradient(135deg, #10B981, #059669);">🧺 Send Clothes for Washing</button>' : 
+                    ''
+                ) +
                 (status === 'ACTIVE' ? 
                     '<button class="btn-sm btn" onclick="updateSubscriptionStatus(\'' + sub.id + '\', \'PAUSED\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.8rem; background:rgba(245,158,11,0.2); color:#FBBF24; border:1px solid #F59E0B;">⏸️ Pause Plan</button>' : 
                     (status === 'PAUSED' ? 
@@ -1490,6 +1538,83 @@ function renderSubscriptions() {
     });
 
     container.innerHTML = html;
+}
+
+function openUseSubscriptionModal(subId) {
+    var sub = customerSubscriptions.find(s => s.id === subId);
+    if (!sub) return;
+
+    var quota = Number(sub.itemsQuota || sub.itemsTotal || 0);
+    var used = Number(sub.itemsUsed || 0);
+    var remaining = Math.max(0, quota - used);
+
+    document.getElementById('useSubId').value = sub.id;
+    document.getElementById('useSubMaxRemaining').value = remaining;
+    document.getElementById('useSubPlanTitle').textContent = sub.planName + ' (Plan ID: #' + sub.id + ')';
+    document.getElementById('useSubRemainingDisplay').textContent = remaining + ' of ' + quota + ' garments remaining';
+    document.getElementById('useSubCount').value = '';
+    document.getElementById('useSubCount').max = remaining;
+    document.getElementById('useSubCountHelper').textContent = 'Enter how many garments you are sending (Max: ' + remaining + ')';
+    document.getElementById('useSubAddress').value = (currentCustomer && currentCustomer.address) ? currentCustomer.address : '';
+    document.getElementById('useSubDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('useSubNotes').value = '';
+    document.getElementById('useSubMsg').innerHTML = '';
+
+    document.getElementById('useSubscriptionModal').classList.add('active');
+}
+
+async function submitSubscriptionUsage() {
+    var subId = document.getElementById('useSubId').value;
+    var maxRem = parseInt(document.getElementById('useSubMaxRemaining').value) || 0;
+    var count = parseInt(document.getElementById('useSubCount').value) || 0;
+    var addr = document.getElementById('useSubAddress').value.trim();
+    var pDate = document.getElementById('useSubDate').value;
+    var notes = document.getElementById('useSubNotes').value.trim();
+    var msgDiv = document.getElementById('useSubMsg');
+    var btn = document.getElementById('useSubSubmitBtn');
+
+    if (count <= 0) {
+        msgDiv.innerHTML = '<span class="error-msg">Please enter how many clothes you are sending (at least 1)</span>';
+        return;
+    }
+    if (count > maxRem) {
+        msgDiv.innerHTML = '<span class="error-msg">Cannot send ' + count + ' clothes. You only have ' + maxRem + ' remaining in your quota.</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving Pickup Request...';
+    msgDiv.innerHTML = '<span style="color:var(--gold);">Deducting quota and contacting central cloud...</span>';
+
+    try {
+        var res = await fetch('/api/subscriptions', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + customerToken
+            },
+            body: JSON.stringify({
+                id: subId,
+                useItems: count,
+                pickupAddress: addr,
+                pickupDate: pDate,
+                notes: notes
+            })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update subscription quota');
+
+        msgDiv.innerHTML = '<span class="success-msg">✓ ' + count + ' clothes recorded! Remaining quota updated.</span>';
+        setTimeout(async () => {
+            closeModal('useSubscriptionModal');
+            await loadSubscriptions();
+        }, 1200);
+    } catch(err) {
+        msgDiv.innerHTML = '<span class="error-msg">' + (err.message || 'Request failed') + '</span>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Send Clothes';
+    }
 }
 
 async function updateSubscriptionStatus(subId, newStatus) {

@@ -494,11 +494,11 @@
                 </table>
             </div>
 
-            <!-- 2B. CLIENT FABRIC BESPOKE SEWING (WORKMANSHIP ONLY) -->
+            <!-- 2B. CLIENT FABRIC BESPOKE SEWING (CRAFTSMANSHIP) -->
             <div class="card" style="border-left: 4px solid var(--gold);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
                     <div>
-                        <h3 style="color: #FBBF24; margin: 0;">✂️ Client Fabric Sewing - Workmanship Only (<span id="countFabricProvided">0</span>)</h3>
+                        <h3 style="color: #FBBF24; margin: 0;">✂️ Client Fabric Sewing - Craftsmanship (<span id="countFabricProvided">0</span>)</h3>
                         <p style="color: #999; font-size: 0.85rem; margin-top: 4px;">Styles sewn when client supplies their own fabric. Turnaround tiers apply.</p>
                     </div>
                     <button class="btn btn-sm" onclick="openAddFabricProvidedModal()" style="background: #F59E0B; color: black; font-weight: 700;">➕ Add Client Fabric Service</button>
@@ -508,7 +508,7 @@
                         <tr>
                             <th>Item ID</th>
                             <th>Garment / Style</th>
-                            <th>Workmanship Fee (₦)</th>
+                            <th>Craftsmanship Fee (₦)</th>
                             <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
@@ -881,7 +881,7 @@
             <input type="text" id="fabricProvidedItemName" placeholder="e.g. Senator Suit (Client Provides Fabric)">
         </div>
         <div class="form-group">
-            <label>Workmanship / Sewing Fee (₦)</label>
+            <label>Craftsmanship / Sewing Fee (₦)</label>
             <input type="number" id="fabricProvidedItemPrice" placeholder="25000">
         </div>
         <div class="form-group">
@@ -2413,8 +2413,9 @@ function renderAdminSubscriptions(subsList) {
                 '<div style="background:#1e1e38; height:6px; border-radius:3px; overflow:hidden;">' +
                     '<div style="height:100%; width:' + pct + '%; background:linear-gradient(90deg, #7C3AED, #F59E0B); border-radius:3px;"></div>' +
                 '</div>' +
-                '<div style="margin-top:4px; display:flex; gap:4px;">' +
-                    '<button class="btn-sm btn" onclick="logAdminSubscriptionUsage(\'' + sub.id + '\', 1)" style="padding:2px 6px; font-size:0.75rem; background:#10b981; color:#000; font-weight:700;" title="Log 1 garment processed">+1 Item</button>' +
+                '<div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">' +
+                    '<button class="btn-sm btn" onclick="promptAdminSubscriptionUsage(\'' + sub.id + '\')" style="padding:2px 8px; font-size:0.75rem; background:#10b981; color:#000; font-weight:700;" title="Log garments brought by client">🧺 Log Garments</button>' +
+                    '<button class="btn-sm btn" onclick="logAdminSubscriptionUsage(\'' + sub.id + '\', 1)" style="padding:2px 6px; font-size:0.75rem; background:#374151; color:#fff;" title="Log +1 garment">+1</button>' +
                     '<button class="btn-sm btn" onclick="logAdminSubscriptionUsage(\'' + sub.id + '\', -1)" style="padding:2px 6px; font-size:0.75rem; background:#374151; color:#fff;" title="Revert 1 garment">-1</button>' +
                 '</div>' +
             '</td>' +
@@ -2434,6 +2435,30 @@ function renderAdminSubscriptions(subsList) {
     tbody.innerHTML = html;
 }
 
+function promptAdminSubscriptionUsage(subId) {
+    var sub = adminSubscriptions.find(s => s.id === subId);
+    if (!sub) return;
+    var quota = Number(sub.itemsQuota || sub.quotaItems || 15);
+    var used = Number(sub.itemsUsed || 0);
+    var remaining = Math.max(0, quota - used);
+    if (remaining <= 0) {
+        alert('This subscription quota has been completely used (' + quota + '/' + quota + ').');
+        return;
+    }
+    var countStr = prompt('Client: ' + (sub.customerName || 'Valued Client') + '\nPlan: ' + sub.planName + '\nRemaining Quota: ' + remaining + ' items.\n\nEnter number of clothes/garments received today:', '1');
+    if (!countStr) return;
+    var count = parseInt(countStr, 10);
+    if (isNaN(count) || count <= 0) {
+        alert('Please enter a valid positive number of garments.');
+        return;
+    }
+    if (count > remaining) {
+        alert('Cannot log ' + count + ' garments. Only ' + remaining + ' remaining in quota.');
+        return;
+    }
+    logAdminSubscriptionUsage(subId, count);
+}
+
 async function logAdminSubscriptionUsage(subId, delta) {
     var sub = adminSubscriptions.find(s => s.id === subId);
     if (!sub) return;
@@ -2446,14 +2471,28 @@ async function logAdminSubscriptionUsage(subId, delta) {
     renderAdminSubscriptions(adminSubscriptions);
 
     try {
-        await fetch('/api/subscriptions', {
+        var res = await fetch('/api/subscriptions', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + adminToken
             },
-            body: JSON.stringify({ id: subId, itemsUsed: newUsed })
+            body: JSON.stringify({ 
+                id: subId, 
+                itemsUsed: newUsed,
+                logUsage: delta > 0 ? {
+                    itemCount: delta,
+                    loggedBy: currentUser ? currentUser.username : 'Admin',
+                    note: 'Logged via Management Dashboard'
+                } : null
+            })
         });
+        var resData = await res.json();
+        if (resData && resData.subscription) {
+            var idx = adminSubscriptions.findIndex(s => s.id === subId);
+            if (idx !== -1) adminSubscriptions[idx] = resData.subscription;
+            renderAdminSubscriptions(adminSubscriptions);
+        }
         logAudit('Log Subscription Usage', 'Updated ' + sub.planName + ' (' + subId + ') used items to ' + newUsed + '/' + quota);
     } catch(err) {
         console.log('Error updating subscription quota:', err);
@@ -2589,7 +2628,7 @@ async function loadCatalogManager() {
     var elT = document.getElementById('catalogTailoringTable');
     if (elT) elT.innerHTML = tHtml || '<tr><td colspan="4" style="text-align:center; color:#999;">No tailoring garments added</td></tr>';
 
-    // 2B. Client Fabric Sewing Table (Workmanship Only)
+    // 2B. Client Fabric Sewing Table (Craftsmanship)
     var fpHtml = '';
     fabricProvided.forEach(item => {
         fpHtml += '<tr>' +
@@ -2695,7 +2734,7 @@ async function saveFabricProvidedItem() {
     var desc = document.getElementById('fabricProvidedItemDesc').value.trim();
     var msg = document.getElementById('fabricProvidedModalMsg');
     if (!name || isNaN(price) || price < 0) {
-        msg.innerHTML = '<span class="error-msg">Please enter valid garment style and workmanship price</span>';
+        msg.innerHTML = '<span class="error-msg">Please enter valid garment style and craftsmanship price</span>';
         return;
     }
     var list = JSON.parse(localStorage.getItem('couture_fabric_provided')) || [];
@@ -3076,9 +3115,9 @@ function populateAdminWalkInServices() {
     outfits.forEach(s => {
         html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + '" data-type="tailoring">' + s.name + ' (₦' + Number(s.price).toLocaleString() + ')</option>';
     });
-    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric)">';
+    html += '</optgroup><optgroup label="✂️ Bespoke Sewing (Client Provides Own Fabric - Craftsmanship)">';
     fabricProvided.forEach(s => {
-        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + ' (Workmanship)" data-type="tailoring">' + s.name + ' (Workmanship: ₦' + Number(s.price).toLocaleString() + ')</option>';
+        html += '<option value="' + s.id + '" data-price="' + s.price + '" data-name="' + s.name + ' (Craftsmanship)" data-type="tailoring">' + s.name + ' (Craftsmanship: ₦' + Number(s.price).toLocaleString() + ')</option>';
     });
     html += '</optgroup>';
     select.innerHTML = html;

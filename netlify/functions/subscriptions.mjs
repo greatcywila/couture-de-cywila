@@ -208,32 +208,103 @@ export default async (req) => {
             return json({ success: true, subscription: newSub }, 201);
         }
 
-        // ---------------------------------------------------------- PATCH (Update Status or Items Used)
+        // ---------------------------------------------------------- PATCH (Update Status, Quota or Log Usage)
         if (req.method === 'PATCH' || req.method === 'PUT') {
+            // Strict Role Access Control for Staff:
+            // Allowed: Super Admin, Admin, Manager, Receptionist, and Customers (for their own subscriptions).
+            // Blocked: Tailor, Washer, Ironer, Driver, General Staff.
+            if (who && who.kind === 'user') {
+                const allowedRoles = ['Super Admin', 'Admin', 'Manager', 'Receptionist'];
+                if (!allowedRoles.includes(who.role)) {
+                    return json({ error: 'Permission Denied: Only Receptionist, Manager, Admin and Super Admin can manage or adjust client subscriptions.' }, 403);
+                }
+            }
+
             const b = await readBody(req);
             const targetId = b.id || b.subscriptionId;
             const sub = subscriptions.find(s => s.id === targetId);
             if (!sub) return json({ error: 'Subscription not found' }, 404);
 
+            // Customers can only modify their own subscriptions
+            if (who && who.kind === 'customer') {
+                const myEmail = normEmail(who.email);
+                const isMine = sub.customerId === who.id || (sub.customerEmail && normEmail(sub.customerEmail) === myEmail);
+                if (!isMine) {
+                    return json({ error: 'Unauthorized to modify this subscription' }, 403);
+                }
+            }
+
+            const quota = Number(sub.itemsQuota || sub.quotaItems || sub.itemsTotal || 15);
+            let currentUsed = Number(sub.itemsUsed || 0);
+
+            // Handle logging clothes usage (e.g. customer sends 8 clothes, or receptionist receives 8 clothes)
+            if (b.useItems !== undefined || b.logUsage !== undefined) {
+                const sendCount = parseInt(b.useItems || b.logUsage) || 0;
+                if (sendCount <= 0) {
+                    return json({ error: 'Please enter a valid number of clothes to send (at least 1).' }, 400);
+                }
+                const remaining = Math.max(0, quota - currentUsed);
+                if (sendCount > remaining) {
+                    return json({ error: `Cannot send ${sendCount} clothes. Only ${remaining} garments remaining in your plan quota.` }, 400);
+                }
+
+                currentUsed += sendCount;
+                sub.itemsUsed = currentUsed;
+
+                const usageRecord = {
+                    date: new Date().toISOString(),
+                    quantity: sendCount,
+                    notes: b.notes || (b.pickupAddress ? `Pickup at: ${b.pickupAddress}` : 'Garments received for care'),
+                    by: (who && (who.username || who.name || who.email)) || 'Customer',
+                    role: (who && who.role) || (who && who.kind) || 'Customer'
+                };
+                sub.usageHistory = [...(sub.usageHistory || []), usageRecord];
+
+                // Auto-update next pickup date if requested
+                if (b.pickupDate) {
+                    sub.nextPickupDate = b.pickupDate;
+                    sub.nextPickup = b.pickupDate;
+                }
+
+                // If quota exhausted, mark status
+                if (currentUsed >= quota) {
+                    sub.status = 'completed';
+                }
+            } else if (b.itemsUsed !== undefined) {
+                // Direct set by Admin/Manager/Receptionist
+                sub.itemsUsed = Math.max(0, Math.min(quota, parseInt(b.itemsUsed) || 0));
+                if (sub.itemsUsed >= quota) {
+                    sub.status = 'completed';
+                } else if (sub.status === 'completed') {
+                    sub.status = 'active';
+                }
+            }
+
+            if (b.incrementItems) {
+                const add = parseInt(b.incrementItems) || 1;
+                sub.itemsUsed = Math.max(0, Math.min(quota, (sub.itemsUsed || 0) + add));
+                if (sub.itemsUsed >= quota) {
+                    sub.status = 'completed';
+                }
+            }
+
             if (b.status) {
-                const allowed = ['active', 'paused', 'cancelled', 'expired'];
+                const allowed = ['active', 'paused', 'cancelled', 'expired', 'completed'];
                 if (allowed.includes(b.status.toLowerCase())) {
                     sub.status = b.status.toLowerCase();
                 }
             }
 
-            if (b.itemsUsed !== undefined) {
-                sub.itemsUsed = Math.max(0, parseInt(b.itemsUsed) || 0);
+            if (b.nextPickup) {
+                sub.nextPickup = b.nextPickup;
+                sub.nextPickupDate = b.nextPickup;
+            }
+            if (b.nextPickupDate) {
+                sub.nextPickupDate = b.nextPickupDate;
+                sub.nextPickup = b.nextPickupDate;
             }
 
-            if (b.incrementItems) {
-                const add = parseInt(b.incrementItems) || 1;
-                sub.itemsUsed = Math.min(sub.quotaItems, (sub.itemsUsed || 0) + add);
-            }
-
-            if (b.nextPickup) sub.nextPickup = b.nextPickup;
             sub.updatedAt = new Date().toISOString();
-
             await writeKey('subscriptions', subscriptions);
             return json({ success: true, subscription: sub });
         }
