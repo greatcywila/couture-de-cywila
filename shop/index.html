@@ -1059,7 +1059,8 @@ async function placeOrder() {
             updateCart();
             
             // Success state with WhatsApp one-tap button
-            var businessPhone = (businessSettings.whatsapp || '+2348000000000').replace(/[^0-9+]/g, '');
+            var rawOrderPhone = (businessSettings && (businessSettings.businessWhatsapp || businessSettings.whatsapp || businessSettings.businessPhone)) || '+2348000000000';
+            var businessPhone = String(rawOrderPhone).replace(/[^0-9]/g, '');
             var waMsg = encodeURIComponent(
                 "Hello Couture dé Cywila! I just placed Order #" + placedOrder.orderId + 
                 " for ₦" + placedOrder.total.toLocaleString() + 
@@ -1444,6 +1445,9 @@ async function loadSubscriptions() {
     container.innerHTML = '<p style="color:var(--text-muted); padding:1rem 0;">Fetching cloud subscription records...</p>';
 
     try {
+        if (!businessSettings || !businessSettings.businessWhatsapp) {
+            await loadSettings();
+        }
         var res = await fetch('/api/subscriptions', {
             headers: { 'Authorization': 'Bearer ' + customerToken }
         });
@@ -1531,8 +1535,12 @@ function renderSubscriptions() {
                         '<button class="btn-sm btn" onclick="updateSubscriptionStatus(\'' + sub.id + '\', \'ACTIVE\')" style="width:auto; margin:0; padding:0.45rem 0.9rem; font-size:0.8rem; background:rgba(16,185,129,0.2); color:#10b981; border:1px solid #10b981;">▶️ Resume Plan</button>' : 
                         ''
                     )
-                ) +
-                '<a href="https://wa.me/' + ((businessSettings.whatsapp || '+2348000000000').replace(/[^0-9]/g, '')) + '?text=' + encodeURIComponent('Hello Couture dé Cywila! Regarding my subscription #' + sub.id + ' (' + sub.planName + '): ') + '" target="_blank" class="whatsapp-btn" style="padding:0.45rem 0.9rem; font-size:0.8rem;">💬 Inquire Concierge</a>' +
+                );
+
+        var rawConciergePhone = (businessSettings && (businessSettings.businessWhatsapp || businessSettings.whatsapp || businessSettings.businessPhone)) || '+2348000000000';
+        var conciergePhone = String(rawConciergePhone).replace(/[^0-9]/g, '');
+        var conciergeText = encodeURIComponent('Hello Couture dé Cywila! Regarding my subscription #' + (sub.id || sub.subscriptionId) + ' (' + (sub.planName || 'Care Plan') + '): ');
+        html += '<a href="https://wa.me/' + conciergePhone + '?text=' + conciergeText + '" target="_blank" class="whatsapp-btn" style="padding:0.45rem 0.9rem; font-size:0.8rem;">💬 Inquire Concierge</a>' +
             '</div>' +
         '</div>';
     });
