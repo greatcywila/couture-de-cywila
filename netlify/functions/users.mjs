@@ -43,8 +43,9 @@ export default async (req) => {
 
         // ------------------------------------------------ public actions
         if (req.method === 'POST' && b.action === 'login') {
-            const u = users.find(x => x.username.toLowerCase() === String(b.username || '').trim().toLowerCase());
-            if (!u || u.status !== 'Active' || !verifySecret(String(b.pin || ''), u.pinHash)) return json({ error: 'Invalid username or PIN' }, 401);
+            const id = String(b.username || b.identifier || '').trim().toLowerCase();
+            const u = users.find(x => x.username.toLowerCase() === id || normEmail(x.email) === id);
+            if (!u || u.status !== 'Active' || !verifySecret(String(b.pin || ''), u.pinHash)) return json({ error: 'Invalid username/email or PIN' }, 401);
             if (b.portal === 'admin' && !ADMIN_PORTAL_ROLES.includes(u.role)) {
                 return json({ error: `${u.role} accounts use the Staff portal (staff.couturedecywila.com.ng)` }, 403);
             }

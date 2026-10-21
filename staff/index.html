@@ -60,8 +60,8 @@
         </div>
 
         <div class="form-group">
-            <label>Username *</label>
-            <input type="text" id="staffUsername" placeholder="e.g. receptionist1, staff1, manager1" class="cywila-input" required>
+            <label>Username or Email *</label>
+            <input type="text" id="staffUsername" placeholder="e.g. receptionist1, staff1 or staff email" class="cywila-input" required>
         </div>
         <div class="form-group" style="margin-bottom: 0.5rem;">
             <label>Security PIN *</label>
@@ -339,12 +339,12 @@
     <div class="modal-content" style="max-width: 480px;">
         <span class="close-modal" onclick="closeModal('staffForgotPinModal')">&times;</span>
         <h3 style="color: var(--gold); margin-bottom: 0.3rem;">🔒 Staff PIN Recovery</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Enter your staff username to receive a security recovery code via email.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Enter your staff username or registered email to receive a security recovery code.</p>
         
         <div id="staffResetStep1">
             <div class="form-group">
-                <label>Staff Username</label>
-                <input type="text" id="staffRecoveryInput" placeholder="e.g. staff1, receptionist1, manager1" class="cywila-input">
+                <label>Staff Username or Email</label>
+                <input type="text" id="staffRecoveryInput" placeholder="e.g. receptionist1, staff1 or staff email" class="cywila-input">
             </div>
             <button class="cywila-btn-primary" onclick="sendStaffResetCode()" id="staffSendCodeBtn">Send Recovery Code</button>
             <div id="staffResetStep1Msg" style="margin-top: 8px;"></div>
@@ -1172,6 +1172,9 @@ async function submitStaffGarmentUsage(subId, count) {
         }
     } catch(err) {
         alert('Error logging garments: ' + err.message);
+    }
+}
+
 // ============ VIEW ORDER MEASUREMENTS (STAFF / TAILOR) ============
 function viewStaffOrderMeasurements(orderId) {
     var order = couture_orders.find(o => o.orderId === orderId);
