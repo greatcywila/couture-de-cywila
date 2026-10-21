@@ -257,6 +257,54 @@
             <input type="text" id="walkInAddress" placeholder="Showroom Counter or client delivery address" value="Showroom Pickup" class="cywila-input">
         </div>
 
+        <!-- WALK-IN BESPOKE MEASUREMENTS (MALE) -->
+        <div style="background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.35); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div>
+                    <strong style="color: var(--primary); font-size: 0.92rem;">📏 Client Measurements & Fitting Details</strong>
+                    <p style="color: var(--text-muted); font-size: 0.78rem; margin: 2px 0 0;">Record client measurements taken with tape measure for the tailoring team.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--text-muted);">
+                    <span>Unit:</span>
+                    <select id="walkInMeasUnit" style="padding: 2px 6px; background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.75rem;">
+                        <option value="inches" selected>Inches (")</option>
+                        <option value="cm">Centimeters (cm)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TOPS -->
+            <div style="margin-top: 8px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #FBBF24; display: block; margin-bottom: 6px;">👔 Tops:</span>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Neck</label><input type="text" id="w_neck" placeholder="Neck" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Full Length</label><input type="text" id="w_top_full_length" placeholder="Length" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Arm Hole</label><input type="text" id="w_arm_hole" placeholder="Arm Hole" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Sleeve Length</label><input type="text" id="w_sleeve_length" placeholder="Sleeve" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Body / Chest</label><input type="text" id="w_chest" placeholder="Chest" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Hand Length</label><input type="text" id="w_hand_length" placeholder="Hand" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                </div>
+            </div>
+
+            <!-- TROUSER -->
+            <div style="margin-top: 8px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #60A5FA; display: block; margin-bottom: 6px;">👖 Trouser:</span>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Waist</label><input type="text" id="w_waist" placeholder="Waist" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Full Length</label><input type="text" id="w_trouser_full_length" placeholder="Length" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Knee Cap</label><input type="text" id="w_knee_cap" placeholder="Knee" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Ankle</label><input type="text" id="w_ankle" placeholder="Ankle" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Crotch</label><input type="text" id="w_crotch" placeholder="Crotch" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                    <div><label style="font-size: 0.7rem; color: var(--text-muted);">Laps (Thigh)</label><input type="text" id="w_laps" placeholder="Laps" class="cywila-input" style="padding: 4px 6px; font-size: 0.8rem;"></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Style / Tailoring Notes</label>
+                <input type="text" id="w_notes" placeholder="e.g. Mandarin collar, double cuffs, slant pockets..." class="cywila-input" style="padding: 5px 8px; font-size: 0.8rem;">
+            </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
             <div class="form-group">
                 <label>Payment Method</label>
@@ -533,6 +581,9 @@ function renderTasks() {
                         '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Completed\')" style="width:auto; margin:0; background:#10b981;">✓ Mark Complete</button>' : 
                         '<button class="cywila-btn-primary btn-sm" onclick="advanceOrderStatus(\'' + order.orderId + '\', \'Delivered\')" style="width:auto; margin:0; background:var(--primary);">📦 Mark Delivered</button>'
                     ) +
+                    (order.measurements ? 
+                        '<button class="btn-sm btn" onclick="viewStaffOrderMeasurements(\'' + order.orderId + '\')" style="width:auto; margin:0; background:rgba(245,158,11,0.2); color:#FBBF24; border:1px solid #F59E0B; font-weight:700;">📏 View Measurements</button>' : ''
+                    ) +
                     waBtn +
                 '</div>' +
             '</div>';
@@ -749,6 +800,35 @@ async function submitWalkInOrder() {
     var expDate = new Date();
     expDate.setDate(expDate.getDate() + days);
 
+    // Extract bespoke measurements if entered
+    var walkInMeas = null;
+    var wNotes = document.getElementById('w_notes').value.trim();
+    var hasAnyMeas = document.getElementById('w_neck').value || document.getElementById('w_top_full_length').value || 
+                     document.getElementById('w_arm_hole').value || document.getElementById('w_sleeve_length').value || 
+                     document.getElementById('w_chest').value || document.getElementById('w_hand_length').value || 
+                     document.getElementById('w_waist').value || document.getElementById('w_trouser_full_length').value || 
+                     document.getElementById('w_knee_cap').value || document.getElementById('w_ankle').value || 
+                     document.getElementById('w_crotch').value || document.getElementById('w_laps').value || wNotes;
+
+    if (hasAnyMeas) {
+        walkInMeas = {
+            unit: document.getElementById('walkInMeasUnit').value || 'inches',
+            neck: document.getElementById('w_neck').value.trim(),
+            topFullLength: document.getElementById('w_top_full_length').value.trim(),
+            armHole: document.getElementById('w_arm_hole').value.trim(),
+            sleeveLength: document.getElementById('w_sleeve_length').value.trim(),
+            chest: document.getElementById('w_chest').value.trim(),
+            handLength: document.getElementById('w_hand_length').value.trim(),
+            waist: document.getElementById('w_waist').value.trim(),
+            trouserFullLength: document.getElementById('w_trouser_full_length').value.trim(),
+            kneeCap: document.getElementById('w_knee_cap').value.trim(),
+            ankle: document.getElementById('w_ankle').value.trim(),
+            crotch: document.getElementById('w_crotch').value.trim(),
+            laps: document.getElementById('w_laps').value.trim(),
+            notes: wNotes
+        };
+    }
+
     btn.disabled = true;
     btn.textContent = 'Saving Booking & Sending Invoice...';
     msgDiv.innerHTML = '<span style="color:var(--gold);">Submitting to cloud database...</span>';
@@ -766,6 +846,8 @@ async function submitWalkInOrder() {
         tierMultiplier: totals.mult,
         deliveryAddress: address,
         fulfillmentMethod: fulfillment,
+        notes: wNotes,
+        measurements: walkInMeas,
         paymentMethod: payMethod,
         paymentStatus: payStatus,
         status: 'Pending',
@@ -1090,7 +1172,57 @@ async function submitStaffGarmentUsage(subId, count) {
         }
     } catch(err) {
         alert('Error logging garments: ' + err.message);
-    }
+// ============ VIEW ORDER MEASUREMENTS (STAFF / TAILOR) ============
+function viewStaffOrderMeasurements(orderId) {
+    var order = couture_orders.find(o => o.orderId === orderId);
+    if (!order || !order.measurements) return;
+    var m = order.measurements;
+
+    var modalHtml = 
+        '<div id="staffMeasModal" class="modal active" style="display:flex;">' +
+            '<div class="modal-content" style="max-width:550px; background:#151528; border:1px solid var(--border-color);">' +
+                '<span class="close-modal" onclick="closeModal(\'staffMeasModal\')">&times;</span>' +
+                '<h3 style="color:var(--primary); margin:0 0 4px; font-size:1.2rem;">📏 Client Bespoke Measurements</h3>' +
+                '<p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Order #' + order.orderId + ' • Client: <strong style="color:#fff;">' + (order.customerName || 'Client') + '</strong> (' + (m.unit || 'inches') + ')</p>' +
+                
+                '<div style="background:rgba(0,0,0,0.3); padding:10px 14px; border-radius:6px; margin-bottom:10px;">' +
+                    '<strong style="color:#FBBF24; font-size:0.88rem; display:block; margin-bottom:6px;">👔 Tops Measurements:</strong>' +
+                    '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:0.85rem;">' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Neck:</span><strong style="color:#fff;">' + (m.neck || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Full Length:</span><strong style="color:#fff;">' + (m.topFullLength || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Arm Hole:</span><strong style="color:#fff;">' + (m.armHole || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Sleeve:</span><strong style="color:#fff;">' + (m.sleeveLength || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Body / Chest:</span><strong style="color:#fff;">' + (m.chest || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Hand Length:</span><strong style="color:#fff;">' + (m.handLength || '—') + '</strong></div>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div style="background:rgba(0,0,0,0.3); padding:10px 14px; border-radius:6px; margin-bottom:10px;">' +
+                    '<strong style="color:#60A5FA; font-size:0.88rem; display:block; margin-bottom:6px;">👖 Trouser Measurements:</strong>' +
+                    '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; font-size:0.85rem;">' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Waist:</span><strong style="color:#fff;">' + (m.waist || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Full Length:</span><strong style="color:#fff;">' + (m.trouserFullLength || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Knee Cap:</span><strong style="color:#fff;">' + (m.kneeCap || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Ankle:</span><strong style="color:#fff;">' + (m.ankle || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Crotch:</span><strong style="color:#fff;">' + (m.crotch || '—') + '</strong></div>' +
+                        '<div><span style="color:var(--text-muted); display:block; font-size:0.75rem;">Laps (Thigh):</span><strong style="color:#fff;">' + (m.laps || '—') + '</strong></div>' +
+                    '</div>' +
+                '</div>' +
+
+                (m.notes || order.notes ? 
+                    '<div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); padding:10px 12px; border-radius:6px; margin-bottom:12px;">' +
+                        '<strong style="color:#F59E0B; font-size:0.8rem; display:block; margin-bottom:2px;">📝 Style / Fitting Notes:</strong>' +
+                        '<p style="margin:0; font-size:0.85rem; color:#fff;">' + escapeHtml(m.notes || order.notes) + '</p>' +
+                    '</div>' : ''
+                ) +
+
+                '<button class="cywila-btn-primary" onclick="closeModal(\'staffMeasModal\')" style="padding:8px;">Close</button>' +
+            '</div>' +
+        '</div>';
+
+    var existing = document.getElementById('staffMeasModal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 // ============ PWA INSTALL & SERVICE WORKER ============

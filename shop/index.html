@@ -392,6 +392,98 @@
             <textarea id="deliveryAddress" placeholder="Enter full street address or suite details" class="cywila-input" style="height: 75px;" required></textarea>
         </div>
 
+        <!-- TAILORING MEASUREMENTS & CUSTOM NOTES (MALE / BESPOKE) -->
+        <div id="tailoringMeasurementsSection" style="display:none; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.35); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div>
+                    <strong style="color: var(--primary); font-size: 0.95rem;">📏 Tailoring Measurements & Style Notes</strong>
+                    <p style="color: var(--text-muted); font-size: 0.78rem; margin: 2px 0 0;">Enter your bespoke fit measurements (inches) or details for your tailor.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--text-muted);">
+                    <span>Unit:</span>
+                    <select id="measUnit" style="padding: 2px 6px; background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.75rem;">
+                        <option value="inches" selected>Inches (")</option>
+                        <option value="cm">Centimeters (cm)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TOPS MEASUREMENTS -->
+            <div style="margin-top: 10px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #FBBF24; display: block; margin-bottom: 6px;">👔 Tops / Shirt / Senator / Agbada</span>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Neck</label>
+                        <input type="text" id="m_neck" placeholder="e.g. 16.5" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Full Length</label>
+                        <input type="text" id="m_top_full_length" placeholder="e.g. 38" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Arm Hole</label>
+                        <input type="text" id="m_arm_hole" placeholder="e.g. 19" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Sleeve Length</label>
+                        <input type="text" id="m_sleeve_length" placeholder="e.g. 25" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Body Size / Chest</label>
+                        <input type="text" id="m_chest" placeholder="e.g. 42" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Hand Length</label>
+                        <input type="text" id="m_hand_length" placeholder="e.g. 26" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TROUSER MEASUREMENTS -->
+            <div style="margin-top: 10px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #60A5FA; display: block; margin-bottom: 6px;">👖 Trouser / Bottom</span>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Waist</label>
+                        <input type="text" id="m_waist" placeholder="e.g. 34" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Full Length</label>
+                        <input type="text" id="m_trouser_full_length" placeholder="e.g. 41" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Knee Cap</label>
+                        <input type="text" id="m_knee_cap" placeholder="e.g. 18" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Ankle</label>
+                        <input type="text" id="m_ankle" placeholder="e.g. 14" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Crotch</label>
+                        <input type="text" id="m_crotch" placeholder="e.g. 26" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Laps (Thigh)</label>
+                        <input type="text" id="m_laps" placeholder="e.g. 24" class="cywila-input" style="padding: 6px; font-size: 0.85rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STYLE & FITTING NOTES -->
+            <div style="margin-top: 10px;">
+                <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Specific Information / Style Notes for this Order</label>
+                <textarea id="m_notes" placeholder="e.g. Slim fit, mandarin collar, hidden button placket, pocket style, side vents..." class="cywila-input" style="height: 60px; font-size: 0.85rem;"></textarea>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #CBD5E1; cursor: pointer;">
+                    <input type="checkbox" id="m_save_profile" checked style="width: auto;">
+                    <span>Save these measurements to my account profile for future orders</span>
+                </label>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Payment Method *</label>
             <select id="paymentMethod" class="cywila-select" onchange="toggleBankDetails(this.value)" required>
@@ -972,6 +1064,32 @@ function confirmTier() {
     document.getElementById('checkoutTotal').textContent = '₦' + total.toLocaleString();
     document.getElementById('expectedDelivery').textContent = dd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     document.getElementById('checkoutMsg').innerHTML = '';
+
+    // Check if cart contains tailoring / bespoke services
+    var hasTailoring = cart.some(i => i.type === 'tailoring' || (i.id && (i.id.startsWith('TLR-') || i.id.startsWith('TPLN-'))));
+    var measSection = document.getElementById('tailoringMeasurementsSection');
+    if (measSection) {
+        measSection.style.display = hasTailoring ? 'block' : 'none';
+        // Auto-fill from saved profile if available
+        var savedMeas = (currentCustomer && currentCustomer.measurements) || JSON.parse(localStorage.getItem('cywila_saved_measurements') || 'null');
+        if (savedMeas) {
+            if (savedMeas.unit) document.getElementById('measUnit').value = savedMeas.unit;
+            if (savedMeas.neck) document.getElementById('m_neck').value = savedMeas.neck;
+            if (savedMeas.topFullLength) document.getElementById('m_top_full_length').value = savedMeas.topFullLength;
+            if (savedMeas.armHole) document.getElementById('m_arm_hole').value = savedMeas.armHole;
+            if (savedMeas.sleeveLength) document.getElementById('m_sleeve_length').value = savedMeas.sleeveLength;
+            if (savedMeas.chest) document.getElementById('m_chest').value = savedMeas.chest;
+            if (savedMeas.handLength) document.getElementById('m_hand_length').value = savedMeas.handLength;
+            if (savedMeas.waist) document.getElementById('m_waist').value = savedMeas.waist;
+            if (savedMeas.trouserFullLength) document.getElementById('m_trouser_full_length').value = savedMeas.trouserFullLength;
+            if (savedMeas.kneeCap) document.getElementById('m_knee_cap').value = savedMeas.kneeCap;
+            if (savedMeas.ankle) document.getElementById('m_ankle').value = savedMeas.ankle;
+            if (savedMeas.crotch) document.getElementById('m_crotch').value = savedMeas.crotch;
+            if (savedMeas.laps) document.getElementById('m_laps').value = savedMeas.laps;
+            if (savedMeas.notes && !document.getElementById('m_notes').value) document.getElementById('m_notes').value = savedMeas.notes;
+        }
+    }
+
     document.getElementById('checkoutModal').classList.add('active');
 }
 
@@ -1000,6 +1118,39 @@ async function placeOrder() {
     var t = serviceTiers[selectedTier];
     var dd = new Date();
     dd.setDate(dd.getDate() + t.cycleLengthDays);
+
+    // Extract bespoke tailoring measurements & notes if provided
+    var measurementsObj = null;
+    var notesVal = '';
+    var measSection = document.getElementById('tailoringMeasurementsSection');
+    if (measSection && measSection.style.display !== 'none') {
+        notesVal = document.getElementById('m_notes').value.trim();
+        measurementsObj = {
+            unit: document.getElementById('measUnit').value || 'inches',
+            neck: document.getElementById('m_neck').value.trim(),
+            topFullLength: document.getElementById('m_top_full_length').value.trim(),
+            armHole: document.getElementById('m_arm_hole').value.trim(),
+            sleeveLength: document.getElementById('m_sleeve_length').value.trim(),
+            chest: document.getElementById('m_chest').value.trim(),
+            handLength: document.getElementById('m_hand_length').value.trim(),
+            waist: document.getElementById('m_waist').value.trim(),
+            trouserFullLength: document.getElementById('m_trouser_full_length').value.trim(),
+            kneeCap: document.getElementById('m_knee_cap').value.trim(),
+            ankle: document.getElementById('m_ankle').value.trim(),
+            crotch: document.getElementById('m_crotch').value.trim(),
+            laps: document.getElementById('m_laps').value.trim(),
+            notes: notesVal
+        };
+
+        // If client chose to save to profile
+        if (document.getElementById('m_save_profile').checked) {
+            localStorage.setItem('cywila_saved_measurements', JSON.stringify(measurementsObj));
+            if (currentCustomer) {
+                currentCustomer.measurements = measurementsObj;
+                localStorage.setItem('cywila_customer_profile', JSON.stringify(currentCustomer));
+            }
+        }
+    }
     
     var orderPayload = {
         customerId: (currentCustomer && currentCustomer.id) || '',
@@ -1016,6 +1167,8 @@ async function placeOrder() {
         deliveryAddress: addr,
         paymentMethod: pay,
         paymentStatus: pay === 'COD' ? 'pending' : 'pending',
+        notes: notesVal,
+        measurements: measurementsObj,
         expectedDeliveryDate: dd.toISOString().split('T')[0]
     };
     
@@ -1339,6 +1492,39 @@ function viewOrderInvoice(orderId) {
                     '<tbody>' + itemsRows + '</tbody>' +
                 '</table>' +
 
+                (order.measurements ? 
+                    '<div style="background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.3); border-radius:6px; padding:12px; margin-bottom:1.2rem; font-size:0.85rem;">' +
+                        '<strong style="color:var(--primary); font-size:0.92rem; display:block; margin-bottom:6px;">📏 Bespoke Tailoring Measurements (' + (order.measurements.unit || 'inches') + ')</strong>' +
+                        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+                            '<div>' +
+                                '<span style="color:#FBBF24; font-weight:700; display:block; font-size:0.8rem;">👔 Tops:</span>' +
+                                '<div style="color:#CBD5E1; font-size:0.8rem; line-height:1.5;">' +
+                                    (order.measurements.neck ? 'Neck: <strong>' + order.measurements.neck + '</strong> • ' : '') +
+                                    (order.measurements.topFullLength ? 'Length: <strong>' + order.measurements.topFullLength + '</strong> • ' : '') +
+                                    (order.measurements.armHole ? 'Arm Hole: <strong>' + order.measurements.armHole + '</strong> • ' : '') +
+                                    (order.measurements.sleeveLength ? 'Sleeve: <strong>' + order.measurements.sleeveLength + '</strong> • ' : '') +
+                                    (order.measurements.chest ? 'Chest: <strong>' + order.measurements.chest + '</strong> • ' : '') +
+                                    (order.measurements.handLength ? 'Hand Length: <strong>' + order.measurements.handLength + '</strong>' : '') +
+                                '</div>' +
+                            '</div>' +
+                            '<div>' +
+                                '<span style="color:#60A5FA; font-weight:700; display:block; font-size:0.8rem;">👖 Trouser:</span>' +
+                                '<div style="color:#CBD5E1; font-size:0.8rem; line-height:1.5;">' +
+                                    (order.measurements.waist ? 'Waist: <strong>' + order.measurements.waist + '</strong> • ' : '') +
+                                    (order.measurements.trouserFullLength ? 'Length: <strong>' + order.measurements.trouserFullLength + '</strong> • ' : '') +
+                                    (order.measurements.kneeCap ? 'Knee: <strong>' + order.measurements.kneeCap + '</strong> • ' : '') +
+                                    (order.measurements.ankle ? 'Ankle: <strong>' + order.measurements.ankle + '</strong> • ' : '') +
+                                    (order.measurements.crotch ? 'Crotch: <strong>' + order.measurements.crotch + '</strong> • ' : '') +
+                                    (order.measurements.laps ? 'Laps: <strong>' + order.measurements.laps + '</strong>' : '') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        (order.notes || (order.measurements && order.measurements.notes) ? 
+                            '<p style="margin:8px 0 0; color:#fff; font-size:0.8rem; border-top:1px dashed rgba(255,255,255,0.15); padding-top:6px;">📝 Notes: <em>' + (order.notes || order.measurements.notes) + '</em></p>' : ''
+                        ) +
+                    '</div>' : ''
+                ) +
+
                 '<div style="text-align:right; font-size:1.15rem; padding:0.8rem 0; border-top:1px solid #2d3561;">' +
                     '<span>Grand Total: </span><strong style="color:var(--gold); font-size:1.35rem;">₦' + Number(order.total || 0).toLocaleString() + '</strong>' +
                 '</div>' +
@@ -1526,7 +1712,7 @@ function renderSubscriptions() {
 
             '<div style="margin-top:1rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
                 (status === 'ACTIVE' && remaining > 0 ? 
-                    '<button class="cywila-btn-primary btn-sm" onclick="openUseSubscriptionModal(\'' + sub.id + '\')" style="width:auto; margin:0; padding:0.5rem 1.1rem; font-size:0.85rem; font-weight:700; background:linear-gradient(135deg, #10B981, #059669);">🧺 Send Clothes for Washing</button>' : 
+                    '<button class="cywila-btn-primary btn-sm" onclick="openUseSubscriptionModal(\'' + sub.id + '\')" style="width:auto; margin:0; padding:0.5rem 1.1rem; font-size:0.85rem; font-weight:700; background:linear-gradient(135deg, #10B981, #059669);">Retainer</button>' : 
                     ''
                 ) +
                 (status === 'ACTIVE' ? 

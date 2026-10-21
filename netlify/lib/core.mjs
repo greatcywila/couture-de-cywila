@@ -227,6 +227,33 @@ ${order.tierMultiplier && order.tierMultiplier !== 1 ? `<tr><td style="text-alig
 ${order.discount ? `<tr><td style="text-align:right;padding:4px;">Discount${order.couponApplied ? ' (' + order.couponApplied + ')' : ''}</td><td style="text-align:right;padding:4px;">−${naira(order.discount)}</td></tr>` : ''}
 ${order.vatAmount ? `<tr><td style="text-align:right;padding:4px;">${order.vatName || 'VAT'} (${order.vatRate}%)</td><td style="text-align:right;padding:4px;">${naira(order.vatAmount)}</td></tr>` : ''}
 <tr><td style="text-align:right;padding:8px 4px;font-size:17px;font-weight:700;">Total</td><td style="text-align:right;padding:8px 4px;font-size:17px;font-weight:700;color:#7C3AED;">${naira(order.total)}</td></tr></table>
+${order.measurements ? `
+<div style="background:#fdf2f8;border:1px solid #fbcfe8;border-radius:8px;padding:12px;margin:14px 0;font-size:13px;">
+<b style="color:#be185d;">📏 Bespoke Tailoring Measurements (${order.measurements.unit || 'inches'})</b>
+<table style="width:100%;margin-top:6px;font-size:12px;color:#374151;">
+<tr>
+<td style="vertical-align:top;width:50%;">
+<b style="color:#d97706;">👔 Tops:</b><br>
+${order.measurements.neck ? 'Neck: ' + order.measurements.neck + '<br>' : ''}
+${order.measurements.topFullLength ? 'Full Length: ' + order.measurements.topFullLength + '<br>' : ''}
+${order.measurements.armHole ? 'Arm Hole: ' + order.measurements.armHole + '<br>' : ''}
+${order.measurements.sleeveLength ? 'Sleeve Length: ' + order.measurements.sleeveLength + '<br>' : ''}
+${order.measurements.chest ? 'Body / Chest: ' + order.measurements.chest + '<br>' : ''}
+${order.measurements.handLength ? 'Hand Length: ' + order.measurements.handLength + '<br>' : ''}
+</td>
+<td style="vertical-align:top;width:50%;">
+<b style="color:#2563eb;">👖 Trouser:</b><br>
+${order.measurements.waist ? 'Waist: ' + order.measurements.waist + '<br>' : ''}
+${order.measurements.trouserFullLength ? 'Full Length: ' + order.measurements.trouserFullLength + '<br>' : ''}
+${order.measurements.kneeCap ? 'Knee Cap: ' + order.measurements.kneeCap + '<br>' : ''}
+${order.measurements.ankle ? 'Ankle: ' + order.measurements.ankle + '<br>' : ''}
+${order.measurements.crotch ? 'Crotch: ' + order.measurements.crotch + '<br>' : ''}
+${order.measurements.laps ? 'Laps: ' + order.measurements.laps + '<br>' : ''}
+</td>
+</tr>
+</table>
+${order.notes || (order.measurements && order.measurements.notes) ? `<div style="margin-top:6px;color:#4b5563;font-style:italic;">Notes: ${order.notes || order.measurements.notes}</div>` : ''}
+</div>` : ''}
 <p style="font-size:13px;color:#6b7280;">Payment: <b>${order.paymentMethod || ''}</b> — Status: <b>${(order.paymentStatus || 'pending').toUpperCase()}</b><br>
 Service tier: <b>${order.tierName || ''}</b> · Expected ready: <b>${order.expectedDeliveryDate || ''}</b></p>
 ${showBank ? `<div style="background:#f5f3ff;border-radius:8px;padding:12px;font-size:13px;"><b>Bank transfer details</b><br>${s.bankName}<br>${s.bankAccountName}<br>Account No: <b>${s.bankAccountNumber}</b></div>` : ''}`;
