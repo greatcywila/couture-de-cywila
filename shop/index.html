@@ -530,7 +530,7 @@
 <div id="useSubscriptionModal" class="modal">
     <div class="modal-content" style="max-width: 520px;">
         <span class="close-modal" onclick="closeModal('useSubscriptionModal')">&times;</span>
-        <h3 style="color: var(--primary); margin-bottom: 0.3rem; font-size: 1.3rem;">🧺 Send Clothes for Care</h3>
+        <h3 id="useSubHeader" style="color: var(--primary); margin-bottom: 0.3rem; font-size: 1.3rem;">🧺 Send Clothes for Care</h3>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;" id="useSubPlanTitle">Use your active subscription quota</p>
 
         <input type="hidden" id="useSubId">
@@ -544,7 +544,7 @@
         </div>
 
         <div class="form-group">
-            <label>How many clothes are you sending? *</label>
+            <label id="useSubCountLabel">How many clothes are you sending? *</label>
             <input type="number" id="useSubCount" min="1" max="100" placeholder="e.g. 8" class="cywila-input" required style="font-size: 1.1rem; font-weight: 700; text-align: center;">
             <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 4px;" id="useSubCountHelper">Enter garments count to be deducted from plan quota</small>
         </div>
@@ -1712,7 +1712,11 @@ function renderSubscriptions() {
 
             '<div style="margin-top:1rem; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
                 (status === 'ACTIVE' && remaining > 0 ? 
-                    '<button class="cywila-btn-primary btn-sm" onclick="openUseSubscriptionModal(\'' + sub.id + '\')" style="width:auto; margin:0; padding:0.5rem 1.1rem; font-size:0.85rem; font-weight:700; background:linear-gradient(135deg, #10B981, #059669);">Retainer</button>' : 
+                    (function() {
+                        var isTailoring = sub.planType === 'tailoring' || (sub.planId && sub.planId.startsWith('TPLN-')) || (sub.planName && sub.planName.toLowerCase().includes('retainer'));
+                        var actionLabel = isTailoring ? 'Use Retainer' : 'Send clothes for laundry';
+                        return '<button class="cywila-btn-primary btn-sm" onclick="openUseSubscriptionModal(\'' + sub.id + '\')" style="width:auto; margin:0; padding:0.5rem 1.1rem; font-size:0.85rem; font-weight:700; background:linear-gradient(135deg, #10B981, #059669);">' + actionLabel + '</button>';
+                    })() : 
                     ''
                 ) +
                 (status === 'ACTIVE' ? 
@@ -1742,13 +1746,25 @@ function openUseSubscriptionModal(subId) {
     var used = Number(sub.itemsUsed || 0);
     var remaining = Math.max(0, quota - used);
 
+    var isTailoring = sub.planType === 'tailoring' || (sub.planId && sub.planId.startsWith('TPLN-')) || (sub.planName && sub.planName.toLowerCase().includes('retainer'));
+
     document.getElementById('useSubId').value = sub.id;
     document.getElementById('useSubMaxRemaining').value = remaining;
     document.getElementById('useSubPlanTitle').textContent = sub.planName + ' (Plan ID: #' + sub.id + ')';
-    document.getElementById('useSubRemainingDisplay').textContent = remaining + ' of ' + quota + ' garments remaining';
+    document.getElementById('useSubRemainingDisplay').textContent = remaining + ' of ' + quota + (isTailoring ? ' bespoke garments remaining' : ' laundry items remaining');
+    
+    var headerEl = document.getElementById('useSubHeader');
+    if (headerEl) headerEl.textContent = isTailoring ? '✂️ Use Bespoke Retainer' : '🧺 Send Clothes for Laundry';
+
+    var countLabel = document.getElementById('useSubCountLabel');
+    if (countLabel) countLabel.textContent = isTailoring ? 'How many garments are you requesting for sewing? *' : 'How many clothes are you sending for laundry? *';
+
+    var submitBtn = document.getElementById('useSubSubmitBtn');
+    if (submitBtn) submitBtn.textContent = isTailoring ? 'Confirm & Use Retainer' : 'Confirm & Send for Laundry';
+
     document.getElementById('useSubCount').value = '';
     document.getElementById('useSubCount').max = remaining;
-    document.getElementById('useSubCountHelper').textContent = 'Enter how many garments you are sending (Max: ' + remaining + ')';
+    document.getElementById('useSubCountHelper').textContent = 'Enter count to be deducted from plan quota (Max: ' + remaining + ')';
     document.getElementById('useSubAddress').value = (currentCustomer && currentCustomer.address) ? currentCustomer.address : '';
     document.getElementById('useSubDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('useSubNotes').value = '';
